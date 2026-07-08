@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smart Fasal Kisan Alert</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <div class="brand">🌾 Smart Fasal Kisan Alert</div>
+      <div class="nav-links">
+        <a href="#demo">Demo</a>
+        <a href="#rsk">RSK Dashboard</a>
+        <a href="#architecture">Architecture</a>
+      </div>
+    </nav>
+    <section class="hero-grid">
+      <div>
+        <p class="eyebrow">Google Cloud AI for Agriculture</p>
+        <h1>Voice and SMS based crop, water and advisory system for small farmers</h1>
+        <p class="lead">Smart Fasal recommends suitable crops using soil, rainfall and farm context, sends dry spell and irrigation alerts, and routes crop health cases to Rythu Seva Kendra experts.</p>
+        <div class="cta-row">
+          <a class="button primary" href="#demo">Open working demo</a>
+          <a class="button secondary" href="#architecture">View Google Cloud stack</a>
+        </div>
+      </div>
+      <div class="phone-card">
+        <div class="phone-top">Farmer SMS</div>
+        <div class="message farmer">Should I irrigate groundnut today?</div>
+        <div class="message bot">Dry spell risk is high for the next 4 days. Irrigate lightly tomorrow morning. Avoid fertilizer until soil moisture improves.</div>
+        <div class="message farmer">Leaves have yellow spots.</div>
+        <div class="message bot">Possible leaf spot. Severity moderate. Case sent to Rythu Seva Kendra for expert review.</div>
+      </div>
+    </section>
+  </header>
+
+  <main>
+    <section class="section">
+      <h2>Core features for the hackathon problem statement</h2>
+      <div class="feature-grid">
+        <article><span>01</span><h3>Smart crop recommendation</h3><p>Suggests crops using soil type, rainfall pattern, groundwater depth, crop water need and local risk.</p></article>
+        <article><span>02</span><h3>Dry spell alerts</h3><p>Flags irrigation stress using localized weather, moisture and crop stage inputs.</p></article>
+        <article><span>03</span><h3>Voice and SMS advisory</h3><p>Designed for low literacy and low connectivity farmers through Indic language messages and calls.</p></article>
+        <article><span>04</span><h3>Crop health logging</h3><p>Farmers can report crop problems by photo, symptom text or voice for AI triage.</p></article>
+        <article><span>05</span><h3>RSK expert follow up</h3><p>High risk crop cases are routed to Rythu Seva Kendra experts with AI summaries.</p></article>
+        <article><span>06</span><h3>District dashboard</h3><p>MP office and district teams can view village risk, crop stress and pending expert cases.</p></article>
+      </div>
+    </section>
+
+    <section id="demo" class="section split">
+      <div>
+        <p class="eyebrow">Working prototype flow</p>
+        <h2>Generate advisory</h2>
+        <p>Enter sample farmer data and generate a demo crop recommendation, irrigation alert and fertilizer guidance. The live version connects this flow to Gemini, Earth Engine, Firestore and weather APIs.</p>
+        <form id="advisoryForm" class="form-card">
+          <label>Preferred language
+            <select id="language">
+              <option>Telugu</option>
+              <option>Hindi</option>
+              <option>Marathi</option>
+              <option>English</option>
+              <option>Tamil</option>
+            </select>
+          </label>
+          <label>District or village
+            <input id="location" value="Guntur" />
+          </label>
+          <label>Current crop
+            <select id="crop">
+              <option>Groundnut</option>
+              <option>Paddy</option>
+              <option>Cotton</option>
+              <option>Maize</option>
+              <option>Millets</option>
+            </select>
+          </label>
+          <label>Soil type
+            <select id="soil">
+              <option>Red sandy soil</option>
+              <option>Black cotton soil</option>
+              <option>Alluvial soil</option>
+              <option>Clay loam soil</option>
+            </select>
+          </label>
+          <div class="form-row">
+            <label>Soil moisture %<input id="moisture" type="number" value="28" min="0" max="100" /></label>
+            <label>Rain forecast mm<input id="rain" type="number" value="3" min="0" max="200" /></label>
+          </div>
+          <div class="form-row">
+            <label>N value<input id="nitrogen" type="number" value="42" /></label>
+            <label>pH<input id="ph" type="number" value="6.7" step="0.1" /></label>
+          </div>
+          <button type="submit" class="button primary wide">Run advisory pipeline</button>
+        </form>
+      </div>
+      <div class="result-card" id="advisoryResult">
+        <h3>Advisory output</h3>
+        <p class="muted">Run the form to generate a farmer friendly advisory.</p>
+      </div>
+    </section>
+
+    <section class="section split alt">
+      <div>
+        <p class="eyebrow">Crop health logging</p>
+        <h2>Photo or voice based AI triage</h2>
+        <p>In this static prototype, symptom text simulates voice transcription. The full version uses Speech to Text and Gemini multimodal to create structured crop health cases.</p>
+        <form id="healthForm" class="form-card">
+          <label>Symptoms described by farmer
+            <textarea id="symptoms">Yellow spots on leaves and slow growth after recent dry days.</textarea>
+          </label>
+          <label>Upload crop photo for demo preview
+            <input id="photo" type="file" accept="image/*" />
+          </label>
+          <button type="submit" class="button primary wide">Create crop health case</button>
+        </form>
+      </div>
+      <div class="result-card" id="healthResult">
+        <h3>Crop case output</h3>
+        <p class="muted">Submit symptoms to create an RSK review case.</p>
+      </div>
+    </section>
+
+    <section id="rsk" class="section">
+      <p class="eyebrow">Rythu Seva Kendra and MP dashboard</p>
+      <h2>Constituency level view</h2>
+      <div class="dashboard-grid">
+        <div class="metric"><strong>124</strong><span>Farmers reached</span></div>
+        <div class="metric warning"><strong>18</strong><span>High dry spell villages</span></div>
+        <div class="metric"><strong>36</strong><span>Advisories sent today</span></div>
+        <div class="metric danger"><strong>7</strong><span>Expert cases pending</span></div>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead><tr><th>Village</th><th>Risk</th><th>Crop</th><th>Pending action</th></tr></thead>
+          <tbody>
+            <tr><td>Guntur Rural</td><td><span class="pill high">High</span></td><td>Groundnut</td><td>Send irrigation SMS</td></tr>
+            <tr><td>Tenali</td><td><span class="pill med">Medium</span></td><td>Paddy</td><td>Expert review for leaf disease</td></tr>
+            <tr><td>Mangalagiri</td><td><span class="pill low">Low</span></td><td>Millets</td><td>Monitor rainfall</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="architecture" class="section">
+      <p class="eyebrow">Technology used</p>
+      <h2>Google Cloud aligned architecture</h2>
+      <div class="architecture">
+        <div>Farmer voice, SMS or web app</div>
+        <div>Cloud Speech to Text, Translation API, Text to Speech</div>
+        <div>Gemini API or Vertex AI advisory engine</div>
+        <div>Earth Engine, weather data, soil data and sensor inputs</div>
+        <div>Firebase Auth, Firestore, Cloud Storage and Cloud Functions or Cloud Run</div>
+        <div>RSK dashboard, MP dashboard, SMS and WhatsApp alert delivery</div>
+      </div>
+      <p class="prototype-note">Prototype status: this deployed demo shows the end to end flow with simulated advisory outputs. The production build connects the same flow to Google Cloud AI, geospatial, data and messaging services.</p>
+    </section>
+  </main>
+
+  <footer>
+    <strong>Smart Fasal Kisan Alert</strong>
+    <span>Built for Build with AI: Code for Communities</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
