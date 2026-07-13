@@ -33,10 +33,10 @@ jobs:
           working-directory: apps/intelligence-service
           activate-environment: true
           enable-cache: true
-          cache-dependency-glob: apps/intelligence-service/uv.lock
+          cache-dependency-glob: uv.lock
       - run: pnpm install --frozen-lockfile
       - run: uv sync --locked --extra dev --no-install-project --project apps/intelligence-service
       - run: pnpm test:coverage
-      - uses: SonarSource/sonarqube-scan-action@2f77a1ec69fb1d595b06f35ab27e97605bdef703 # v5
+      - uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8.2.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

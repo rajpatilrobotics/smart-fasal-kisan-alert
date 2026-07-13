@@ -23,7 +23,10 @@
     "format:check": "node ./scripts/generate.mjs --check",
     "lint": "node ./scripts/generate.mjs --check",
     "typecheck": "node ./scripts/generate.mjs --check",
-    "test": "node ./scripts/generate.mjs --check",
-    "test:unit": "node ./scripts/generate.mjs --check"
+    "test": "vitest run",
+    "test:unit": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "4.1.10"
   }
 }

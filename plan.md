@@ -4,10 +4,10 @@
 Make every required Milestone 0 check on Draft PR #1 pass without weakening quality or security controls.
 
 ## 2. Problem
-CI loses the database URL inside Turborepo, GitHub dependency review lacked repository support, Gitleaks flags documentation wording in the original branch commit, and SonarCloud reports authentication, security, duplication, lockfile, and code-quality failures.
+CI lost the database URL inside Turborepo, GitHub dependency review lacked repository support, Gitleaks flagged documentation wording in the original branch commit, and SonarCloud reported authentication, security, duplication, lockfile, code-quality, reliability, and coverage failures.
 
 ## 3. Proposed solution
-Repair environment propagation and dependency locking, centralize duplicated configuration, resolve every reported Sonar issue, rewrite the false-positive wording, amend the single PR commit, and monitor the unchanged gates.
+Repair environment propagation and dependency locking, centralize duplicated configuration, resolve every reported Sonar issue, add tests for uncovered build and validation logic, rewrite the false-positive wording, and monitor the unchanged gates.
 
 ## 4. Files to change
 - CI, Turbo, Sonar, dependency, and shared configuration files.
@@ -31,4 +31,4 @@ Repair environment propagation and dependency locking, centralize duplicated con
 Run frozen pnpm and locked uv setup, contract checks, migrations and seed, `pnpm quality`, coverage, browser and accessibility suites, and Terraform validation; then verify all PR checks remotely.
 
 ## 8. Open questions
-The repository still needs a SonarCloud token with Execute Analysis permission and Automatic Analysis disabled before the CI scanner can complete.
+None. The SonarCloud token is configured and Automatic Analysis is disabled so CI-based analysis can enforce coverage.

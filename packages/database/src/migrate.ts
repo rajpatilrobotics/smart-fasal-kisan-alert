@@ -10,7 +10,7 @@ if (!databaseUrl) throw new Error('DATABASE_URL is required');
 const migrationsDirectory = resolve(dirname(fileURLToPath(import.meta.url)), '../migrations');
 const migrationFiles = (await readdir(migrationsDirectory))
   .filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/.test(name))
-  .sort();
+  .sort((left, right) => left.localeCompare(right));
 
 const sql = postgres(databaseUrl, { max: 1, prepare: false });
 
