@@ -13,6 +13,8 @@ function resolveDatabaseUrl(environment: NodeJS.ProcessEnv): string | undefined 
   const runAttempt = environment['GITHUB_RUN_ATTEMPT'];
   if (
     environment['GITHUB_ACTIONS'] !== 'true' ||
+    environment['GITHUB_WORKFLOW'] !== 'CI' ||
+    environment['GITHUB_JOB'] !== 'quality' ||
     !runId ||
     !runAttempt ||
     !/^\d+$/.test(runId) ||
@@ -21,8 +23,9 @@ function resolveDatabaseUrl(environment: NodeJS.ProcessEnv): string | undefined 
     return undefined;
   }
 
-  // The CI service uses this deterministic, run-scoped password. GitHub's
-  // default variables survive Turbo strict mode even when DATABASE_URL does not.
+  // The CI quality job's PostGIS service uses this deterministic, run-scoped
+  // password. GitHub's default variables survive Turbo strict mode even when
+  // DATABASE_URL does not.
   return `postgresql://smart_fasal:${runId}-${runAttempt}@127.0.0.1:5432/smart_fasal`;
 }
 
