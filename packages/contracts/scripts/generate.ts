@@ -1031,7 +1031,7 @@ function pythonPackageModule(): string {
 function pythonHealthModule(pythonModels: string): string {
   const statusType = /class HealthPayload\(BaseModel\):[\s\S]*?\n    status: (?<statusType>\w+)/u.exec(
     pythonModels,
-  )?.groups?.statusType;
+  )?.groups?.['statusType'];
   if (!statusType) throw new Error('Generated Pydantic HealthPayload status type was not found');
   return `# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, ${statusType} as HealthStatus\n\nCONTRACT_VERSION = "1.2.0-m3"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n`;
 }
