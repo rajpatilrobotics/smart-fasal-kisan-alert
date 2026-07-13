@@ -1,0 +1,756 @@
+{
+  "$defs": {
+    "CropDeclaration": {
+      "additionalProperties": false,
+      "properties": {
+        "cropName": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "planned": {
+          "type": "boolean"
+        },
+        "sowingOrTransplantDate": {
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "PLANNED",
+            "SOWN",
+            "TRANSPLANTED",
+            "VEGETATIVE",
+            "FLOWERING",
+            "FRUITING",
+            "HARVESTED",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "variety": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "cropName",
+        "stage",
+        "planned"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "CropHistoryRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "cropName": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "notes": {
+          "maxLength": 500,
+          "type": "string"
+        },
+        "seasonLabel": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "year": {
+          "maximum": 2100,
+          "minimum": 2000,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cropName",
+        "seasonLabel",
+        "year"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "FarmerProfileSetup": {
+      "additionalProperties": false,
+      "properties": {
+        "accessibility": {
+          "additionalProperties": false,
+          "properties": {
+            "highContrast": {
+              "type": "boolean"
+            },
+            "largeTargets": {
+              "type": "boolean"
+            },
+            "voicePrompts": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "voicePrompts",
+            "largeTargets",
+            "highContrast"
+          ],
+          "type": "object"
+        },
+        "displayName": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "preferredLocale": {
+          "enum": [
+            "mr-IN",
+            "hi-IN",
+            "en-IN"
+          ],
+          "type": "string"
+        },
+        "timezone": {
+          "const": "Asia/Kolkata",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preferredLocale",
+        "timezone",
+        "accessibility"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "FarmerSetupDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "checksum": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "consents": {
+          "$ref": "#/$defs/SetupConsents"
+        },
+        "cropHistoryByPlot": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/CropHistoryRecord"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "propertyNames": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "currentCropByPlot": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CropDeclaration"
+          },
+          "propertyNames": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "deviceMode": {
+          "enum": [
+            "PERSONAL",
+            "TRUSTED_FAMILY",
+            "RSK_ASSISTED"
+          ],
+          "type": "string"
+        },
+        "draftId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "farms": {
+          "items": {
+            "$ref": "#/$defs/FarmSetup"
+          },
+          "maxItems": 10,
+          "minItems": 0,
+          "type": "array"
+        },
+        "hardwareStatus": {
+          "enum": [
+            "SKIPPED",
+            "NOT_CONFIGURED",
+            "RSK_SETUP_REQUIRED"
+          ],
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/FarmerProfileSetup"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "soilByPlot": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SoilMeasurement"
+          },
+          "propertyNames": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "status": {
+          "enum": [
+            "NOT_STARTED",
+            "IN_PROGRESS",
+            "READY_FOR_REVIEW",
+            "COMPLETE",
+            "NEEDS_REVIEW"
+          ],
+          "type": "string"
+        },
+        "syncStatus": {
+          "enum": [
+            "SAVED_ON_THIS_PHONE",
+            "WAITING_FOR_INTERNET",
+            "SYNCED",
+            "CONFLICT",
+            "LOCKED_RECOVERY",
+            "REJECTED"
+          ],
+          "type": "string"
+        },
+        "updatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "waterByPlot": {
+          "additionalProperties": {
+            "$ref": "#/$defs/WaterContext"
+          },
+          "propertyNames": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "draftId",
+        "status",
+        "profile",
+        "deviceMode",
+        "consents",
+        "farms",
+        "soilByPlot",
+        "waterByPlot",
+        "cropHistoryByPlot",
+        "currentCropByPlot",
+        "hardwareStatus",
+        "syncStatus",
+        "revision",
+        "checksum",
+        "updatedAt"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "FarmerSetupSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "activeDraft": {
+          "$ref": "#/$defs/FarmerSetupDraft"
+        },
+        "completedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "conflictCount": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "NOT_STARTED",
+            "IN_PROGRESS",
+            "READY_FOR_REVIEW",
+            "COMPLETE",
+            "NEEDS_REVIEW"
+          ],
+          "type": "string"
+        },
+        "syncStatus": {
+          "enum": [
+            "SAVED_ON_THIS_PHONE",
+            "WAITING_FOR_INTERNET",
+            "SYNCED",
+            "CONFLICT",
+            "LOCKED_RECOVERY",
+            "REJECTED"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "conflictCount",
+        "syncStatus"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "FarmSetup": {
+      "additionalProperties": false,
+      "properties": {
+        "farmId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "farmingMethod": {
+          "enum": [
+            "TRADITIONAL",
+            "ORGANIC",
+            "MIXED",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/RaigadLocation"
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "plots": {
+          "items": {
+            "$ref": "#/$defs/PlotSetup"
+          },
+          "maxItems": 50,
+          "type": "array"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "farmId",
+        "name",
+        "location",
+        "farmingMethod",
+        "plots",
+        "revision"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "PlotGeometrySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "captureMethod": {
+          "enum": [
+            "GPS_POINT",
+            "MANUAL_MAP",
+            "VILLAGE_LANDMARK",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "geometryVersion": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "gpsPermission": {
+          "enum": [
+            "GRANTED",
+            "DENIED",
+            "PROMPT",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "hasExactServerGeometry": {
+          "type": "boolean"
+        },
+        "kind": {
+          "enum": [
+            "NONE",
+            "POINT",
+            "POLYGON",
+            "VILLAGE_LANDMARK"
+          ],
+          "type": "string"
+        },
+        "recordedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "geometryVersion",
+        "kind",
+        "captureMethod",
+        "gpsPermission",
+        "hasExactServerGeometry",
+        "recordedAt"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "PlotSetup": {
+      "additionalProperties": false,
+      "properties": {
+        "area": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000,
+          "type": "number"
+        },
+        "areaConversionVersion": {
+          "const": "area-v1",
+          "type": "string"
+        },
+        "areaUnit": {
+          "enum": [
+            "SQUARE_METRE",
+            "HECTARE",
+            "ACRE",
+            "GUNTHA"
+          ],
+          "type": "string"
+        },
+        "farmId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PlotGeometrySummary"
+        },
+        "locationMethod": {
+          "enum": [
+            "GPS_POINT",
+            "MANUAL_MAP",
+            "VILLAGE_LANDMARK",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "normalizedAreaSquareMetres": {
+          "exclusiveMinimum": 0,
+          "maximum": 10000000,
+          "type": "number"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "plotId",
+        "farmId",
+        "name",
+        "area",
+        "areaUnit",
+        "normalizedAreaSquareMetres",
+        "areaConversionVersion",
+        "locationMethod",
+        "geometry",
+        "revision"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RaigadLocation": {
+      "additionalProperties": false,
+      "properties": {
+        "district": {
+          "const": "Raigad",
+          "type": "string"
+        },
+        "landmark": {
+          "maxLength": 240,
+          "minLength": 1,
+          "type": "string"
+        },
+        "taluka": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "village": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "district",
+        "taluka",
+        "village"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "SetupConsents": {
+      "additionalProperties": false,
+      "properties": {
+        "decisions": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "decidedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "decision": {
+                "enum": [
+                  "ALLOW",
+                  "DENY",
+                  "WITHDRAW"
+                ],
+                "type": "string"
+              },
+              "scopeKey": {
+                "enum": [
+                  "location.processing",
+                  "audio.storage",
+                  "case.sharing",
+                  "visit.access",
+                  "assisted_service.access",
+                  "channel.app_push",
+                  "channel.sms",
+                  "channel.ivr"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "scopeKey",
+              "decision",
+              "decidedAt"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "decisions"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "SoilMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "nitrogen": {
+          "maximum": 9999,
+          "minimum": 0,
+          "type": "number"
+        },
+        "observedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "ph": {
+          "maximum": 14,
+          "minimum": 0,
+          "type": "number"
+        },
+        "phosphorus": {
+          "maximum": 9999,
+          "minimum": 0,
+          "type": "number"
+        },
+        "potassium": {
+          "maximum": 9999,
+          "minimum": 0,
+          "type": "number"
+        },
+        "source": {
+          "enum": [
+            "SOIL_HEALTH_CARD",
+            "LABORATORY",
+            "FARMER_MANUAL",
+            "SENSOR",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "MG_PER_KG",
+            "KG_PER_HECTARE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit",
+        "source"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "WaterContext": {
+      "additionalProperties": false,
+      "properties": {
+        "availability": {
+          "enum": [
+            "HIGH",
+            "MEDIUM",
+            "LOW",
+            "SEASONAL",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "rainfed": {
+          "type": "boolean"
+        },
+        "reliability": {
+          "enum": [
+            "RELIABLE",
+            "SOMETIMES",
+            "UNRELIABLE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "enum": [
+              "RAIN_FED",
+              "WELL",
+              "BOREWELL",
+              "CANAL",
+              "POND",
+              "TANKER",
+              "OTHER",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "type": "array"
+        },
+        "storage": {
+          "enum": [
+            "NONE",
+            "SMALL_TANK",
+            "FARM_POND",
+            "OTHER",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "sources",
+        "availability",
+        "reliability",
+        "storage",
+        "rainfed"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "currentCropByPlot": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CropDeclaration"
+      },
+      "propertyNames": {
+        "format": "uuid",
+        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "farms": {
+      "items": {
+        "$ref": "#/$defs/FarmSetup"
+      },
+      "maxItems": 10,
+      "type": "array"
+    },
+    "generatedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "setup": {
+      "$ref": "#/$defs/FarmerSetupSummary"
+    },
+    "totals": {
+      "additionalProperties": false,
+      "properties": {
+        "farms": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "normalizedAreaSquareMetres": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "plots": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "farms",
+        "plots",
+        "normalizedAreaSquareMetres"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "setup",
+    "farms",
+    "totals",
+    "currentCropByPlot",
+    "generatedAt"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

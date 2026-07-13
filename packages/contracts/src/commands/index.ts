@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
 import {
+  CompleteFarmerSetupPayloadSchema,
+  DeviceModeChangePayloadSchema,
+  SaveFarmerSetupDraftPayloadSchema,
+  UpdateFarmerPreferencesPayloadSchema,
+} from '../farmer-setup/index.js';
+import {
   ConsentScopeSchema,
   PurposeCodeSchema,
   RevisionSchema,
@@ -19,7 +25,15 @@ export const ClientContextSchema = z
 
 export const CommandTargetSchema = z
   .object({
-    type: z.enum(['roleContext', 'consentDecision', 'accessGrant']),
+    type: z.enum([
+      'roleContext',
+      'consentDecision',
+      'accessGrant',
+      'farmerSetupDraft',
+      'farmerSetup',
+      'farmerPreferences',
+      'deviceMode',
+    ]),
     id: UuidSchema,
   })
   .strict();
@@ -34,6 +48,22 @@ export const ConsentDecisionCommandTargetSchema = CommandTargetSchema.extend({
 
 export const AccessGrantCommandTargetSchema = CommandTargetSchema.extend({
   type: z.literal('accessGrant'),
+}).strict();
+
+export const FarmerSetupDraftCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('farmerSetupDraft'),
+}).strict();
+
+export const FarmerSetupCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('farmerSetup'),
+}).strict();
+
+export const FarmerPreferencesCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('farmerPreferences'),
+}).strict();
+
+export const DeviceModeCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('deviceMode'),
 }).strict();
 
 export const SelectRoleContextPayloadSchema = z
@@ -102,11 +132,39 @@ export const IssueAccessGrantCommandSchema = commandEnvelope(
   AccessGrantPayloadSchema,
 ).meta({ id: 'IssueAccessGrantCommand', 'x-data-classification': 'C2' });
 
+export const SaveFarmerSetupDraftCommandSchema = commandEnvelope(
+  'SaveFarmerSetupDraft',
+  FarmerSetupDraftCommandTargetSchema,
+  SaveFarmerSetupDraftPayloadSchema,
+).meta({ id: 'SaveFarmerSetupDraftCommand', 'x-data-classification': 'C3' });
+
+export const CompleteFarmerSetupCommandSchema = commandEnvelope(
+  'CompleteFarmerSetup',
+  FarmerSetupCommandTargetSchema,
+  CompleteFarmerSetupPayloadSchema,
+).meta({ id: 'CompleteFarmerSetupCommand', 'x-data-classification': 'C3' });
+
+export const UpdateFarmerPreferencesCommandSchema = commandEnvelope(
+  'UpdateFarmerPreferences',
+  FarmerPreferencesCommandTargetSchema,
+  UpdateFarmerPreferencesPayloadSchema,
+).meta({ id: 'UpdateFarmerPreferencesCommand', 'x-data-classification': 'C2' });
+
+export const ChangeDeviceModeCommandSchema = commandEnvelope(
+  'ChangeDeviceMode',
+  DeviceModeCommandTargetSchema,
+  DeviceModeChangePayloadSchema,
+).meta({ id: 'ChangeDeviceModeCommand', 'x-data-classification': 'C2' });
+
 export const CommandEnvelopeSchema = z
   .discriminatedUnion('operation', [
     SelectRoleContextCommandSchema,
     RecordConsentDecisionCommandSchema,
     IssueAccessGrantCommandSchema,
+    SaveFarmerSetupDraftCommandSchema,
+    CompleteFarmerSetupCommandSchema,
+    UpdateFarmerPreferencesCommandSchema,
+    ChangeDeviceModeCommandSchema,
   ])
   .meta({ id: 'CommandEnvelope', 'x-data-classification': 'C2' });
 
@@ -121,7 +179,15 @@ export const CommandResultSchema = z
     disposition: CommandDispositionSchema,
     result: z
       .object({
-        type: z.enum(['roleContext', 'consentDecision', 'accessGrant']),
+        type: z.enum([
+          'roleContext',
+          'consentDecision',
+          'accessGrant',
+          'farmerSetupDraft',
+          'farmerSetup',
+          'farmerPreferences',
+          'deviceMode',
+        ]),
         id: UuidSchema,
         revision: RevisionSchema,
       })

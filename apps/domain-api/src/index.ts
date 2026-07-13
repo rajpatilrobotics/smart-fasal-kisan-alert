@@ -5,7 +5,12 @@ import { createSafeHttpRequestLogger } from '@smart-fasal/observability';
 
 import { buildDomainApi } from './app.js';
 import { API_BOUNDARY_CONFIG, SERVICE_CONFIG } from './config.js';
-import { dependencyUnavailable, type DomainOperationAdapter } from './boundary.js';
+import {
+  dependencyUnavailable,
+  type DomainOperationAdapter,
+  type DomainOperationId,
+} from './boundary.js';
+import { FarmerSetupOperations } from './farmer-setup-operations.js';
 import { InMemoryMilestoneTwoOperations } from './milestone-two-operations.js';
 import { PostgresMilestoneTwoOperations } from './postgres-milestone-two.js';
 import { createProductionIdentityBoundary } from './production-identity.js';
@@ -31,6 +36,15 @@ const postgresBoundary = createProductionPostgresBoundary({
 
 const composedOperations: { current?: DomainOperationAdapter } = {};
 const localTimeKey = randomBytes(32);
+
+function operationIdForSyncCommand(operation: string): DomainOperationId {
+  if (operation === 'SaveFarmerSetupDraft') return 'saveFarmerSetupDraft';
+  if (operation === 'CompleteFarmerSetup') return 'completeFarmerSetup';
+  if (operation === 'UpdateFarmerPreferences') return 'updateFarmerPreferences';
+  if (operation === 'ChangeDeviceMode') return 'changeFarmerDeviceMode';
+  return 'recordConsentDecision';
+}
+
 const localMilestoneTwoOperations =
   SERVICE_CONFIG.NODE_ENV !== 'production' && API_BOUNDARY_CONFIG.environment === 'local'
     ? new InMemoryMilestoneTwoOperations({
@@ -41,7 +55,7 @@ const localMilestoneTwoOperations =
             if (composedOperations.current === undefined) throw dependencyUnavailable();
             const result = CommandResultSchema.parse(
               await composedOperations.current.execute({
-                operationId: 'recordConsentDecision',
+                operationId: operationIdForSyncCommand(command.operation),
                 boundary: {
                   ...boundary,
                   idempotencyKey: command.commandId,
@@ -49,7 +63,7 @@ const localMilestoneTwoOperations =
                 },
                 body: {
                   commandSchemaVersion: 1,
-                  operation: 'RecordConsentDecision',
+                  operation: command.operation,
                   target: command.target,
                   expectedRevision: command.expectedRevision,
                   payload: command.payload,
@@ -88,7 +102,7 @@ const durableMilestoneTwoOperations =
             if (composedOperations.current === undefined) throw dependencyUnavailable();
             const result = CommandResultSchema.parse(
               await composedOperations.current.execute({
-                operationId: 'recordConsentDecision',
+                operationId: operationIdForSyncCommand(command.operation),
                 boundary: {
                   ...boundary,
                   idempotencyKey: command.commandId,
@@ -96,7 +110,7 @@ const durableMilestoneTwoOperations =
                 },
                 body: {
                   commandSchemaVersion: 1,
-                  operation: 'RecordConsentDecision',
+                  operation: command.operation,
                   target: command.target,
                   expectedRevision: command.expectedRevision,
                   payload: command.payload,
@@ -117,6 +131,10 @@ const durableMilestoneTwoOperations =
       })
     : undefined;
 const milestoneTwoOperations = localMilestoneTwoOperations ?? durableMilestoneTwoOperations;
+const milestoneThreeOperations =
+  SERVICE_CONFIG.NODE_ENV !== 'production' && API_BOUNDARY_CONFIG.environment === 'local'
+    ? new FarmerSetupOperations()
+    : undefined;
 
 const operations = createProductionDomainComposition({
   ...(postgresBoundary.farmer === undefined ? {} : { farmer: postgresBoundary.farmer }),
@@ -135,6 +153,7 @@ const operations = createProductionDomainComposition({
     : { returnStateProtector: postgresBoundary.returnStateProtector }),
   mpAppIds: API_BOUNDARY_CONFIG.appIds.mp,
   ...(milestoneTwoOperations === undefined ? {} : { milestoneTwoOperations }),
+  ...(milestoneThreeOperations === undefined ? {} : { milestoneThreeOperations }),
   requireDurableMilestoneTwo: SERVICE_CONFIG.NODE_ENV === 'production',
 });
 composedOperations.current = operations.operations;

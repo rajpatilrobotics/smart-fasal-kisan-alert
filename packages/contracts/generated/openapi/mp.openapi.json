@@ -66,7 +66,7 @@
         }
       },
       "schemaVersion": {
-        "description": "Supported Milestone 2 contract schema version",
+        "description": "Supported Milestone 3 contract schema version",
         "in": "header",
         "name": "X-Client-Schema-Version",
         "required": true,
@@ -141,11 +141,16 @@
                 "alert.read",
                 "identity.role_context.select",
                 "profile.correct",
-                "device_mode.change"
+                "device_mode.change",
+                "farmer.setup.write",
+                "farmer.setup.complete",
+                "farmer.farm.write",
+                "farmer.plot.write",
+                "farmer.voice.setup"
               ],
               "type": "string"
             },
-            "maxItems": 44,
+            "maxItems": 49,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -262,7 +267,11 @@
                 "enum": [
                   "roleContext",
                   "consentDecision",
-                  "accessGrant"
+                  "accessGrant",
+                  "farmerSetupDraft",
+                  "farmerSetup",
+                  "farmerPreferences",
+                  "deviceMode"
                 ],
                 "type": "string"
               }
@@ -505,7 +514,10 @@
               "FILTER_NOT_ALLOWLISTED",
               "COMPARISON_NOT_RELEASABLE",
               "BATCH_ID_PAYLOAD_MISMATCH",
-              "RATE_LIMITED"
+              "RATE_LIMITED",
+              "SETUP_INCOMPLETE",
+              "GPS_PERMISSION_DENIED",
+              "HARDWARE_SKIPPED"
             ],
             "type": "string"
           },
@@ -997,9 +1009,9 @@
     }
   },
   "info": {
-    "description": "Generated Milestone 2 contract. JSON fields use lower camel case.",
+    "description": "Generated Milestone 3 contract. JSON fields use lower camel case.",
     "title": "Smart Fasal mp API",
-    "version": "1.1.0-m2"
+    "version": "1.2.0-m3"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2429,7 +2441,12 @@
     "alert.read",
     "identity.role_context.select",
     "profile.correct",
-    "device_mode.change"
+    "device_mode.change",
+    "farmer.setup.write",
+    "farmer.setup.complete",
+    "farmer.farm.write",
+    "farmer.plot.write",
+    "farmer.voice.setup"
   ],
   "x-smart-fasal-consent-scope-registry": [
     "location.processing",

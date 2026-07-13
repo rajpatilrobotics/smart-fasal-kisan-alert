@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
 import {
+  DeviceModeSelectionSchema,
+  FarmerSetupSummarySchema,
+  MyFarmResponseSchema,
+} from '../farmer-setup/index.js';
+import {
   AuthorizationContextSchema,
   CapabilityKeySchema,
   ConsentScopeSchema,
@@ -87,13 +92,22 @@ export const FarmerBootstrapResponseSchema = z
   .object({
     subjectId: UuidSchema,
     locale: z.enum(['mr', 'hi', 'en']),
-    onboardingState: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETE']),
+    onboardingState: z.enum([
+      'NOT_STARTED',
+      'IN_PROGRESS',
+      'READY_FOR_REVIEW',
+      'COMPLETE',
+      'NEEDS_REVIEW',
+    ]),
     authorizationVersion: z.int().positive(),
     capabilities: z.array(CapabilityKeySchema).max(10),
-    farmContextState: z.literal('UNAVAILABLE_UNTIL_SETUP'),
+    farmContextState: z.enum(['UNAVAILABLE_UNTIL_SETUP', 'AVAILABLE']),
+    deviceMode: DeviceModeSelectionSchema,
+    setup: FarmerSetupSummarySchema,
+    myFarm: MyFarmResponseSchema.optional(),
   })
   .strict()
-  .meta({ id: 'FarmerBootstrapResponse', 'x-data-classification': 'C2' });
+  .meta({ id: 'FarmerBootstrapResponse', 'x-data-classification': 'C3' });
 
 export const RskBootstrapResponseSchema = z
   .object({

@@ -15,7 +15,7 @@ export type FarmerShellState =
       readonly environment: string;
       readonly authorizationVersion: number;
       readonly onboardingState: string;
-      readonly farmContextState: 'UNAVAILABLE_UNTIL_SETUP';
+      readonly farmContextState: 'UNAVAILABLE_UNTIL_SETUP' | 'AVAILABLE';
     };
 
 interface ApiOptions {

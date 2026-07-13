@@ -244,6 +244,320 @@ export async function discloseProtectedFields(input: {
   });
 }
 
+export interface FarmerSetupOwner {
+  environment: string;
+  subjectId: string;
+  authorizationVersion: number;
+}
+
+export interface FarmerSetupDraft {
+  draftId: string;
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'READY_FOR_REVIEW' | 'COMPLETE' | 'NEEDS_REVIEW';
+  profile: {
+    displayName?: string | undefined;
+    preferredLocale: 'mr-IN' | 'hi-IN' | 'en-IN';
+    timezone: 'Asia/Kolkata';
+    accessibility: { voicePrompts: boolean; largeTargets: boolean; highContrast: boolean };
+  };
+  deviceMode: 'PERSONAL' | 'TRUSTED_FAMILY' | 'RSK_ASSISTED';
+  consents: { decisions: readonly unknown[] };
+  farms: readonly {
+    farmId: string;
+    name: string;
+    location: {
+      district: 'Raigad';
+      taluka: string;
+      village: string;
+      landmark?: string | undefined;
+    };
+    farmingMethod: 'TRADITIONAL' | 'ORGANIC' | 'MIXED' | 'UNKNOWN';
+    plots: readonly {
+      plotId: string;
+      farmId: string;
+      name: string;
+      area: number;
+      areaUnit: 'SQUARE_METRE' | 'HECTARE' | 'ACRE' | 'GUNTHA';
+      normalizedAreaSquareMetres: number;
+      areaConversionVersion: 'area-v1';
+      locationMethod: 'GPS_POINT' | 'MANUAL_MAP' | 'VILLAGE_LANDMARK' | 'UNKNOWN';
+      geometry: { gpsPermission: 'GRANTED' | 'DENIED' | 'PROMPT' | 'UNKNOWN' };
+      revision: number;
+    }[];
+    revision: number;
+  }[];
+  soilByPlot: Record<string, unknown>;
+  waterByPlot: Record<string, unknown>;
+  cropHistoryByPlot: Record<string, unknown>;
+  currentCropByPlot: Record<string, unknown>;
+  hardwareStatus: 'SKIPPED' | 'NOT_CONFIGURED' | 'RSK_SETUP_REQUIRED';
+  syncStatus:
+    | 'SAVED_ON_THIS_PHONE'
+    | 'WAITING_FOR_INTERNET'
+    | 'SYNCED'
+    | 'CONFLICT'
+    | 'LOCKED_RECOVERY'
+    | 'REJECTED';
+  revision: number;
+  checksum: string;
+  updatedAt: string;
+}
+
+export interface MyFarmResponse {
+  setup: {
+    status: FarmerSetupDraft['status'];
+    activeDraft?: FarmerSetupDraft;
+    completedAt?: string;
+    conflictCount: number;
+    syncStatus: FarmerSetupDraft['syncStatus'];
+  };
+  farms: FarmerSetupDraft['farms'];
+  totals: { farms: number; plots: number; normalizedAreaSquareMetres: number };
+  currentCropByPlot: Record<string, unknown>;
+  generatedAt: string;
+}
+
+export interface FarmerSetupRecord {
+  owner: FarmerSetupOwner;
+  draft?: FarmerSetupDraft;
+  completedAt?: string;
+}
+
+export interface FarmerSetupRepository {
+  load(owner: FarmerSetupOwner): Promise<FarmerSetupRecord | undefined>;
+  save(record: FarmerSetupRecord): Promise<void>;
+}
+
+export type FarmerSetupCommandResult =
+  | {
+      disposition: 'ACCEPTED' | 'ALREADY_ACCEPTED';
+      draft: FarmerSetupDraft;
+      myFarm: MyFarmResponse;
+    }
+  | {
+      disposition: 'CONFLICT';
+      conflict: {
+        reason: FarmerSetupConflictReason;
+        authoritativeRevision: number;
+      };
+    };
+
+export function checksumSetupDraft(value: unknown): string {
+  return `sha256:${createHash('sha256').update(canonicalize(value), 'utf8').digest('hex')}`;
+}
+
+type FarmerSetupConflictReason =
+  | 'EXPECTED_REVISION_MISMATCH'
+  | 'OWNER_CHANGED'
+  | 'SETUP_INCOMPLETE'
+  | 'CONSENT_OR_ACCESS_VERSION_CHANGED';
+
+export function finalizeSetupDraft(
+  input: Omit<FarmerSetupDraft, 'checksum' | 'revision' | 'syncStatus' | 'updatedAt'> & {
+    revision: number;
+    syncStatus: FarmerSetupDraft['syncStatus'];
+    updatedAt: string;
+  },
+): FarmerSetupDraft {
+  const normalizedFarms = input.farms.map((farm) => ({
+    ...farm,
+    plots: farm.plots.map((plot) => ({
+      ...plot,
+      normalizedAreaSquareMetres: normalizeArea(plot.area, plot.areaUnit),
+      areaConversionVersion: 'area-v1' as const,
+    })),
+  }));
+  const draftWithoutChecksum = {
+    ...input,
+    farms: normalizedFarms,
+  };
+  return {
+    ...draftWithoutChecksum,
+    checksum: checksumSetupDraft(draftWithoutChecksum),
+  };
+}
+
+export class FarmerSetupService {
+  constructor(
+    private readonly repository: FarmerSetupRepository,
+    private readonly now: () => Date = () => new Date(),
+  ) {}
+
+  async bootstrap(owner: FarmerSetupOwner): Promise<MyFarmResponse> {
+    const record = await this.repository.load(owner);
+    return myFarmFromRecord(record ?? { owner }, this.now().toISOString());
+  }
+
+  async saveDraft(input: {
+    owner: FarmerSetupOwner;
+    expectedRevision: number;
+    draft: Omit<FarmerSetupDraft, 'checksum' | 'revision' | 'syncStatus' | 'updatedAt'>;
+  }): Promise<FarmerSetupCommandResult> {
+    const current = await this.repository.load(input.owner);
+    if (current && current.owner.subjectId !== input.owner.subjectId) {
+      return conflict('OWNER_CHANGED', current.draft?.revision ?? 0);
+    }
+    const currentRevision = current?.draft?.revision ?? 0;
+    if (currentRevision !== input.expectedRevision) {
+      return conflict('EXPECTED_REVISION_MISMATCH', currentRevision);
+    }
+    const validation = validateSetup({
+      preferredLocale: input.draft.profile.preferredLocale,
+      deviceMode: input.draft.deviceMode,
+      farms: input.draft.farms.map((farm) => ({
+        farmId: farm.farmId,
+        name: farm.name,
+        location: farm.location,
+        plots: farm.plots,
+      })),
+      hardwareStatus: input.draft.hardwareStatus,
+      gpsPermission:
+        input.draft.farms[0]?.plots[0]?.geometry.gpsPermission === 'DENIED' ? 'DENIED' : 'UNKNOWN',
+    });
+    const draft = finalizeSetupDraft({
+      ...input.draft,
+      status: validation.status,
+      revision: currentRevision + 1,
+      syncStatus: 'SYNCED',
+      updatedAt: this.now().toISOString(),
+    });
+    await this.repository.save({
+      owner: input.owner,
+      draft,
+      ...(current?.completedAt === undefined ? {} : { completedAt: current.completedAt }),
+    });
+    return {
+      disposition: currentRevision === draft.revision ? 'ALREADY_ACCEPTED' : 'ACCEPTED',
+      draft,
+      myFarm: myFarmFromRecord({ owner: input.owner, draft }, this.now().toISOString()),
+    };
+  }
+
+  async complete(input: {
+    owner: FarmerSetupOwner;
+    expectedRevision: number;
+    draftId: string;
+    acceptedDraftRevision: number;
+    acceptedDraftChecksum: string;
+  }): Promise<FarmerSetupCommandResult> {
+    const current = await this.repository.load(input.owner);
+    const draft = current?.draft;
+    if (!draft) return conflict('SETUP_INCOMPLETE', 0);
+    if (
+      draft.revision !== input.expectedRevision ||
+      draft.revision !== input.acceptedDraftRevision
+    ) {
+      return conflict('EXPECTED_REVISION_MISMATCH', draft.revision);
+    }
+    if (draft.draftId !== input.draftId || draft.checksum !== input.acceptedDraftChecksum) {
+      return conflict('CONSENT_OR_ACCESS_VERSION_CHANGED', draft.revision);
+    }
+    const validation = validateSetup({
+      preferredLocale: draft.profile.preferredLocale,
+      deviceMode: draft.deviceMode,
+      farms: draft.farms.map((farm) => ({
+        farmId: farm.farmId,
+        name: farm.name,
+        location: farm.location,
+        plots: farm.plots,
+      })),
+      hardwareStatus: draft.hardwareStatus,
+      gpsPermission:
+        draft.farms[0]?.plots[0]?.geometry.gpsPermission === 'DENIED' ? 'DENIED' : 'UNKNOWN',
+    });
+    if (validation.issues.length > 0) return conflict('SETUP_INCOMPLETE', draft.revision);
+    const completed = finalizeSetupDraft({
+      ...draft,
+      status: 'COMPLETE',
+      revision: draft.revision + 1,
+      syncStatus: 'SYNCED',
+      updatedAt: this.now().toISOString(),
+    });
+    const completedAt = this.now().toISOString();
+    await this.repository.save({ owner: input.owner, draft: completed, completedAt });
+    return {
+      disposition: 'ACCEPTED',
+      draft: completed,
+      myFarm: myFarmFromRecord({ owner: input.owner, draft: completed, completedAt }, completedAt),
+    };
+  }
+}
+
+function conflict(
+  reason: FarmerSetupConflictReason,
+  authoritativeRevision: number,
+): FarmerSetupCommandResult {
+  return { disposition: 'CONFLICT', conflict: { reason, authoritativeRevision } };
+}
+
+export function myFarmFromRecord(record: FarmerSetupRecord, generatedAt: string): MyFarmResponse {
+  const draft = record.draft;
+  const farms = draft?.farms ?? [];
+  const plots = farms.flatMap((farm) => farm.plots);
+  const myFarm = {
+    setup: {
+      status: draft?.status ?? 'NOT_STARTED',
+      ...(draft === undefined ? {} : { activeDraft: draft }),
+      ...(record.completedAt === undefined ? {} : { completedAt: record.completedAt }),
+      conflictCount: 0,
+      syncStatus: draft?.syncStatus ?? 'SYNCED',
+    },
+    farms,
+    totals: {
+      farms: farms.length,
+      plots: plots.length,
+      normalizedAreaSquareMetres:
+        Math.round(plots.reduce((sum, plot) => sum + plot.normalizedAreaSquareMetres, 0) * 100) /
+        100,
+    },
+    currentCropByPlot: draft?.currentCropByPlot ?? {},
+    generatedAt,
+  };
+  return myFarm;
+}
+
+function normalizeArea(area: number, unit: 'SQUARE_METRE' | 'HECTARE' | 'ACRE' | 'GUNTHA'): number {
+  const factor = { SQUARE_METRE: 1, HECTARE: 10_000, ACRE: 4_046.8564224, GUNTHA: 101.17141056 }[
+    unit
+  ];
+  return Math.round(area * factor * 100) / 100;
+}
+
+function validateSetup(input: {
+  preferredLocale: string;
+  deviceMode: string;
+  farms: readonly {
+    name: string;
+    location: { district: string; taluka: string; village: string };
+    plots: readonly {
+      name: string;
+      area: number;
+      areaUnit: 'SQUARE_METRE' | 'HECTARE' | 'ACRE' | 'GUNTHA';
+      locationMethod: string;
+    }[];
+  }[];
+  hardwareStatus: string;
+  gpsPermission: 'GRANTED' | 'DENIED' | 'PROMPT' | 'UNKNOWN';
+}): { status: FarmerSetupDraft['status']; issues: readonly string[] } {
+  const issues: string[] = [];
+  if (!['mr-IN', 'hi-IN', 'en-IN'].includes(input.preferredLocale)) issues.push('locale');
+  if (!['PERSONAL', 'TRUSTED_FAMILY', 'RSK_ASSISTED'].includes(input.deviceMode))
+    issues.push('device');
+  if (!['SKIPPED', 'NOT_CONFIGURED', 'RSK_SETUP_REQUIRED'].includes(input.hardwareStatus)) {
+    issues.push('hardware');
+  }
+  for (const farm of input.farms) {
+    if (farm.location.district !== 'Raigad') issues.push('district');
+    if (farm.plots.length === 0) issues.push('plots');
+    for (const plot of farm.plots) {
+      if (!plot.name.trim()) issues.push('plot.name');
+      if (input.gpsPermission === 'DENIED' && plot.locationMethod === 'GPS_POINT') {
+        issues.push('gps.denied');
+      }
+    }
+  }
+  return { status: issues.length === 0 ? 'READY_FOR_REVIEW' : 'IN_PROGRESS', issues };
+}
+
 export interface ConsentStateSnapshot {
   subjectId: string;
   scopeKey: ConsentScopeKey;

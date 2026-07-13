@@ -53,11 +53,16 @@
           "alert.read",
           "identity.role_context.select",
           "profile.correct",
-          "device_mode.change"
+          "device_mode.change",
+          "farmer.setup.write",
+          "farmer.setup.complete",
+          "farmer.farm.write",
+          "farmer.plot.write",
+          "farmer.voice.setup"
         ],
         "type": "string"
       },
-      "maxItems": 44,
+      "maxItems": 49,
       "type": "array"
     },
     "capabilitySetVersion": {

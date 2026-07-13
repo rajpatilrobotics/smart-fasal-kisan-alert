@@ -1,6 +1,7 @@
 export * from './commands/index.js';
 export * from './device/index.js';
 export * from './events/index.js';
+export * from './farmer-setup/index.js';
 export * from './http/auth.js';
 export * from './http/common.js';
 export * from './http/routes.js';

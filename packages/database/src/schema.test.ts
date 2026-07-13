@@ -4,7 +4,17 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { createDatabaseClient } from './client';
-import { mediaAssets, schemaCompatibility, seedRuns, syncStreams, voiceSessions } from './schema';
+import {
+  farmerProfiles,
+  farms,
+  mediaAssets,
+  plotGeometryVersions,
+  plots,
+  schemaCompatibility,
+  seedRuns,
+  syncStreams,
+  voiceSessions,
+} from './schema';
 
 describe('foundation migration', () => {
   it('enables required spatial and cryptographic extensions', async () => {
@@ -185,6 +195,31 @@ describe('foundation migration', () => {
     expect(mediaAssets.finalizedSha256.name).toBe('finalized_sha256');
     expect(voiceSessions.roleContextId.name).toBe('role_context_id');
     expect(voiceSessions.subjectDeviceBindingId.name).toBe('subject_device_binding_id');
+  });
+
+  it('adds the Milestone 3 Farmer and Farm setup boundaries', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0005_milestone_3_farmer_farm_setup.sql'),
+      'utf8',
+    );
+    expect(migration).toContain('create schema if not exists farm');
+    expect(migration).toContain('create table farm.farmer_profile');
+    expect(migration).toContain('create table farm.setup_progress');
+    expect(migration).toContain('create table farm.farm');
+    expect(migration).toContain('create table farm.plot');
+    expect(migration).toContain('create table farm.plot_geometry_version');
+    expect(migration).toContain(
+      "area_conversion_version text not null check (area_conversion_version = 'area-v1')",
+    );
+    expect(migration).toContain("gps_permission = 'DENIED' and capture_method <> 'GPS_POINT'");
+    expect(migration).toContain('force row level security');
+    expect(migration).toContain("farmer_subject_id = platform.request_uuid('app.subject_id')");
+    expect(migration).toContain('revoke all on farm.plot_geometry_version from public');
+    expect(migration).not.toMatch(/grant\s+select[^;]*farm\.[^;]*sf_mp_api/i);
+    expect(farmerProfiles.setupStatus.name).toBe('setup_status');
+    expect(farms.district.name).toBe('district');
+    expect(plots.normalizedAreaSquareMetres.name).toBe('normalized_area_square_metres');
+    expect(plotGeometryVersions.gpsPermission.name).toBe('gps_permission');
   });
 
   it('requires an explicit database URL', () => {

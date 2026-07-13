@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.1.0-m2",
+  "contractVersion": "1.2.0-m3",
   "events": [
     {
       "eventClass": "CLIENT_LOCAL",
@@ -2141,6 +2141,78 @@
       "eventClass": "AUDIT",
       "name": "mp.briefing_export_refused",
       "status": "reserved",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "farmer.setup_saved",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "farmer.preferences_changed",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "farmer.setup_completed",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "identity.device_mode_changed",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "farm.created",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "farm.updated",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "plot.created",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "plot.updated",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "soil_record.added",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "water_context.updated",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "farm.crop_history_recorded",
+      "status": "executable",
+      "version": 1
+    },
+    {
+      "eventClass": "DOMAIN",
+      "name": "profile.snapshot_created",
+      "status": "executable",
       "version": 1
     }
   ]

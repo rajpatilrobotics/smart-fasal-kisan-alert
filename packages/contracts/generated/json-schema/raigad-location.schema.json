@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "district": {
+      "const": "Raigad",
+      "type": "string"
+    },
+    "landmark": {
+      "maxLength": 240,
+      "minLength": 1,
+      "type": "string"
+    },
+    "taluka": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "village": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "district",
+    "taluka",
+    "village"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "localPrivateWorkState": {
+      "enum": [
+        "NONE",
+        "SYNCED",
+        "LOCKED_RECOVERY_REQUIRED"
+      ],
+      "type": "string"
+    },
+    "nextDeviceMode": {
+      "enum": [
+        "PERSONAL",
+        "TRUSTED_FAMILY",
+        "RSK_ASSISTED"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "nextDeviceMode",
+    "localPrivateWorkState"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

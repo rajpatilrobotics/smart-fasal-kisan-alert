@@ -111,6 +111,12 @@ function fakeOperations(
           authorizationVersion: 1,
           capabilities: [],
           farmContextState: 'UNAVAILABLE_UNTIL_SETUP',
+          deviceMode: 'PERSONAL',
+          setup: {
+            status: 'NOT_STARTED',
+            conflictCount: 0,
+            syncStatus: 'SYNCED',
+          },
         },
         listFarmerConsents: { items: [], revision: 0 },
         recordConsentDecision: commandResult(),

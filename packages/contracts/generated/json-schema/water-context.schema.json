@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "availability": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "SEASONAL",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "rainfed": {
+      "type": "boolean"
+    },
+    "reliability": {
+      "enum": [
+        "RELIABLE",
+        "SOMETIMES",
+        "UNRELIABLE",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "enum": [
+          "RAIN_FED",
+          "WELL",
+          "BOREWELL",
+          "CANAL",
+          "POND",
+          "TANKER",
+          "OTHER",
+          "UNKNOWN"
+        ],
+        "type": "string"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "type": "array"
+    },
+    "storage": {
+      "enum": [
+        "NONE",
+        "SMALL_TANK",
+        "FARM_POND",
+        "OTHER",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "sources",
+    "availability",
+    "reliability",
+    "storage",
+    "rainfed"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

@@ -43,7 +43,11 @@
           "enum": [
             "roleContext",
             "consentDecision",
-            "accessGrant"
+            "accessGrant",
+            "farmerSetupDraft",
+            "farmerSetup",
+            "farmerPreferences",
+            "deviceMode"
           ],
           "type": "string"
         }
