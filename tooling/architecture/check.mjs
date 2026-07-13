@@ -1,6 +1,13 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
+import {
+  findForbiddenOperationalRoutes,
+  FORBIDDEN_MP_WORKSPACE_PACKAGES,
+  isForbiddenMpExternalSpecifier,
+  reachableInternalDependencyPaths,
+} from './mp-rules.mjs';
+
 const roots = ['apps', 'packages'];
 const workspaces = [];
 
@@ -22,6 +29,7 @@ const requiredDeployables = [
 const requiredFoundationPackages = [
   '@smart-fasal/application',
   '@smart-fasal/authz',
+  '@smart-fasal/browser-auth',
   '@smart-fasal/config',
   '@smart-fasal/contracts',
   '@smart-fasal/database',
@@ -46,6 +54,8 @@ const mpDependencyAllowlists = new Map([
     '@smart-fasal/mp-web',
     new Set([
       '@smart-fasal/design-tokens',
+      '@smart-fasal/browser-auth',
+      '@smart-fasal/contracts',
       '@smart-fasal/health',
       '@smart-fasal/i18n',
       '@smart-fasal/ui',
@@ -61,6 +71,16 @@ const mpDependencyAllowlists = new Map([
       '@smart-fasal/service-runtime',
     ]),
   ],
+]);
+
+const generatedClientSurface = new Map([
+  ['@smart-fasal/farmer-web', '@smart-fasal/contracts/clients/farmer'],
+  ['@smart-fasal/rsk-web', '@smart-fasal/contracts/clients/rsk'],
+  ['@smart-fasal/mp-web', '@smart-fasal/contracts/clients/mp'],
+]);
+
+const restrictedContractImports = new Map([
+  ['@smart-fasal/mp-query-api', new Set(['@smart-fasal/contracts/release/mp'])],
 ]);
 
 const ignoredSourceDirectories = new Set([
@@ -191,6 +211,11 @@ for (const [name, workspace] of workspaceByName) {
     const source = await readFile(sourceFile, 'utf8');
     for (const match of source.matchAll(staticImportPattern)) {
       const specifier = match[1];
+      if (mpAllowlist && isForbiddenMpExternalSpecifier(specifier)) {
+        failures.push(
+          `${relative(resolve('.'), sourceFile)} imports forbidden MP database client ${specifier}`,
+        );
+      }
       const target = workspaceForSpecifier(sourceFile, specifier);
       if (!target || target.name === name) continue;
 
@@ -207,9 +232,81 @@ for (const [name, workspace] of workspaceByName) {
         );
       }
 
+      const clientSurface = generatedClientSurface.get(name);
+      if (
+        target.name === '@smart-fasal/contracts' &&
+        clientSurface &&
+        specifier !== clientSurface
+      ) {
+        failures.push(
+          `${relative(resolve('.'), sourceFile)} imports ${specifier}; ${name} may import only ${clientSurface}`,
+        );
+      }
+
+      const allowedContractImports = restrictedContractImports.get(name);
+      if (
+        target.name === '@smart-fasal/contracts' &&
+        allowedContractImports &&
+        !allowedContractImports.has(specifier)
+      ) {
+        failures.push(
+          `${relative(resolve('.'), sourceFile)} imports ${specifier}; ${name} may import only release-safe contracts`,
+        );
+      }
+
       if (!specifier.startsWith('.') && !declared.has(target.name)) {
         failures.push(
           `${relative(resolve('.'), sourceFile)} imports undeclared workspace package ${target.name}`,
+        );
+      }
+    }
+  }
+}
+
+for (const mpName of mpDependencyAllowlists.keys()) {
+  const reachable = reachableInternalDependencyPaths(mpName, graph);
+  for (const [dependency, path] of reachable) {
+    if (dependency !== mpName && FORBIDDEN_MP_WORKSPACE_PACKAGES.has(dependency)) {
+      failures.push(`${mpName} reaches forbidden operational package via ${path.join(' -> ')}`);
+    }
+    const workspace = workspaceByName.get(dependency);
+    if (workspace === undefined) continue;
+    const declared = {
+      ...workspace.manifest.dependencies,
+      ...workspace.manifest.devDependencies,
+      ...workspace.manifest.peerDependencies,
+    };
+    for (const externalDependency of Object.keys(declared)) {
+      if (workspaceByName.has(externalDependency)) continue;
+      if (isForbiddenMpExternalSpecifier(externalDependency)) {
+        failures.push(
+          `${mpName} reaches forbidden database dependency ${externalDependency} via ${path.join(' -> ')}`,
+        );
+      }
+    }
+  }
+}
+
+const mpQueryWorkspace = workspaceByName.get('@smart-fasal/mp-query-api');
+if (mpQueryWorkspace) {
+  for (const sourceFile of await listSourceFiles(resolve(mpQueryWorkspace.path, 'src'))) {
+    if (sourceFile.includes('.test.')) continue;
+    const source = await readFile(sourceFile, 'utf8');
+    for (const forbidden of findForbiddenOperationalRoutes(source, sourceFile)) {
+      failures.push(
+        `${relative(resolve('.'), sourceFile)} contains forbidden MP operational boundary ${forbidden}`,
+      );
+    }
+    for (const forbidden of [
+      'DATABASE_URL',
+      'PGDATABASE',
+      'PGHOST',
+      'POSTGRES_URL',
+      'SUPABASE_DB_URL',
+    ]) {
+      if (source.includes(forbidden)) {
+        failures.push(
+          `${relative(resolve('.'), sourceFile)} contains forbidden MP database configuration ${forbidden}`,
         );
       }
     }

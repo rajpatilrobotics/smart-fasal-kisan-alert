@@ -8,18 +8,21 @@ async function headersFor(production: boolean) {
 }
 
 describe('createSecureNextConfig', () => {
-  it('allows the development evaluator without enabling transport security', async () => {
+  it('keeps CSP out of static configuration and omits development transport security', async () => {
     const headers = await headersFor(false);
 
-    expect(headers.get('Content-Security-Policy')).toContain("'unsafe-eval'");
+    expect(headers.has('Content-Security-Policy')).toBe(false);
     expect(headers.has('Strict-Transport-Security')).toBe(false);
   });
 
-  it('enables production transport security and upgrades insecure requests', async () => {
+  it('keeps the remaining browser hardening headers and enables production transport security', async () => {
     const headers = await headersFor(true);
 
-    expect(headers.get('Content-Security-Policy')).not.toContain("'unsafe-eval'");
-    expect(headers.get('Content-Security-Policy')).toContain('upgrade-insecure-requests');
+    expect(headers.get('Cross-Origin-Opener-Policy')).toBe('same-origin');
+    expect(headers.get('Permissions-Policy')).toBe('camera=(), geolocation=(), microphone=()');
+    expect(headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
+    expect(headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(headers.get('X-Frame-Options')).toBe('DENY');
     expect(headers.get('Strict-Transport-Security')).toBe('max-age=31536000; includeSubDomains');
   });
 });
