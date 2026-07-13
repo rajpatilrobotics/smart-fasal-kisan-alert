@@ -41,7 +41,13 @@ describe('Farmer authentication gateway', () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /सुरक्षित साइन इनकडे/ })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
-    expect(storageWrite).not.toHaveBeenCalled();
+    expect(storageWrite).toHaveBeenCalledWith(
+      'smart-fasal:farmer:installation:v1',
+      expect.stringMatching(/^[0-9a-f-]{36}$/iu),
+    );
+    expect(storageWrite.mock.calls.map(([key]) => key)).toEqual([
+      'smart-fasal:farmer:installation:v1',
+    ]);
     storageWrite.mockRestore();
   });
 

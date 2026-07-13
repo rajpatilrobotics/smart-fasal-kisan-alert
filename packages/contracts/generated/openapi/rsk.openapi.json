@@ -66,7 +66,7 @@
         }
       },
       "schemaVersion": {
-        "description": "Supported Milestone 1 contract schema version",
+        "description": "Supported Milestone 2 contract schema version",
         "in": "header",
         "name": "X-Client-Schema-Version",
         "required": true,
@@ -74,9 +74,99 @@
           "const": "1",
           "type": "string"
         }
+      },
+      "singleByteRange": {
+        "description": "Optional single inclusive byte range",
+        "in": "header",
+        "name": "Range",
+        "required": false,
+        "schema": {
+          "pattern": "^bytes=(0|[1-9][0-9]*)-(0|[1-9][0-9]*)?$",
+          "type": "string"
+        }
       }
     },
     "schemas": {
+      "AttachOfflineAudioRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "audioConsentVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "expectedSessionRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "language": {
+            "enum": [
+              "mr",
+              "hi",
+              "en"
+            ],
+            "type": "string"
+          },
+          "localCaptureId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assetId",
+          "localCaptureId",
+          "language",
+          "sessionId",
+          "audioConsentVersion",
+          "expectedSessionRevision"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AttachOfflineAudioResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attachmentId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "offlineAudioRefId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "state": {
+            "const": "TRANSCRIPTION_PENDING",
+            "type": "string"
+          }
+        },
+        "required": [
+          "offlineAudioRefId",
+          "attachmentId",
+          "state",
+          "expiresAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "AuthorizationContext": {
         "additionalProperties": false,
         "properties": {
@@ -208,6 +298,59 @@
         "type": "object",
         "x-data-classification": "C2"
       },
+      "CancelMediaUploadIntentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cancelledAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "intentId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "state": {
+            "const": "CANCELLED",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intentId",
+          "state",
+          "cancelledAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "CancelVoiceProposalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expectedProposalRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "proposalId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposalId",
+          "expectedProposalRevision",
+          "commandId"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
       "CommandResult": {
         "additionalProperties": false,
         "properties": {
@@ -283,6 +426,425 @@
         ],
         "type": "object",
         "x-data-classification": "C2"
+      },
+      "ConfirmVoiceProposalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expectedProposalRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "payloadHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "proposalId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposalId",
+          "expectedProposalRevision",
+          "commandId",
+          "payloadHash"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "CorrectVoiceProposalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "correction": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "expectedProposalRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "proposalId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposalId",
+          "expectedProposalRevision",
+          "commandId",
+          "correction"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "CreateMediaUploadIntentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "claimedMimeType": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp",
+              "audio/webm;codecs=opus",
+              "audio/wav"
+            ],
+            "type": "string"
+          },
+          "consentAccessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "declaredDurationSeconds": {
+            "exclusiveMinimum": 0,
+            "maximum": 120,
+            "type": "number"
+          },
+          "declaredHeight": {
+            "exclusiveMinimum": 0,
+            "maximum": 16384,
+            "type": "integer"
+          },
+          "declaredSizeBytes": {
+            "exclusiveMinimum": 0,
+            "maximum": 15728640,
+            "type": "integer"
+          },
+          "declaredWidth": {
+            "exclusiveMinimum": 0,
+            "maximum": 16384,
+            "type": "integer"
+          },
+          "expectedSha256": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "mediaProtocolVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "owner": {
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "ownerId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "ownerType": {
+                    "const": "HEALTH_REPORT",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "ownerType",
+                  "ownerId"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "ownerId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "ownerType": {
+                    "const": "DIARY_ENTRY",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "ownerType",
+                  "ownerId"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "ownerId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "ownerType": {
+                    "const": "RSK_VISIT",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "ownerType",
+                  "ownerId"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "ownerId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "ownerType": {
+                    "const": "SENSOR_MAINTENANCE",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "ownerType",
+                  "ownerId"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "ownerId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "ownerType": {
+                    "const": "VOICE_SESSION",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "ownerType",
+                  "ownerId"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "purpose": {
+            "enum": [
+              "CROP_HEALTH_IMAGE",
+              "DIARY_MEDIA",
+              "RSK_VISIT_EVIDENCE",
+              "SENSOR_MAINTENANCE_EVIDENCE",
+              "VOICE_OFFLINE_AUDIO"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "mediaProtocolVersion",
+          "purpose",
+          "owner",
+          "expectedSha256",
+          "claimedMimeType",
+          "declaredSizeBytes",
+          "consentAccessVersion"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "CreateMediaUploadIntentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "assetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "generationPrecondition": {
+            "pattern": "^[0-9]+$",
+            "type": "string"
+          },
+          "intentId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "resumableUploadUri": {
+            "format": "uri",
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "state": {
+            "const": "INTENT_ISSUED",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intentId",
+          "assetId",
+          "state",
+          "resumableUploadUri",
+          "generationPrecondition",
+          "expiresAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C4"
+      },
+      "CreateVoiceSessionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "audioCapabilities": {
+            "additionalProperties": false,
+            "properties": {
+              "httpsAudio": {
+                "type": "boolean"
+              },
+              "offlineAudio": {
+                "type": "boolean"
+              },
+              "realtime": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "realtime",
+              "httpsAudio",
+              "offlineAudio"
+            ],
+            "type": "object"
+          },
+          "contextIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "language": {
+            "enum": [
+              "mr",
+              "hi",
+              "en"
+            ],
+            "type": "string"
+          },
+          "protocolVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "visualRoute": {
+            "maxLength": 240,
+            "minLength": 1,
+            "pattern": "^\\/",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocolVersion",
+          "language",
+          "visualRoute",
+          "contextIds",
+          "audioCapabilities"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "CreateVoiceSessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "httpsTurnsEndpoint": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "protocolVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "sessionExpiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "singleUseTicket": {
+            "pattern": "^[A-Za-z0-9_-]{32,512}$",
+            "type": "string"
+          },
+          "state": {
+            "const": "CREATED",
+            "type": "string"
+          },
+          "ticketExpiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "websocketEndpoint": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sessionId",
+          "state",
+          "websocketEndpoint",
+          "singleUseTicket",
+          "ticketExpiresAt",
+          "sessionExpiresAt",
+          "protocolVersion",
+          "httpsTurnsEndpoint"
+        ],
+        "type": "object",
+        "x-data-classification": "C4"
+      },
+      "FinalizeMediaUploadIntentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "finalSizeBytes": {
+            "exclusiveMinimum": 0,
+            "maximum": 15728640,
+            "type": "integer"
+          },
+          "objectGeneration": {
+            "pattern": "^[0-9]+$",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "objectGeneration",
+          "sha256",
+          "finalSizeBytes"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
       },
       "HealthPayload": {
         "additionalProperties": false,
@@ -427,6 +989,122 @@
           "expectedRevision",
           "payload",
           "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "JsonValue": {},
+      "MediaAssetStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "assetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "derivativeSha256": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "failureCode": {
+            "enum": [
+              "GENERATION_MISMATCH",
+              "SIZE_MISMATCH",
+              "CHECKSUM_MISMATCH",
+              "MIME_MISMATCH",
+              "UNSUPPORTED_CODEC",
+              "DECODER_REJECTED",
+              "POLYGLOT_REJECTED",
+              "MALWARE_REJECTED",
+              "DIMENSION_LIMIT_EXCEEDED",
+              "DURATION_LIMIT_EXCEEDED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED"
+            ],
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "CROP_HEALTH_IMAGE",
+              "DIARY_MEDIA",
+              "RSK_VISIT_EVIDENCE",
+              "SENSOR_MAINTENANCE_EVIDENCE",
+              "VOICE_OFFLINE_AUDIO"
+            ],
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "INTENT_ISSUED",
+              "UPLOADED_UNVERIFIED",
+              "SCANNING",
+              "VERIFIED",
+              "ATTACHED",
+              "FAILED_RETRYABLE",
+              "REJECTED",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "verifiedMimeType": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "verifiedSizeBytes": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assetId",
+          "purpose",
+          "state",
+          "revision",
+          "updatedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "MediaOperationAcceptedResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "assetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "operationId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "state": {
+            "const": "SCANNING",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operationId",
+          "assetId",
+          "state",
+          "acceptedAt"
         ],
         "type": "object",
         "x-data-classification": "C2"
@@ -972,6 +1650,246 @@
         ],
         "type": "object",
         "x-data-classification": "C2"
+      },
+      "VoiceCommandStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "receiptReference": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "UNKNOWN",
+              "IN_PROGRESS",
+              "ACCEPTED",
+              "REJECTED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "state"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "VoiceProposalResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "payloadHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "proposalId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "readBack": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "PENDING",
+              "CONFIRMED",
+              "CANCELLED",
+              "SUPERSEDED",
+              "EXPIRED",
+              "EXECUTING",
+              "COMPLETE",
+              "FAILED"
+            ],
+            "type": "string"
+          },
+          "toolKey": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposalId",
+          "sessionId",
+          "revision",
+          "state",
+          "toolKey",
+          "payloadHash",
+          "readBack",
+          "expiresAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "VoiceTurnRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledgedServerSequence": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "clientSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "input": {
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "text": {
+                    "maxLength": 2000,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "type": {
+                    "const": "TEXT",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "text"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "bytesBase64": {
+                    "maxLength": 350000,
+                    "minLength": 4,
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "enum": [
+                      "audio/webm;codecs=opus",
+                      "audio/wav"
+                    ],
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "pattern": "^sha256:[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  "type": {
+                    "const": "AUDIO",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "mimeType",
+                  "sha256",
+                  "bytesBase64"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "turnId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "turnId",
+          "input",
+          "clientSequence",
+          "acknowledgedServerSequence"
+        ],
+        "type": "object",
+        "x-data-classification": "C4"
+      },
+      "VoiceTurnResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledgedClientSequence": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messageKey": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "proposalId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "serverSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "HELP",
+              "UNAVAILABLE",
+              "NEEDS_CLARIFICATION",
+              "PROPOSAL_PENDING"
+            ],
+            "type": "string"
+          },
+          "turnId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "turnId",
+          "sessionId",
+          "state",
+          "messageKey",
+          "serverSequence",
+          "acknowledgedClientSequence"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
       }
     },
     "securitySchemes": {
@@ -984,13 +1902,24 @@
         "bearerFormat": "Firebase ID token",
         "scheme": "bearer",
         "type": "http"
+      },
+      "internalIdentity": {
+        "bearerFormat": "Google service identity token",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "voiceTicket": {
+        "description": "Exact sfka.voice.v1 plus dedicated ticket.<base64url> subprotocol tokens",
+        "in": "header",
+        "name": "Sec-WebSocket-Protocol",
+        "type": "apiKey"
       }
     }
   },
   "info": {
-    "description": "Generated Milestone 1 contract. JSON fields use lower camel case.",
+    "description": "Generated Milestone 2 contract. JSON fields use lower camel case.",
     "title": "Smart Fasal rsk API",
-    "version": "1.0.0-m1"
+    "version": "1.1.0-m2"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1740,6 +2669,1071 @@
         ]
       }
     },
+    "/v1/commands/{commandId}": {
+      "get": {
+        "operationId": "getVoiceCommandStatus",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "commandId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceCommandStatusResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "command-receipt",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/media/assets/{assetId}/status": {
+      "get": {
+        "operationId": "getMediaAssetStatus",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "assetId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaAssetStatusResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "media"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/media/attachments/{attachmentId}/content": {
+      "get": {
+        "operationId": "streamMediaAttachment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/singleByteRange"
+          },
+          {
+            "in": "path",
+            "name": "attachmentId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Complete generation-pinned attachment",
+            "x-generation-pinned": true,
+            "x-single-range-only": true
+          },
+          "206": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Single authorized byte range",
+            "x-generation-pinned": true,
+            "x-single-range-only": true
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED",
+              "MEDIA_NOT_VERIFIED"
+            ]
+          },
+          "416": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "The requested byte range is not satisfiable",
+            "x-smart-fasal-error-family": "RANGE_NOT_SATISFIABLE",
+            "x-smart-fasal-problem-codes": [
+              "MEDIA_INTEGRITY_MISMATCH"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "media"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED",
+          "MEDIA_NOT_VERIFIED"
+        ]
+      }
+    },
+    "/v1/media/upload-intents": {
+      "post": {
+        "operationId": "createMediaUploadIntent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMediaUploadIntentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateMediaUploadIntentResponse"
+                }
+              }
+            },
+            "description": "One-time quarantine upload initiation"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "RATE_LIMITED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "media"
+        ],
+        "x-data-classification": "C4",
+        "x-retention-class": "media-quarantine",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED",
+          "RATE_LIMITED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/media/upload-intents/{intentId}": {
+      "delete": {
+        "operationId": "cancelMediaUploadIntent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "intentId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelMediaUploadIntentResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "INVALID_STATE_TRANSITION",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "media"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "media-quarantine",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "INVALID_STATE_TRANSITION",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/media/upload-intents/{intentId}:finalize": {
+      "post": {
+        "operationId": "finalizeMediaUploadIntent",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "intentId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeMediaUploadIntentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaOperationAcceptedResponse"
+                }
+              }
+            },
+            "description": "Verification accepted"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "UPLOAD_INTENT_EXPIRED"
+            ]
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "MEDIA_INTEGRITY_MISMATCH"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "media"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "media-quarantine",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED",
+          "MEDIA_INTEGRITY_MISMATCH",
+          "UPLOAD_INTENT_EXPIRED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/realtime": {
+      "get": {
+        "operationId": "openVoiceRealtime",
+        "parameters": [],
+        "responses": {
+          "101": {
+            "description": "sfka.voice.v1 WebSocket upgrade",
+            "x-websocket-protocol": "sfka.voice.v1"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "RATE_LIMITED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "voiceTicket": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C4",
+        "x-retention-class": "ephemeral-ticket",
+        "x-smart-fasal-authorization": {
+          "authentication": "voice-ticket",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "RATE_LIMITED"
+        ]
+      }
+    },
     "/v1/rsk/access-grants": {
       "post": {
         "operationId": "issueRskAccessGrant",
@@ -2188,6 +4182,1174 @@
         },
         "x-smart-fasal-problem-codes": []
       }
+    },
+    "/v1/voice/offline-audio": {
+      "post": {
+        "operationId": "attachVoiceOfflineAudio",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachOfflineAudioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachOfflineAudioResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED",
+              "MEDIA_NOT_VERIFIED",
+              "IDEMPOTENCY_KEY_REUSED",
+              "EXPECTED_REVISION_MISMATCH"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "voice-offline-audio",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED",
+          "MEDIA_NOT_VERIFIED",
+          "IDEMPOTENCY_KEY_REUSED",
+          "EXPECTED_REVISION_MISMATCH"
+        ]
+      }
+    },
+    "/v1/voice/proposals/{proposalId}": {
+      "get": {
+        "operationId": "getVoiceProposal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceProposalResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "voice-proposal",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/voice/proposals/{proposalId}:cancel": {
+      "post": {
+        "operationId": "cancelVoiceProposal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelVoiceProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceProposalResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "VOICE_PROPOSAL_EXPIRED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "voice-proposal",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "VOICE_PROPOSAL_EXPIRED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/voice/proposals/{proposalId}:confirm": {
+      "post": {
+        "operationId": "confirmVoiceProposal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmVoiceProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceCommandStatusResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "VOICE_PROPOSAL_HASH_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "VOICE_PROPOSAL_EXPIRED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "command-receipt",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "VOICE_PROPOSAL_EXPIRED",
+          "VOICE_PROPOSAL_HASH_MISMATCH",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/voice/proposals/{proposalId}:correct": {
+      "post": {
+        "operationId": "correctVoiceProposal",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "proposalId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectVoiceProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceProposalResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "VOICE_PROPOSAL_EXPIRED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "voice-proposal",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "VOICE_PROPOSAL_EXPIRED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/voice/sessions": {
+      "post": {
+        "operationId": "createVoiceSession",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVoiceSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateVoiceSessionResponse"
+                }
+              }
+            },
+            "description": "Bound one-time voice ticket"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "RATE_LIMITED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C4",
+        "x-retention-class": "voice-session",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "RATE_LIMITED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/voice/sessions/{sessionId}/turns": {
+      "post": {
+        "operationId": "createVoiceTurn",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceTurnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTurnResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "voice"
+        ],
+        "x-data-classification": "C4",
+        "x-retention-class": "voice-session",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
     }
   },
   "servers": [
@@ -2210,6 +5372,18 @@
     },
     {
       "name": "mp"
+    },
+    {
+      "name": "media"
+    },
+    {
+      "name": "sync"
+    },
+    {
+      "name": "voice"
+    },
+    {
+      "name": "internal"
     }
   ],
   "x-smart-fasal-capability-registry": [

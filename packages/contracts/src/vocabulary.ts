@@ -16,6 +16,8 @@ export const PROVENANCE_TYPES = [
 
 export const ROLE_TYPES = ['FARMER', 'RSK', 'MP'] as const;
 
+export const DEVICE_MODES = ['PERSONAL', 'TRUSTED_FAMILY', 'RSK_ASSISTED'] as const;
+
 export const ACTOR_TYPES = [
   'FARMER',
   'RSK_STAFF',

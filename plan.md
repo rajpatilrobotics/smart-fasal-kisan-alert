@@ -1,61 +1,53 @@
-# Milestone 1 — Contracts, Identity and Transactional Security Spine
+# Milestone 2 — Offline, Media and Voice Foundations
 
 ## 1. Goal
 
-Implement Document 11 Milestone 1 completely on `build/milestone-1-security-spine`: canonical generated contracts, verified identity and App Check boundaries, deny-by-default authorization and consent, forced RLS, idempotent transactions, Audit/outbox/inbox foundations, safe telemetry and real authenticated stakeholder shells.
+Implement Document 11 Milestone 2 on `build/milestone-2-offline-media-voice`: M2A Farmer Offline, M2B Media Foundation and M2C Voice Transport. Keep the work limited to reusable foundations and the honest bounded Speak shell; do not begin Milestone 3 Farmer/Farm setup.
 
 ## 2. Problem
 
-Milestone 0 is present and its remote code gates are green, but contracts currently cover health only, authorization/application/persistence/event packages are empty, the database contains only the foundation seed table, and the three web products expose foundation screens rather than authenticated application contexts. Remote branch protection and a remote annotated legacy tag are not currently verifiable and remain pre-merge governance blockers.
+Milestone 1 and migration `0003` are merged, but the offline and voice packages are empty, the media scanner and voice gateway expose health only, the database has no M2 media/voice/sync persistence, and the Farmer shell has no real offline transaction or contextual Speak transport. Without these foundations, later Farmer features could lose queued work, bypass quarantine or execute voice mutations without durable exact-hash confirmation.
 
 ## 3. Proposed solution
 
-Use `packages/contracts` as the sole Zod-backed authority and generate OpenAPI, JSON Schema, TypeScript, role-filtered clients and Pydantic output. Add production Firebase Identity/App Check adapters plus deterministic injected test fakes, pure authorization and consent rules, least-privilege PostgreSQL roles with transaction-scoped forced RLS, atomic command/Audit/event/outbox receipts, inbox deduplication, safe logging, and authenticated Farmer/RSK/MP shells with truthful unavailable states.
+Freeze versioned M2 sync, media and voice contracts before consumers. Add one forward migration for minimum server-side sync/media/voice state with least-privilege roles, constraints, retention metadata and FORCE RLS. Implement partitioned encrypted Dexie storage and staged recovery, a Workbox `injectManifest` static-only policy, deterministic media quarantine verification/typed attachment rules, and one-time voice ticket/session/proposal transport with closed tools and shared HTTPS/WebSocket confirmation semantics. Expose a localized Farmer Speak overlay that supports typed input/help and truthfully reports unavailable voice actions before owning tools exist.
 
-Requirement anchors: PRD security/privacy/testing; IA authentication and stakeholder shells; E2E command/sync/consent propagation; FS-01/05/06/07/08/10/11/12/13 boundaries; TA-AC01/03/04/06/16–19; DM-AC01–04/21/25–34/37–40; API-AC01–11/16/24–28/31–33; SQ-AC01–03/10–12/14/16/18; IMP-AC01/02/05/06/13–15.
+Requirement anchors: Document 11 M2A/M2B/M2C; API Sections 15, 17, 18 and 27; Data Model Sections 25–28; Security Sections 10–12, 22–26 and SQ-AC04–06/10/14; UI Sections 9–12 and UI-AC01/02/04/05/08/14/18.
 
 ## 4. Files to change
 
-- Contract source, deterministic generator, generated artifacts and contract tests under `packages/contracts`.
-- Authorization, application, persistence, events, observability, configuration, database migrations/schema and test-kit packages.
-- Domain API, MP Query API and the three independent web applications, plus focused architecture/CI/integration/browser tests and safe environment documentation.
-- Root dependency, task and lock files only where required for real gates. Do not modify `AGENTS.md` or approved `docs/` specifications.
+- Canonical contract/event sources, deterministic generated OpenAPI/JSON Schema/TypeScript/Pydantic/role clients and compatibility manifest under `packages/contracts`.
+- New forward migration `packages/database/migrations/0004_milestone_2_offline_media_voice.sql`, database schema declarations and focused migration/RLS tests.
+- `packages/offline`, `packages/voice`, and the minimum application/persistence adapters needed by their owning services.
+- Domain API media/sync boundaries, Media Scanner and Voice Gateway transport/worker code with focused tests.
+- Farmer Web service worker registration/static caching policy, contextual Speak overlay, localized Marathi/Hindi/English copy and component tests.
+- Root/workspace manifests and lockfile only for pinned M2 dependencies and commands. Do not modify approved `docs/`, coverage/Sonar/Hackathon Delivery Mode configuration, contracts unrelated to M2 or any Milestone 3 feature.
 
 ## 5. Step by step tasks
 
-1. Freeze controlled vocabularies, problem codes, capability/consent registries, M1 routes and M1 event payloads in the canonical contract source; generate and verify all outputs and surface-specific clients.
-2. Implement identity/App Check adapters, fail-closed configuration, role-context creation/revocation and cross-environment/MFA checks.
-3. Implement pure Farmer ownership, RSK jurisdiction/assignment/capability/purpose and consent/access policies with property and negative tests.
-4. Add append-only identity/consent/platform/audit migrations, least-privilege roles, classification/retention metadata, forced RLS and guarded `SET LOCAL` transactions.
-5. Implement command hashing, stable receipts, expected revisions, atomic Audit/events/outbox and consumer inbox deduplication.
-6. Expose the approved M1 Domain API and MP Query API routes with safe Problem Details and allowlisted telemetry.
-7. Replace foundation pages with authenticated, localized, accessible Farmer/RSK/MP shell states without later-milestone controls or fake data.
-8. Strengthen architecture isolation, run every applicable local/CI gate, review the complete diff, commit focused verified changes, push the branch and open a draft PR without merge or deployment.
-
-Local implementation status (2026-07-13): steps 1–8 are implemented and locally verified. Focused commits, branch push, draft PR creation and remote CI evidence are the remaining release-coordination actions.
+1. Freeze M2 controlled vocabulary, request/response schemas, route metadata, closed pre-feature voice tool registry and executable Technical Events; regenerate deterministic artifacts.
+2. Add migration `0004` for sync stream/bootstrap/conflict/acknowledgement compatibility records, media intent/asset/attachment lifecycle, voice session/ticket/proposal/receipt state, constraints, least-privilege grants and FORCE RLS.
+3. Build M2A partitioned AES-GCM Dexie stores, atomic local event/projection/outbox save, atomic sync apply with cursor-last semantics, staged schema migrations, Locked Recovery, shared-user lock and 90-day compatibility handling.
+4. Add Workbox `injectManifest` generation with static/immutable assets only; explicitly exclude auth, protected HTML/RSC, APIs and personal responses.
+5. Build M2B intent/quarantine/finalize/verification/derivative/typed-attachment/protected-stream policy with checksum, magic MIME, decoder/polyglot, EXIF, generation, consent/access and retention checks.
+6. Build M2C one-time hash-stored tickets, bounded session sequence/reconnect state, typed/HTTPS turns, offline-audio proposal state, closed tools, persisted exact-hash proposals and idempotent confirm/correct/cancel handlers where cancel/expiry cannot mutate domain state.
+7. Add the Farmer contextual Speak overlay with help, typed alternative, microphone/provider unavailable states, labelled controls, focus restoration and no owning feature commands.
+8. Run Hackathon Delivery Mode targeted contracts, migration/seed, architecture, lint, strict types, affected tests, M2 security/integration tests and production builds; review the diff, commit, push and open a draft PR without deployment or merge.
 
 ## 6. Acceptance criteria
 
-- Document 11 M1 exit tests pass: authorization/RLS pool isolation, consent races, protected audit-before-disclose, replay/hash/revision conflicts, atomic event transactions and MP service/client/database isolation.
-- All protected operations fail closed and no forbidden Farmer/RSK data can reach MP imports, APIs, database privileges, UI, logs or generated clients.
-- Generated outputs are deterministic, role clients physically omit forbidden operations, and M1 events/problems/capabilities have one authority.
-- New code meets the required coverage, Sonar, security, accessibility and production-build gates; no check is skipped or weakened.
-- `main`, production, repository settings and rollback material remain unchanged.
-
-Local acceptance evidence (2026-07-13):
-
-- Frozen Node 24.14.0/pnpm 11.12.0 and Python 3.12 dependency synchronization passed.
-- Format, the 32-workspace architecture check, direct deterministic contract drift check, lint and strict TypeScript/Python checks passed.
-- All 42 workspace test tasks, 15 integration tests and 32 production builds passed. PostgreSQL static migration tests passed 10/10; the 14 live PostgreSQL tests were skipped locally because the available server is PostgreSQL 14 rather than the CI PostGIS/PostgreSQL 17 service.
-- Playwright passed 15/15 functional flows. Axe/reflow/touch-target verification passed 9/9 with zero detected WCAG 2.2 AA violations.
-- Aggregate measured coverage is 85.05% lines, 75.38% branches and 80.77% functions. Authorization coverage is 95.77% lines and 94.27% branches.
-- The production dependency audit reports zero Critical/High findings and one Moderate transitive `uuid@9.0.1` advisory under Firebase Admin. The local provider-token/private-key pattern scan and `git diff --check` passed.
-- Sonar new-code coverage/duplication/rating, CodeQL, gitleaks and the live PostgreSQL 17 matrix require the draft PR workflows and are not claimed locally.
+- One atomic local transaction is required before showing `Saved on this phone`; one atomic response transaction advances the cursor last before showing `Synced`.
+- Restart/replay preserves one logical effect; user/partition switches cannot expose pending private data; unsupported schemas enter Locked Recovery without deletion; compatibility records retain the 90-day horizon.
+- Quarantine bytes cannot render, attach, stream or reach AI before exact generation/checksum/type/decoder verification; attachments are owner- and purpose-typed and every protected read reauthorizes current access.
+- Voice tickets are single-use, short-lived, bound and hash-stored; frames are bounded/sequenced; reconnect never replays audio or a mutation; Cancel/expiry/unconfirmed proposals create no domain mutation; Confirm uses the exact stored hash once.
+- Speak is a real accessible contextual shell with typed/help paths and an honest unavailable state, not FS-06 completion or a dead placeholder.
+- Document 11 M2 exit tests pass for offline restart/replay/user switch, quarantine bypass, ticket replay/reconnect/unconfirmed mutation and provider outage.
+- Hackathon Delivery Mode mandatory targeted checks pass. Coverage percentages and Sonar metrics remain informational and unchanged. Milestone 3, deployment and merge remain out of scope.
 
 ## 7. Testing plan
 
-Run frozen pnpm/uv installation, contract generation/checks, migration and synthetic seed, focused unit/property/authorization/database/integration suites, format, architecture, lint, strict TypeScript/Python types, coverage, production builds, Playwright E2E and axe accessibility. Verify migration-from-zero and upgrade behavior, RLS/non-owner/pool isolation, command replay/rollback/redelivery, log redaction, cross-environment identity rejection and forbidden MP imports/routes/privileges. Record exact first-run results and remote CI/Sonar outcomes. Local gates are complete as recorded above; live PostgreSQL 17 and remote CI/Sonar remain pending until the branch and draft PR exist.
+Run deterministic contract generation/check; database migration from zero and synthetic seed under PostgreSQL/PostGIS 17 when available; focused offline atomicity/restart/replay/partition/recovery tests; media lifecycle, bypass, checksum/MIME/polyglot/EXIF/consent/stream tests; voice ticket/replay/sequence/reconnect/proposal/cancel/expiry/provider-outage tests; Farmer Speak component/locale tests; architecture, lint, strict TypeScript/Python types, affected tests, the mandatory security/integration suites and production builds. Use only the smallest relevant local commands during implementation and rely on the draft PR workflow for the pinned PostGIS 17 run.
 
 ## 8. Open questions
 
-No implementation choice remains. Missing Firebase/cloud credentials use typed `Unavailable` and injected synthetic test adapters. Production MP role authority remains fail closed because Milestone 1 has no approved MP operational identity store or database role. The approved API list defines return-state creation but no one-time redemption endpoint, so the browser flow validates the opaque state identifier without inventing an unapproved redemption route. Before merge, the repository owner must separately decide whether to add a remote annotated legacy tag and protect `main`; this task does not change either setting. The TypeScript 6.0.3 toolchain also produces a non-blocking peer warning because `openapi-typescript@7.13.0` currently declares TypeScript `^5.x`; frozen installation, generation, type checks and builds pass.
+No product decision is required. Local and CI use deterministic in-memory/storage/provider fakes; missing Cloud Storage, STT/TTS or realtime-provider configuration returns typed Unavailable and never simulated Live data. M2 persists only transport/foundation state and reserved owner links needed by later milestones; it does not invent Farmer setup, Diary, Crop Health, Recommendation or agronomy behavior.

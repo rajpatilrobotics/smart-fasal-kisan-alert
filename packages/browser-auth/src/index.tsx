@@ -48,9 +48,41 @@ interface AuthMemoryProviderProps {
   readonly children: ReactNode;
   readonly initialCredentials?: InMemoryCredentials | null;
   readonly initialRoleContextId?: string | null;
+  /** Locks or safely resolves pending private offline work before shared-device exit. */
+  readonly beforeSignOut?: () => Promise<void>;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+
+export function installationStorageKey(surface: AuthSurface): string {
+  return `smart-fasal:${surface}:installation:v1`;
+}
+
+export function getOrCreateInstallationId(
+  surface: AuthSurface,
+  storage: Pick<Storage, 'getItem' | 'setItem'> | undefined =
+    typeof window === 'undefined' ? undefined : window.localStorage,
+  createId: () => string = () => globalThis.crypto.randomUUID(),
+): string {
+  if (storage !== undefined) {
+    try {
+      const stored = storage.getItem(installationStorageKey(surface));
+      if (stored !== null && UUID.test(stored)) return stored;
+    } catch {
+      // Storage can be unavailable in hardened/private browser contexts.
+    }
+  }
+  const created = createId();
+  if (!UUID.test(created)) throw new Error('INSTALLATION_ID_INVALID');
+  if (storage !== undefined) {
+    try {
+      storage.setItem(installationStorageKey(surface), created);
+    } catch {
+      // The in-memory ID remains valid for this tab when persistence is unavailable.
+    }
+  }
+  return created;
+}
 
 function subscribeToIdentityBridge(onStoreChange: () => void): () => void {
   if (typeof window === 'undefined') return () => undefined;
@@ -97,9 +129,10 @@ export function createInMemoryAuth<Surface extends AuthSurface>(options: {
     children,
     initialCredentials = null,
     initialRoleContextId = null,
+    beforeSignOut,
   }: AuthMemoryProviderProps) {
     const [credentials, setCredentials] = useState<InMemoryCredentials | null>(initialCredentials);
-    const [installationId] = useState(() => globalThis.crypto.randomUUID());
+    const [installationId] = useState(() => getOrCreateInstallationId(options.surface));
     const [locale, setLocale] = useState<SupportedLocale>(options.initialLocale);
     const [roleContextId, setRoleContextIdState] = useState<string | null>(() => {
       if (initialRoleContextId !== null && !UUID.test(initialRoleContextId)) {
@@ -146,12 +179,13 @@ export function createInMemoryAuth<Surface extends AuthSurface>(options: {
         },
         async signOut() {
           const bridge = resolveIdentityBridge();
+          await beforeSignOut?.();
           setCredentials(null);
           setRoleContextIdState(null);
           await bridge?.signOut?.();
         },
       }),
-      [credentials, installationId, locale, providerState, roleContextId],
+      [beforeSignOut, credentials, installationId, locale, providerState, roleContextId],
     );
 
     return <AuthMemoryContext value={value}>{children}</AuthMemoryContext>;

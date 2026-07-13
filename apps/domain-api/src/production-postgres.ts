@@ -1,6 +1,9 @@
 import { createHmac } from 'node:crypto';
 
-import { AuthorizationContextSchema } from '@smart-fasal/contracts/schemas';
+import {
+  AuthorizationContextSchema,
+  SyncCommandDispositionSchema,
+} from '@smart-fasal/contracts/schemas';
 import postgres, { type Sql, type TransactionSql } from 'postgres';
 
 import {
@@ -33,6 +36,13 @@ import type {
   SourceEventStorageFact,
   StoredCommandSnapshot,
 } from './production-operations.js';
+import type {
+  MilestoneTwoConflictRecord,
+  MilestoneTwoMediaRecord,
+  MilestoneTwoStreamRecord,
+  PostgresMilestoneTwoPort as PostgresMilestoneTwoPortContract,
+  PostgresMilestoneTwoTransaction,
+} from './postgres-milestone-two.js';
 
 type RuntimeRole = 'sf_farmer_api' | 'sf_rsk_api';
 type AuthStateRole = 'sf_auth_state_writer';
@@ -243,6 +253,463 @@ class RuntimePool {
         await transaction`select 1`;
       }),
     );
+  }
+}
+
+function parseMilestoneTwoStream(row: Record<string, unknown>): MilestoneTwoStreamRecord {
+  const state = requiredString(row['state']);
+  const deviceMode = requiredString(row['device_mode']);
+  if (!['OPEN', 'BOOTSTRAP_REQUIRED', 'LOCKED_RECOVERY', 'CLOSED'].includes(state)) {
+    throw dependencyUnavailable();
+  }
+  if (!['PERSONAL', 'TRUSTED_FAMILY', 'RSK_ASSISTED'].includes(deviceMode)) {
+    throw dependencyUnavailable();
+  }
+  return {
+    streamId: requiredString(row['stream_id']),
+    environment: requiredString(row['environment']),
+    subjectId: requiredString(row['subject_id']),
+    subjectDeviceBindingId: requiredString(row['subject_device_binding_id']),
+    authorizationVersion: requiredInteger(row['authorization_version']),
+    deviceMode: deviceMode as MilestoneTwoStreamRecord['deviceMode'],
+    clientBuild: requiredString(row['client_build']),
+    localDatabaseSchemaVersion: requiredInteger(row['local_database_schema_version']),
+    commandVersion: requiredInteger(row['command_version']),
+    clientEventVersion: requiredInteger(row['client_event_version']),
+    projectionVersion: requiredInteger(row['projection_version']),
+    mediaVersion: requiredInteger(row['media_version']),
+    cursor: requiredString(row['cursor']),
+    highWaterMark: requiredString(row['high_water_mark']),
+    state: state as MilestoneTwoStreamRecord['state'],
+    openedAt: requiredString(row['opened_at']),
+    expiresAt: requiredString(row['expires_at']),
+  };
+}
+
+function parseMilestoneTwoMedia(row: Record<string, unknown>): MilestoneTwoMediaRecord {
+  const state = requiredString(row['state']);
+  if (
+    ![
+      'INTENT_ISSUED',
+      'UPLOADED_UNVERIFIED',
+      'SCANNING',
+      'VERIFIED',
+      'ATTACHED',
+      'FAILED_RETRYABLE',
+      'REJECTED',
+      'EXPIRED',
+      'CANCELLED',
+    ].includes(state)
+  ) {
+    throw dependencyUnavailable();
+  }
+  const failureCode = optionalString(row['failure_code']);
+  const verifiedMimeType = optionalString(row['verified_mime_type']);
+  const verifiedSize = row['verified_size_bytes'];
+  const derivativeSha256 = optionalString(row['derivative_sha256']);
+  return {
+    intentId: requiredString(row['intent_id']),
+    assetId: requiredString(row['asset_id']),
+    purpose: requiredString(row['purpose']),
+    ownerType: requiredString(row['owner_type']),
+    ownerId: requiredString(row['owner_id']),
+    consentAccessVersion: requiredInteger(row['consent_access_version']),
+    expectedSha256: requiredString(row['expected_sha256']),
+    expectedSizeBytes: requiredInteger(row['expected_size_bytes']),
+    claimedMimeType: requiredString(row['claimed_mime_type']),
+    storageObjectName: requiredString(row['storage_object_name']),
+    state: state as MilestoneTwoMediaRecord['state'],
+    revision: requiredInteger(row['revision']),
+    expiresAt: requiredString(row['expires_at']),
+    updatedAt: requiredString(row['updated_at']),
+    ...(failureCode === undefined ? {} : { failureCode }),
+    ...(verifiedMimeType === undefined ? {} : { verifiedMimeType }),
+    ...(verifiedSize === null || verifiedSize === undefined
+      ? {}
+      : { verifiedSizeBytes: requiredInteger(verifiedSize) }),
+    ...(derivativeSha256 === undefined ? {} : { derivativeSha256 }),
+  };
+}
+
+function parseMilestoneTwoConflict(row: Record<string, unknown>): MilestoneTwoConflictRecord {
+  const state = requiredString(row['state']);
+  if (!['OPEN', 'RESOLUTION_PENDING', 'RESOLVED', 'LOCKED_RECOVERY'].includes(state)) {
+    throw dependencyUnavailable();
+  }
+  const localSummary = record(row['local_summary']);
+  const authoritativeSummary = record(row['authoritative_summary']);
+  if (localSummary === undefined || authoritativeSummary === undefined) {
+    throw dependencyUnavailable();
+  }
+  return {
+    conflictId: requiredString(row['conflict_id']),
+    conflictType: requiredString(row['conflict_type']),
+    revision: requiredInteger(row['revision']),
+    commandId: requiredString(row['command_id']),
+    clientEventIds: stringArray(row['client_event_ids']),
+    targetType: requiredString(row['target_type']),
+    targetId: requiredString(row['target_id']),
+    localRevision: requiredInteger(row['local_revision']),
+    authoritativeRevision: requiredInteger(row['authoritative_revision']),
+    localSummary,
+    authoritativeSummary,
+    state: state as MilestoneTwoConflictRecord['state'],
+    createdAt: requiredString(row['created_at']),
+  };
+}
+
+class PostgresMilestoneTwoSqlPort implements PostgresMilestoneTwoPortContract {
+  readonly persistence = 'postgresql' as const;
+
+  constructor(private readonly pool: RuntimePool) {}
+
+  ready(): Promise<boolean> {
+    return this.pool.ready();
+  }
+
+  transaction<Result>(
+    boundary: VerifiedRequestBoundary,
+    work: (transaction: PostgresMilestoneTwoTransaction) => Promise<Result>,
+  ): Promise<Result> {
+    return this.pool.transaction(async (sql) => {
+      await bindRequestContext(sql, 'sf_farmer_api', boundary, 'farmer.self_service');
+      const subjectId = boundary.identity?.subjectId;
+      const authorizationVersion = boundary.authorization?.authorizationVersion;
+      if (subjectId === undefined || authorizationVersion === undefined) {
+        throw dependencyUnavailable();
+      }
+      const bindings = await sql<Record<string, unknown>[]>`
+        select subject_device_binding_id, device_mode
+        from identity.subject_device_binding
+        where subject_id = ${subjectId}::uuid
+          and installation_id = ${boundary.installationId}::uuid
+          and app_id = ${boundary.appCheck.appId}
+          and environment = ${boundary.environment}
+          and state = 'ACTIVE'
+          and revoked_at is null
+        for share
+      `;
+      if (bindings.length !== 1) {
+        throw new ApiBoundaryProblem({
+          code: 'DEVICE_BINDING_MISMATCH',
+          status: 403,
+          title: 'A current exact subject-device binding is required.',
+        });
+      }
+      const bindingRow = bindings[0];
+      if (bindingRow === undefined) throw dependencyUnavailable();
+      const subjectDeviceBindingId = requiredString(bindingRow['subject_device_binding_id']);
+      const deviceMode = requiredString(bindingRow['device_mode']);
+      if (!['PERSONAL', 'TRUSTED_FAMILY', 'RSK_ASSISTED'].includes(deviceMode)) {
+        throw dependencyUnavailable();
+      }
+      await sql`select set_config('app.subject_device_binding_id', ${subjectDeviceBindingId}, true)`;
+
+      const findStream = async (
+        streamId: string,
+        lock: boolean,
+      ): Promise<MilestoneTwoStreamRecord | undefined> => {
+        const rows = lock
+          ? await sql<Record<string, unknown>[]>`
+              select stream_id, environment, subject_id, subject_device_binding_id,
+                     authorization_version, device_mode, client_build,
+                     local_database_schema_version, command_version, client_event_version,
+                     projection_version, media_version, cursor, high_water_mark, state,
+                     opened_at::text as opened_at, expires_at::text as expires_at
+              from platform.sync_stream where stream_id = ${streamId}::uuid for update
+            `
+          : await sql<Record<string, unknown>[]>`
+              select stream_id, environment, subject_id, subject_device_binding_id,
+                     authorization_version, device_mode, client_build,
+                     local_database_schema_version, command_version, client_event_version,
+                     projection_version, media_version, cursor, high_water_mark, state,
+                     opened_at::text as opened_at, expires_at::text as expires_at
+              from platform.sync_stream where stream_id = ${streamId}::uuid
+            `;
+        return rows[0] === undefined ? undefined : parseMilestoneTwoStream(rows[0]);
+      };
+
+      const findMedia = async (
+        key: 'intent_id' | 'asset_id',
+        value: string,
+        lock: boolean,
+      ): Promise<MilestoneTwoMediaRecord | undefined> => {
+        const rows = lock
+          ? await sql<Record<string, unknown>[]>`
+              select intent.intent_id, asset.asset_id, asset.purpose, asset.owner_type,
+                     asset.owner_id, asset.consent_access_version, asset.expected_sha256,
+                     asset.claimed_mime_type, asset.storage_object_name,
+                     asset.expected_size_bytes, asset.state, asset.revision,
+                     intent.expires_at::text as expires_at, asset.updated_at::text as updated_at,
+                     asset.failure_code, asset.verified_mime_type, asset.verified_size_bytes,
+                     derivative.sha256 as derivative_sha256
+              from media.asset asset
+              join media.upload_intent intent on intent.intent_id = asset.intent_id
+              left join media.derivative derivative on derivative.asset_id = asset.asset_id
+                and derivative.derivative_type in ('SAFE_IMAGE', 'SAFE_AUDIO')
+              where (${key} = 'intent_id' and intent.intent_id = ${value}::uuid)
+                 or (${key} = 'asset_id' and asset.asset_id = ${value}::uuid)
+              for update of asset, intent
+            `
+          : await sql<Record<string, unknown>[]>`
+              select intent.intent_id, asset.asset_id, asset.purpose, asset.owner_type,
+                     asset.owner_id, asset.consent_access_version, asset.expected_sha256,
+                     asset.claimed_mime_type, asset.storage_object_name,
+                     asset.expected_size_bytes, asset.state, asset.revision,
+                     intent.expires_at::text as expires_at, asset.updated_at::text as updated_at,
+                     asset.failure_code, asset.verified_mime_type, asset.verified_size_bytes,
+                     derivative.sha256 as derivative_sha256
+              from media.asset asset
+              join media.upload_intent intent on intent.intent_id = asset.intent_id
+              left join media.derivative derivative on derivative.asset_id = asset.asset_id
+                and derivative.derivative_type in ('SAFE_IMAGE', 'SAFE_AUDIO')
+              where (${key} = 'intent_id' and intent.intent_id = ${value}::uuid)
+                 or (${key} = 'asset_id' and asset.asset_id = ${value}::uuid)
+            `;
+        return rows[0] === undefined ? undefined : parseMilestoneTwoMedia(rows[0]);
+      };
+
+      const transaction: PostgresMilestoneTwoTransaction = {
+        binding: {
+          subjectDeviceBindingId,
+          deviceMode: deviceMode as PostgresMilestoneTwoTransaction['binding']['deviceMode'],
+        },
+        findStream,
+        async insertStream(stream) {
+          await sql`
+            insert into platform.sync_stream (
+              stream_id, environment, subject_id, subject_device_binding_id,
+              authorization_version, device_mode, client_build,
+              local_database_schema_version, command_version, client_event_version,
+              projection_version, media_version, cursor, high_water_mark, state,
+              opened_at, expires_at
+            ) values (
+              ${stream.streamId}::uuid, ${stream.environment}, ${stream.subjectId}::uuid,
+              ${stream.subjectDeviceBindingId}::uuid, ${stream.authorizationVersion},
+              ${stream.deviceMode}, ${stream.clientBuild}, ${stream.localDatabaseSchemaVersion},
+              ${stream.commandVersion}, ${stream.clientEventVersion}, ${stream.projectionVersion},
+              ${stream.mediaVersion}, ${stream.cursor}, ${stream.highWaterMark}, ${stream.state},
+              ${stream.openedAt}::timestamptz, ${stream.expiresAt}::timestamptz
+            )
+          `;
+        },
+        async updateStream(input) {
+          const result = await sql`
+            update platform.sync_stream
+            set state = ${input.state}, cursor = ${input.cursor},
+                high_water_mark = ${input.highWaterMark}
+            where stream_id = ${input.streamId}::uuid
+          `;
+          if (result.count !== 1) throw dependencyUnavailable();
+        },
+        async findBatchReceipt(streamId, batchId) {
+          const rows = await sql<Record<string, unknown>[]>`
+            select request_hash, response_payload
+            from platform.sync_batch_receipt
+            where stream_id = ${streamId}::uuid and batch_id = ${batchId}::uuid
+          `;
+          const row = rows[0];
+          return row === undefined
+            ? undefined
+            : {
+                requestHash: requiredString(row['request_hash']),
+                response: row['response_payload'],
+              };
+        },
+        async insertBatchReceipt(input) {
+          await sql`
+            insert into platform.sync_batch_receipt (
+              stream_id, environment, subject_id, batch_id, request_hash, response_payload
+            ) values (
+              ${input.streamId}::uuid, ${boundary.environment}, ${subjectId}::uuid,
+              ${input.batchId}::uuid, ${input.requestHash},
+              ${sql.json(input.response as never)}::jsonb
+            )
+          `;
+        },
+        async findAcknowledgement(commandId) {
+          const rows = await sql<Record<string, unknown>[]>`
+            select request_hash, command_id, client_event_ids, acknowledgement_id,
+                   disposition, problem_code, authoritative_revision, server_event_ids,
+                   server_received_at::text as server_received_at
+            from platform.sync_acknowledgement where command_id = ${commandId}::uuid
+          `;
+          const row = rows[0];
+          if (row === undefined) return undefined;
+          const response = SyncCommandDispositionSchema.parse({
+            commandId: row['command_id'],
+            clientEventIds: row['client_event_ids'],
+            acknowledgementId: row['acknowledgement_id'],
+            disposition: row['disposition'],
+            ...(row['problem_code'] === null ? {} : { problemCode: row['problem_code'] }),
+            ...(row['authoritative_revision'] === null
+              ? {}
+              : { authoritativeRevision: requiredInteger(row['authoritative_revision']) }),
+            serverEventIds: row['server_event_ids'],
+            serverReceivedAt: row['server_received_at'],
+          });
+          return { requestHash: requiredString(row['request_hash']), response };
+        },
+        async insertAcknowledgement(input) {
+          const response = input.response;
+          await sql`
+            insert into platform.sync_acknowledgement (
+              acknowledgement_id, stream_id, environment, subject_id, command_id,
+              request_hash, client_event_ids, disposition, problem_code,
+              authoritative_revision, server_event_ids, server_received_at
+            ) values (
+              ${response.acknowledgementId}::uuid, ${input.streamId}::uuid,
+              ${boundary.environment}, ${subjectId}::uuid, ${response.commandId}::uuid,
+              ${input.requestHash}, ${response.clientEventIds}::uuid[], ${response.disposition},
+              ${'problemCode' in response ? response.problemCode : null},
+              ${
+                'authoritativeRevision' in response
+                  ? (response.authoritativeRevision ?? null)
+                  : null
+              },
+              ${response.serverEventIds}::uuid[], ${response.serverReceivedAt}::timestamptz
+            )
+          `;
+        },
+        listFeedEvents() {
+          // M2 reserves the durable feed table. The only executable offline command is the
+          // M1 consent command, whose result is returned through its durable acknowledgement.
+          return Promise.resolve([]);
+        },
+        async listConflicts(limit) {
+          const rows = await sql<Record<string, unknown>[]>`
+            select conflict_id, conflict_type, revision, command_id, client_event_ids,
+                   target_type, target_id, local_revision, authoritative_revision,
+                   local_summary, authoritative_summary, state, created_at::text as created_at
+            from platform.sync_conflict
+            order by created_at, conflict_id limit ${limit}
+          `;
+          return rows.map(parseMilestoneTwoConflict);
+        },
+        async findConflict(conflictId) {
+          const rows = await sql<Record<string, unknown>[]>`
+            select conflict_id, conflict_type, revision, command_id, client_event_ids,
+                   target_type, target_id, local_revision, authoritative_revision,
+                   local_summary, authoritative_summary, state, created_at::text as created_at
+            from platform.sync_conflict where conflict_id = ${conflictId}::uuid
+          `;
+          return rows[0] === undefined ? undefined : parseMilestoneTwoConflict(rows[0]);
+        },
+        async lockOperation(commandId) {
+          await sql`select pg_advisory_xact_lock(hashtextextended(${`${boundary.environment}:${subjectId}:${commandId}`}, 0))`;
+        },
+        async findOperation(commandId) {
+          const rows = await sql<Record<string, unknown>[]>`
+            select command_hash, safe_receipt
+            from platform.command_execution
+            where environment = ${boundary.environment}
+              and principal_id = ${`${boundary.environment}:${subjectId}`}
+              and command_id = ${commandId}::uuid
+          `;
+          const row = rows[0];
+          return row === undefined
+            ? undefined
+            : {
+                requestHash: `sha256:${requiredString(row['command_hash'])}`,
+                ...(row['safe_receipt'] === null ? {} : { response: row['safe_receipt'] }),
+              };
+        },
+        async insertOperation(input) {
+          const commandHash = input.requestHash.replace(/^sha256:/u, '');
+          await sql`
+            insert into platform.command_execution (
+              environment, principal_id, command_id, operation, command_hash,
+              expected_revision, state, safe_receipt, authorization_version,
+              started_at, completed_at, retain_until
+            ) values (
+              ${boundary.environment}, ${`${boundary.environment}:${subjectId}`},
+              ${input.commandId}::uuid, ${input.operation}, ${commandHash}, 0, 'COMPLETE',
+              ${input.response === undefined ? null : sql.json(input.response as never)}::jsonb,
+              ${authorizationVersion}, statement_timestamp(), statement_timestamp(),
+              statement_timestamp() + interval '90 days'
+            )
+          `;
+        },
+        async mediaOwnerAuthorized(input) {
+          const rows = await sql<{ authorized: boolean }[]>`
+            select media.farmer_upload_owner_current(
+              ${input.purpose}, ${input.ownerType}, ${input.ownerId}::uuid,
+              ${input.consentAccessVersion}
+            ) as authorized
+          `;
+          return rows[0]?.authorized === true;
+        },
+        async insertMedia(input) {
+          await sql`
+            insert into media.upload_intent (
+              intent_id, asset_id, environment, owner_subject_id,
+              subject_device_binding_id, purpose, owner_type, owner_id,
+              expected_sha256, claimed_mime_type, declared_size_bytes,
+              declared_width, declared_height, declared_duration_seconds,
+              consent_access_version, storage_object_name, generation_precondition,
+              state, revision, expires_at
+            ) values (
+              ${input.intentId}::uuid, ${input.assetId}::uuid, ${boundary.environment},
+              ${subjectId}::uuid, ${subjectDeviceBindingId}::uuid, ${input.purpose},
+              ${input.ownerType}, ${input.ownerId}::uuid, ${input.expectedSha256},
+              ${input.claimedMimeType}, ${input.declaredSizeBytes},
+              ${input.declaredWidth ?? null}, ${input.declaredHeight ?? null},
+              ${input.declaredDurationSeconds ?? null}, ${input.consentAccessVersion},
+              ${input.storageObjectName}, ${input.generationPrecondition},
+              'INTENT_ISSUED', 0, ${input.expiresAt}::timestamptz
+            )
+          `;
+          await sql`
+            insert into media.asset (
+              asset_id, intent_id, environment, owner_subject_id,
+              subject_device_binding_id, purpose, owner_type, owner_id,
+              storage_object_name, expected_generation, expected_sha256,
+              expected_size_bytes, claimed_mime_type, consent_access_version,
+              state, revision
+            ) values (
+              ${input.assetId}::uuid, ${input.intentId}::uuid, ${boundary.environment},
+              ${subjectId}::uuid, ${subjectDeviceBindingId}::uuid, ${input.purpose},
+              ${input.ownerType}, ${input.ownerId}::uuid, ${input.storageObjectName},
+              ${input.generationPrecondition}, ${input.expectedSha256},
+              ${input.declaredSizeBytes}, ${input.claimedMimeType},
+              ${input.consentAccessVersion}, 'INTENT_ISSUED', 0
+            )
+          `;
+        },
+        findMediaByIntent: (intentId, lock) => findMedia('intent_id', intentId, lock),
+        findMediaByAsset: (assetId) => findMedia('asset_id', assetId, false),
+        async finalizeMedia(input) {
+          const intent = await sql`
+            update media.upload_intent set state = 'UPLOADED_UNVERIFIED', revision = revision + 1
+            where intent_id = ${input.intentId}::uuid and state = 'INTENT_ISSUED'
+          `;
+          const asset = await sql`
+            update media.asset
+            set state = 'UPLOADED_UNVERIFIED', revision = revision + 1,
+                actual_generation = ${input.objectGeneration}, finalized_sha256 = ${input.sha256},
+                finalized_size_bytes = ${input.finalSizeBytes},
+                updated_at = ${input.updatedAt}::timestamptz
+            where intent_id = ${input.intentId}::uuid and state = 'INTENT_ISSUED'
+          `;
+          if (intent.count !== 1 || asset.count !== 1) throw dependencyUnavailable();
+        },
+        async cancelMedia(input) {
+          const intent = await sql`
+            update media.upload_intent
+            set state = 'CANCELLED', revision = revision + 1,
+                cancelled_at = ${input.cancelledAt}::timestamptz
+            where intent_id = ${input.intentId}::uuid and state = 'INTENT_ISSUED'
+          `;
+          const asset = await sql`
+            update media.asset set state = 'CANCELLED', revision = revision + 1,
+                updated_at = ${input.cancelledAt}::timestamptz
+            where intent_id = ${input.intentId}::uuid and state = 'INTENT_ISSUED'
+          `;
+          if (intent.count !== 1 || asset.count !== 1) throw dependencyUnavailable();
+        },
+      };
+      return work(transaction);
+    });
   }
 }
 
@@ -1101,6 +1568,7 @@ export interface ProductionPostgresBoundary {
   protectedFieldDecryptor?: ProtectedFieldDecryptor;
   returnState?: ReturnStateSqlPort;
   returnStateProtector?: ReturnStateProtector;
+  milestoneTwo?: PostgresMilestoneTwoPortContract;
   configured: boolean;
   ready(): Promise<boolean>;
   close(): Promise<void>;
@@ -1134,6 +1602,8 @@ export function createProductionPostgresBoundary(options: {
       ? undefined
       : createHmacReturnStateProtector(options.returnStateHmacSecret);
   const farmer = farmerPool === undefined ? undefined : new PostgresGuardedDomainPort(farmerPool);
+  const milestoneTwo =
+    farmerPool === undefined ? undefined : new PostgresMilestoneTwoSqlPort(farmerPool);
   const rsk = rskPool === undefined ? undefined : new PostgresGuardedDomainPort(rskPool);
   const protectedDisclosure =
     rskPool === undefined ? undefined : new PostgresProtectedDisclosurePort(rskPool);
@@ -1162,6 +1632,7 @@ export function createProductionPostgresBoundary(options: {
       : { protectedFieldDecryptor: options.protectedFieldDecryptor }),
     ...(returnState === undefined ? {} : { returnState }),
     ...(returnStateProtector === undefined ? {} : { returnStateProtector }),
+    ...(milestoneTwo === undefined ? {} : { milestoneTwo }),
     configured,
     // KMS/decryption is an optional provider dependency in M1. Its route returns typed
     // Unavailable when no decryptor is injected; readiness probes only mandatory database roles.

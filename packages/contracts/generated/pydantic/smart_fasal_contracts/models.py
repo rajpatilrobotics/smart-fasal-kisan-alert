@@ -10,6 +10,34 @@ from uuid import UUID
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field, RootModel
 
 
+class Language(StrEnum):
+    mr = 'mr'
+    hi = 'hi'
+    en = 'en'
+
+
+class AttachOfflineAudioRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    assetId: UUID
+    audioConsentVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    expectedSessionRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    language: Language
+    localCaptureId: UUID
+    sessionId: UUID
+
+
+class AttachOfflineAudioResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    attachmentId: UUID
+    expiresAt: AwareDatetime
+    offlineAudioRefId: UUID
+    state: Literal['TRANSCRIPTION_PENDING']
+
+
 class Capability(StrEnum):
     case_response_draft = 'case.response.draft'
     case_care_plan_issue = 'case.care_plan.issue'
@@ -98,6 +126,24 @@ class AuthorizationContext(BaseModel):
     subjectId: UUID
 
 
+class CancelMediaUploadIntentResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cancelledAt: AwareDatetime
+    intentId: UUID
+    state: Literal['CANCELLED']
+
+
+class CancelVoiceProposalRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID
+    expectedProposalRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    proposalId: UUID
+
+
 class Disposition(StrEnum):
     ACCEPTED = 'ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
@@ -131,6 +177,16 @@ class CommandResult(BaseModel):
     result: Result | None = None
     serverReceivedAt: AwareDatetime
     syncAcknowledgementId: UUID | None = None
+
+
+class ConfirmVoiceProposalRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID
+    expectedProposalRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    payloadHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    proposalId: UUID
 
 
 class PurposeKey(StrEnum):
@@ -193,6 +249,124 @@ class ConsentListResponse(BaseModel):
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
 
 
+class ClaimedMimeType(StrEnum):
+    image_jpeg = 'image/jpeg'
+    image_png = 'image/png'
+    image_webp = 'image/webp'
+    audio_webm_codecs_opus = 'audio/webm;codecs=opus'
+    audio_wav = 'audio/wav'
+
+
+class Owner(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    ownerId: UUID
+    ownerType: Literal['HEALTH_REPORT']
+
+
+class Owner1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    ownerId: UUID
+    ownerType: Literal['DIARY_ENTRY']
+
+
+class Owner2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    ownerId: UUID
+    ownerType: Literal['RSK_VISIT']
+
+
+class Owner3(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    ownerId: UUID
+    ownerType: Literal['SENSOR_MAINTENANCE']
+
+
+class Owner4(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    ownerId: UUID
+    ownerType: Literal['VOICE_SESSION']
+
+
+class Purpose(StrEnum):
+    CROP_HEALTH_IMAGE = 'CROP_HEALTH_IMAGE'
+    DIARY_MEDIA = 'DIARY_MEDIA'
+    RSK_VISIT_EVIDENCE = 'RSK_VISIT_EVIDENCE'
+    SENSOR_MAINTENANCE_EVIDENCE = 'SENSOR_MAINTENANCE_EVIDENCE'
+    VOICE_OFFLINE_AUDIO = 'VOICE_OFFLINE_AUDIO'
+
+
+class CreateMediaUploadIntentRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    claimedMimeType: ClaimedMimeType
+    consentAccessVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    declaredDurationSeconds: Annotated[float | None, Field(gt=0.0, le=120.0)] = None
+    declaredHeight: Annotated[int | None, Field(gt=0, le=16384)] = None
+    declaredSizeBytes: Annotated[int, Field(gt=0, le=15728640)]
+    declaredWidth: Annotated[int | None, Field(gt=0, le=16384)] = None
+    expectedSha256: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    mediaProtocolVersion: Literal[1]
+    owner: Owner | Owner1 | Owner2 | Owner3 | Owner4
+    purpose: Purpose
+
+
+class CreateMediaUploadIntentResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    assetId: UUID
+    expiresAt: AwareDatetime
+    generationPrecondition: Annotated[str, Field(pattern='^[0-9]+$')]
+    intentId: UUID
+    resumableUploadUri: AnyUrl
+    state: Literal['INTENT_ISSUED']
+
+
+class AudioCapabilities(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    httpsAudio: bool
+    offlineAudio: bool
+    realtime: bool
+
+
+class CreateVoiceSessionRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    audioCapabilities: AudioCapabilities
+    contextIds: Annotated[list[UUID], Field(max_length=8)]
+    language: Language
+    protocolVersion: Literal[1]
+    visualRoute: Annotated[str, Field(max_length=240, min_length=1, pattern='^\\/')]
+
+
+class CreateVoiceSessionResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    httpsTurnsEndpoint: Annotated[str, Field(max_length=512, min_length=1)]
+    protocolVersion: Literal[1]
+    sessionExpiresAt: AwareDatetime
+    sessionId: UUID
+    singleUseTicket: Annotated[str, Field(pattern='^[A-Za-z0-9_-]{32,512}$')]
+    state: Literal['CREATED']
+    ticketExpiresAt: AwareDatetime
+    websocketEndpoint: AnyUrl
+
+
 class State1(StrEnum):
     DURABLY_ACCEPTED = 'DURABLY_ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
@@ -207,6 +381,12 @@ class DeviceBatchReceipt(BaseModel):
     explicitlyNotAgronomicTrust: Literal[True]
     receivedAt: AwareDatetime
     state: State1
+
+
+class DeviceMode(StrEnum):
+    PERSONAL = 'PERSONAL'
+    TRUSTED_FAMILY = 'TRUSTED_FAMILY'
+    RSK_ASSISTED = 'RSK_ASSISTED'
 
 
 class ActorType(StrEnum):
@@ -633,6 +813,15 @@ class FarmerBootstrapResponse(BaseModel):
     subjectId: UUID
 
 
+class FinalizeMediaUploadIntentRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    finalSizeBytes: Annotated[int, Field(gt=0, le=15728640)]
+    objectGeneration: Annotated[str, Field(pattern='^[0-9]+$')]
+    sha256: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+
+
 class Status(StrEnum):
     ok = 'ok'
     not_ready = 'not_ready'
@@ -696,6 +885,59 @@ class IssueAccessGrantCommand(BaseModel):
 
 class JsonValue(RootModel[Any]):
     root: Any
+
+
+class FailureCode(StrEnum):
+    GENERATION_MISMATCH = 'GENERATION_MISMATCH'
+    SIZE_MISMATCH = 'SIZE_MISMATCH'
+    CHECKSUM_MISMATCH = 'CHECKSUM_MISMATCH'
+    MIME_MISMATCH = 'MIME_MISMATCH'
+    UNSUPPORTED_CODEC = 'UNSUPPORTED_CODEC'
+    DECODER_REJECTED = 'DECODER_REJECTED'
+    POLYGLOT_REJECTED = 'POLYGLOT_REJECTED'
+    MALWARE_REJECTED = 'MALWARE_REJECTED'
+    DIMENSION_LIMIT_EXCEEDED = 'DIMENSION_LIMIT_EXCEEDED'
+    DURATION_LIMIT_EXCEEDED = 'DURATION_LIMIT_EXCEEDED'
+    CONSENT_OR_ACCESS_VERSION_CHANGED = 'CONSENT_OR_ACCESS_VERSION_CHANGED'
+
+
+class State2(StrEnum):
+    INTENT_ISSUED = 'INTENT_ISSUED'
+    UPLOADED_UNVERIFIED = 'UPLOADED_UNVERIFIED'
+    SCANNING = 'SCANNING'
+    VERIFIED = 'VERIFIED'
+    ATTACHED = 'ATTACHED'
+    FAILED_RETRYABLE = 'FAILED_RETRYABLE'
+    REJECTED = 'REJECTED'
+    EXPIRED = 'EXPIRED'
+    CANCELLED = 'CANCELLED'
+
+
+class MediaAssetStatusResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    assetId: UUID
+    derivativeSha256: Annotated[str | None, Field(pattern='^sha256:[0-9a-f]{64}$')] = (
+        None
+    )
+    failureCode: FailureCode | None = None
+    purpose: Purpose
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    state: State2
+    updatedAt: AwareDatetime
+    verifiedMimeType: Annotated[str | None, Field(max_length=120, min_length=1)] = None
+    verifiedSizeBytes: Annotated[int | None, Field(gt=0, le=9007199254740991)] = None
+
+
+class MediaOperationAcceptedResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acceptedAt: AwareDatetime
+    assetId: UUID
+    operationId: UUID
+    state: Literal['SCANNING']
 
 
 class Payload1(BaseModel):
@@ -864,6 +1106,204 @@ class MilestoneOneEvent(
     root: MilestoneOneEvent1 | MilestoneOneEvent2 | MilestoneOneEvent3
 
 
+class EventName1(StrEnum):
+    sync_batch_started = 'sync.batch_started'
+    sync_event_accepted = 'sync.event_accepted'
+    sync_event_already_accepted = 'sync.event_already_accepted'
+    sync_event_rejected = 'sync.event_rejected'
+    sync_conflict_detected = 'sync.conflict_detected'
+    sync_conflict_resolved = 'sync.conflict_resolved'
+
+
+class Disposition1(StrEnum):
+    ACCEPTED = 'ACCEPTED'
+    ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
+    REJECTED = 'REJECTED'
+    CONFLICT = 'CONFLICT'
+
+
+class Payload4(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    batchId: UUID | None = None
+    commandId: UUID | None = None
+    conflictId: UUID | None = None
+    disposition: Disposition1 | None = None
+    streamId: UUID
+
+
+class MilestoneTwoEvent1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    actorRef: UUID | None = None
+    actorType: ActorType
+    aggregateId: UUID
+    aggregateRevision: Annotated[int, Field(gt=0, le=9007199254740991)]
+    aggregateType: Annotated[str, Field(max_length=80, min_length=1)]
+    causationId: UUID | None = None
+    clientRecordedAt: AwareDatetime | None = None
+    committedAt: AwareDatetime
+    consentAccessVersion: Annotated[int | None, Field(gt=0, le=9007199254740991)] = None
+    correlationId: UUID
+    dataMode: DataMode
+    deviceRef: UUID | None = None
+    eventId: UUID
+    eventName: EventName1
+    eventOrdinal: Annotated[int, Field(gt=0, le=9007199254740991)]
+    eventVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    jurisdictionId: UUID | None = None
+    modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
+    occurredAt: AwareDatetime
+    payload: Payload4
+    payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    payloadClassification: Literal['C2']
+    payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    producerBuild: Annotated[str, Field(max_length=120, min_length=1)]
+    producerService: Annotated[str, Field(max_length=80, min_length=1)]
+    provenanceTypes: Annotated[list[ProvenanceType], Field(max_length=9, min_length=1)]
+    purposeCode: PurposeCode | None = None
+    retentionClass: Annotated[str, Field(max_length=80, min_length=1)]
+    roleContextRef: UUID | None = None
+    serverReceivedAt: AwareDatetime
+    traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
+
+
+class Payload5(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    assetId: UUID
+    derivativeChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    derivativeId: UUID
+    purpose: Purpose
+    scannerVersion: Annotated[str, Field(max_length=80, min_length=1)]
+    sourceChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+
+
+class MilestoneTwoEvent2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    actorRef: UUID | None = None
+    actorType: ActorType
+    aggregateId: UUID
+    aggregateRevision: Annotated[int, Field(gt=0, le=9007199254740991)]
+    aggregateType: Annotated[str, Field(max_length=80, min_length=1)]
+    causationId: UUID | None = None
+    clientRecordedAt: AwareDatetime | None = None
+    committedAt: AwareDatetime
+    consentAccessVersion: Annotated[int | None, Field(gt=0, le=9007199254740991)] = None
+    correlationId: UUID
+    dataMode: DataMode
+    deviceRef: UUID | None = None
+    eventId: UUID
+    eventName: Literal['media.upload_verified']
+    eventOrdinal: Annotated[int, Field(gt=0, le=9007199254740991)]
+    eventVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    jurisdictionId: UUID | None = None
+    modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
+    occurredAt: AwareDatetime
+    payload: Payload5
+    payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    payloadClassification: Literal['C2']
+    payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    producerBuild: Annotated[str, Field(max_length=120, min_length=1)]
+    producerService: Annotated[str, Field(max_length=80, min_length=1)]
+    provenanceTypes: Annotated[list[ProvenanceType], Field(max_length=9, min_length=1)]
+    purposeCode: PurposeCode | None = None
+    retentionClass: Annotated[str, Field(max_length=80, min_length=1)]
+    roleContextRef: UUID | None = None
+    serverReceivedAt: AwareDatetime
+    traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
+
+
+class EventName2(StrEnum):
+    voice_session_started = 'voice.session_started'
+    voice_session_ended = 'voice.session_ended'
+    voice_intent_recognized = 'voice.intent_recognized'
+    voice_clarification_requested = 'voice.clarification_requested'
+    voice_proposal_created = 'voice.proposal_created'
+    voice_proposal_cancelled = 'voice.proposal_cancelled'
+    voice_proposal_confirmed = 'voice.proposal_confirmed'
+    voice_proposal_corrected = 'voice.proposal_corrected'
+    voice_proposal_expired = 'voice.proposal_expired'
+    voice_proposal_superseded = 'voice.proposal_superseded'
+    voice_provider_failed = 'voice.provider_failed'
+    voice_offline_audio_attached = 'voice.offline_audio_attached'
+    voice_offline_audio_transcription_started = (
+        'voice.offline_audio_transcription_started'
+    )
+    voice_offline_audio_needs_confirmation = 'voice.offline_audio_needs_confirmation'
+    voice_offline_audio_declined = 'voice.offline_audio_declined'
+    voice_offline_audio_deleted = 'voice.offline_audio_deleted'
+
+
+class Payload6(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    detailCode: Annotated[str | None, Field(max_length=80, min_length=1)] = None
+    lifecycleState: Annotated[str, Field(max_length=80, min_length=1)]
+    offlineAudioRefId: UUID | None = None
+    payloadHash: Annotated[str | None, Field(pattern='^sha256:[0-9a-f]{64}$')] = None
+    proposalId: UUID | None = None
+    sessionId: UUID
+
+
+class PayloadClassification1(StrEnum):
+    C2 = 'C2'
+    C3 = 'C3'
+
+
+class MilestoneTwoEvent3(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    actorRef: UUID | None = None
+    actorType: ActorType
+    aggregateId: UUID
+    aggregateRevision: Annotated[int, Field(gt=0, le=9007199254740991)]
+    aggregateType: Annotated[str, Field(max_length=80, min_length=1)]
+    causationId: UUID | None = None
+    clientRecordedAt: AwareDatetime | None = None
+    committedAt: AwareDatetime
+    consentAccessVersion: Annotated[int | None, Field(gt=0, le=9007199254740991)] = None
+    correlationId: UUID
+    dataMode: DataMode
+    deviceRef: UUID | None = None
+    eventId: UUID
+    eventName: EventName2
+    eventOrdinal: Annotated[int, Field(gt=0, le=9007199254740991)]
+    eventVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    jurisdictionId: UUID | None = None
+    modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
+    occurredAt: AwareDatetime
+    payload: Payload6
+    payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    payloadClassification: PayloadClassification1
+    payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    producerBuild: Annotated[str, Field(max_length=120, min_length=1)]
+    producerService: Annotated[str, Field(max_length=80, min_length=1)]
+    provenanceTypes: Annotated[list[ProvenanceType], Field(max_length=9, min_length=1)]
+    purposeCode: PurposeCode | None = None
+    retentionClass: Annotated[str, Field(max_length=80, min_length=1)]
+    roleContextRef: UUID | None = None
+    serverReceivedAt: AwareDatetime
+    traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
+
+
+class MilestoneTwoEvent(
+    RootModel[
+        MilestoneOneEvent | MilestoneTwoEvent1 | MilestoneTwoEvent2 | MilestoneTwoEvent3
+    ]
+):
+    root: (
+        MilestoneOneEvent | MilestoneTwoEvent1 | MilestoneTwoEvent2 | MilestoneTwoEvent3
+    )
+
+
 class MpQueryContextResponse(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -999,7 +1439,7 @@ class ClientContext1(BaseModel):
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
-class Payload4(BaseModel):
+class Payload7(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1028,7 +1468,7 @@ class RecordConsentDecisionCommand(BaseModel):
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['RecordConsentDecision']
-    payload: Payload4
+    payload: Payload7
     target: Target1
 
 
@@ -1074,6 +1514,15 @@ class RskBootstrapResponse(BaseModel):
     workState: Literal['UNAVAILABLE_UNTIL_WORK_MILESTONE']
 
 
+class ScanMediaAssetRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    assetId: UUID
+    scanRequestVersion: Literal[1]
+    storageEventId: UUID
+
+
 class ClientContext2(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -1083,7 +1532,7 @@ class ClientContext2(BaseModel):
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
-class Payload5(BaseModel):
+class Payload8(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1108,7 +1557,7 @@ class SelectRoleContextCommand(BaseModel):
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['SelectRoleContext']
-    payload: Payload5
+    payload: Payload8
     target: Target2
 
 
@@ -1161,6 +1610,34 @@ class SessionResponse(BaseModel):
     roles: Annotated[list[Role], Field(max_length=12)]
     subjectId: UUID
     subjectType: SubjectType
+
+
+class SupportedProjectionVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class SyncBootstrapRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    bootstrapVersion: Literal[1]
+    localDatabaseSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    streamId: UUID
+    supportedProjectionVersions: SupportedProjectionVersions
+
+
+class Tombstone(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    deletionEpoch: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimumResurrectionRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    projectionId: UUID
+    projectionType: Annotated[str, Field(max_length=80, min_length=1)]
 
 
 class SyncCommandDisposition1(BaseModel):
@@ -1272,7 +1749,7 @@ class SyncCommandDisposition(
     )
 
 
-class Payload6(BaseModel):
+class Payload9(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1305,10 +1782,90 @@ class SyncCommandEnvelope(BaseModel):
     localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     occurredAt: AwareDatetime
     operation: Literal['RecordConsentDecision']
-    payload: Payload6
+    payload: Payload9
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
     target: Target3
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class SyncCommandStatusResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    command: SyncCommandDisposition
+
+
+class AllowedAction(StrEnum):
+    CREATE_NEW_COMMAND = 'CREATE_NEW_COMMAND'
+    KEEP_BOTH_FACTS = 'KEEP_BOTH_FACTS'
+    DISCARD_LOCAL_PROPOSAL = 'DISCARD_LOCAL_PROPOSAL'
+
+
+class ConflictType(StrEnum):
+    EXPECTED_REVISION_MISMATCH = 'EXPECTED_REVISION_MISMATCH'
+    DUPLICATE_LOGICAL_ACTION = 'DUPLICATE_LOGICAL_ACTION'
+    CONCURRENT_MUTABLE_FIELD = 'CONCURRENT_MUTABLE_FIELD'
+    TASK_ACTUAL_VS_PLAN_CHANGE = 'TASK_ACTUAL_VS_PLAN_CHANGE'
+    CROP_STAGE_DISAGREEMENT = 'CROP_STAGE_DISAGREEMENT'
+    TOMBSTONED_ENTITY = 'TOMBSTONED_ENTITY'
+    ASSIGNMENT_CHANGED = 'ASSIGNMENT_CHANGED'
+    CONSENT_OR_ACCESS_VERSION_CHANGED = 'CONSENT_OR_ACCESS_VERSION_CHANGED'
+    CLOCK_UNTRUSTED = 'CLOCK_UNTRUSTED'
+    MEDIA_INTEGRITY_MISMATCH = 'MEDIA_INTEGRITY_MISMATCH'
+    SCHEMA_REQUIRES_MIGRATION = 'SCHEMA_REQUIRES_MIGRATION'
+
+
+class State3(StrEnum):
+    OPEN = 'OPEN'
+    RESOLUTION_PENDING = 'RESOLUTION_PENDING'
+    RESOLVED = 'RESOLVED'
+    LOCKED_RECOVERY = 'LOCKED_RECOVERY'
+
+
+class SyncConflict(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    allowedActions: Annotated[list[AllowedAction], Field(max_length=3, min_length=1)]
+    authoritativeRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    authoritativeSummary: dict[str, JsonValue]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    conflictId: UUID
+    conflictType: ConflictType
+    createdAt: AwareDatetime
+    localRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSummary: dict[str, JsonValue]
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    state: State3
+    targetId: UUID
+    targetType: Annotated[str, Field(max_length=80, min_length=1)]
+
+
+class SyncConflictListResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    conflicts: Annotated[list[SyncConflict], Field(max_length=100)]
+    nextCursor: Annotated[str | None, Field(max_length=2048)] = None
+
+
+class Action(StrEnum):
+    CREATE_NEW_COMMAND = 'CREATE_NEW_COMMAND'
+    KEEP_BOTH_FACTS = 'KEEP_BOTH_FACTS'
+    DISCARD_LOCAL_PROPOSAL = 'DISCARD_LOCAL_PROPOSAL'
+
+
+class SyncConflictResolutionRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    action: Action
+    conflictId: UUID
+    expectedConflictRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    payloadHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    resolutionCommandId: UUID
+    resolutionSchemaVersion: Literal[1]
 
 
 class ChangeType(StrEnum):
@@ -1316,7 +1873,7 @@ class ChangeType(StrEnum):
     TOMBSTONE = 'TOMBSTONE'
 
 
-class PayloadClassification1(StrEnum):
+class PayloadClassification2(StrEnum):
     C0 = 'C0'
     C1 = 'C1'
     C2 = 'C2'
@@ -1331,10 +1888,112 @@ class SyncProjectionDelta(BaseModel):
     dataMode: DataMode
     payload: dict[str, JsonValue]
     payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    payloadClassification: PayloadClassification1
+    payloadClassification: PayloadClassification2
     projectionId: UUID
     projectionSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     projectionType: Annotated[str, Field(max_length=80, min_length=1)]
+
+
+class ClientEventVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class CommandVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class MediaVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class ProjectionVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class SyncStreamOpenRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientBuild: Annotated[str, Field(max_length=80, min_length=1)]
+    clientEventVersions: ClientEventVersions
+    commandVersions: CommandVersions
+    deviceMode: DeviceMode
+    localDatabaseSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    mediaVersions: MediaVersions
+    priorCursor: Annotated[str | None, Field(max_length=2048, min_length=1)] = None
+    priorStreamId: UUID | None = None
+    projectionVersions: ProjectionVersions
+    stakeholder: Literal['FARMER'] | None = None
+    streamProtocolVersion: Literal[1]
+
+
+class AcceptedClientEventVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class AcceptedCommandVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class AcceptedMediaVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class AcceptedProjectionVersions(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    maximum: Annotated[int, Field(gt=0, le=9007199254740991)]
+    minimum: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class SyncStreamOpenResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acceptedClientEventVersions: AcceptedClientEventVersions
+    acceptedCommandVersions: AcceptedCommandVersions
+    acceptedMediaVersions: AcceptedMediaVersions
+    acceptedProjectionVersions: AcceptedProjectionVersions
+    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    bootstrapRequired: bool
+    cursor: Annotated[str, Field(max_length=2048, min_length=1)]
+    maximumBatchBytes: Annotated[int, Field(ge=1, le=524288)]
+    maximumBatchCommands: Annotated[int, Field(ge=1, le=100)]
+    scope: Literal['FARMER_SELF_SERVICE']
+    serverTime: AwareDatetime
+    serverTimeSignature: Annotated[str, Field(max_length=2048, min_length=16)]
+    stakeholder: Literal['FARMER']
+    streamId: UUID
+    subjectDeviceBindingId: UUID
 
 
 class Unavailable(BaseModel):
@@ -1347,7 +2006,63 @@ class Unavailable(BaseModel):
     state: Literal['UNAVAILABLE']
 
 
-class Purpose(StrEnum):
+class State4(StrEnum):
+    UNKNOWN = 'UNKNOWN'
+    IN_PROGRESS = 'IN_PROGRESS'
+    ACCEPTED = 'ACCEPTED'
+    REJECTED = 'REJECTED'
+
+
+class VoiceCommandStatusResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID
+    receiptReference: UUID | None = None
+    state: State4
+
+
+class Type1(StrEnum):
+    session_start = 'session.start'
+    audio_end = 'audio.end'
+    barge_in = 'barge_in'
+    proposal_confirm = 'proposal.confirm'
+    proposal_correct = 'proposal.correct'
+    proposal_cancel = 'proposal.cancel'
+    transport_ack = 'transport.ack'
+    transport_resync_request = 'transport.resync_request'
+    ping = 'ping'
+    session_close = 'session.close'
+    session_ready = 'session.ready'
+    state_changed = 'state.changed'
+    transcript_partial = 'transcript.partial'
+    transcript_final = 'transcript.final'
+    clarification = 'clarification'
+    tool_proposal = 'tool.proposal'
+    proposal_state = 'proposal.state'
+    command_state = 'command.state'
+    validated_result = 'validated.result'
+    audio_metadata = 'audio.metadata'
+    transport_resync = 'transport.resync'
+    error = 'error'
+    session_expiring = 'session.expiring'
+    session_closed = 'session.closed'
+
+
+class VoiceControlFrame(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acknowledgedSequence: Annotated[int, Field(ge=0, le=9007199254740991)]
+    messageId: UUID
+    payload: dict[str, JsonValue]
+    protocolVersion: Literal[1]
+    sequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    sessionId: UUID
+    type: Type1
+
+
+class Purpose3(StrEnum):
     farmer_self_service = 'farmer.self_service'
     case_expert_support = 'case.expert_support'
     field_visit = 'field.visit'
@@ -1364,12 +2079,91 @@ class VoiceDelegation(BaseModel):
     )
     consentAccessVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     expiresAt: AwareDatetime
-    purpose: Purpose
+    purpose: Purpose3
     roleContextId: UUID
     roleType: RoleType
     sessionId: UUID
     subjectId: UUID
     toolKey: Annotated[str, Field(max_length=120, min_length=1)]
+
+
+class State5(StrEnum):
+    PENDING = 'PENDING'
+    CONFIRMED = 'CONFIRMED'
+    CANCELLED = 'CANCELLED'
+    SUPERSEDED = 'SUPERSEDED'
+    EXPIRED = 'EXPIRED'
+    EXECUTING = 'EXECUTING'
+    COMPLETE = 'COMPLETE'
+    FAILED = 'FAILED'
+
+
+class VoiceProposalResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID | None = None
+    expiresAt: AwareDatetime
+    payloadHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    proposalId: UUID
+    readBack: dict[str, JsonValue]
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    sessionId: UUID
+    state: State5
+    toolKey: Annotated[str, Field(max_length=120, min_length=1)]
+
+
+class Input(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    text: Annotated[str, Field(max_length=2000, min_length=1)]
+    type: Literal['TEXT']
+
+
+class MimeType(StrEnum):
+    audio_webm_codecs_opus = 'audio/webm;codecs=opus'
+    audio_wav = 'audio/wav'
+
+
+class Input1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    bytesBase64: Annotated[str, Field(max_length=350000, min_length=4)]
+    mimeType: MimeType
+    sha256: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    type: Literal['AUDIO']
+
+
+class VoiceTurnRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acknowledgedServerSequence: Annotated[int, Field(ge=0, le=9007199254740991)]
+    clientSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    input: Input | Input1
+    turnId: UUID
+
+
+class State6(StrEnum):
+    HELP = 'HELP'
+    UNAVAILABLE = 'UNAVAILABLE'
+    NEEDS_CLARIFICATION = 'NEEDS_CLARIFICATION'
+    PROPOSAL_PENDING = 'PROPOSAL_PENDING'
+
+
+class VoiceTurnResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acknowledgedClientSequence: Annotated[int, Field(ge=0, le=9007199254740991)]
+    messageKey: Annotated[str, Field(max_length=120, min_length=1)]
+    proposalId: UUID | None = None
+    serverSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    sessionId: UUID
+    state: State6
+    turnId: UUID
 
 
 class Command(
@@ -1398,6 +2192,16 @@ class CommandEnvelope(
         | RecordConsentDecisionCommand
         | IssueAccessGrantCommand
     )
+
+
+class CorrectVoiceProposalRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID
+    correction: dict[str, JsonValue]
+    expectedProposalRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    proposalId: UUID
 
 
 class EventEnvelope(BaseModel):
@@ -1454,6 +2258,22 @@ class SyncBatch(BaseModel):
     syncBatchVersion: Literal[1]
 
 
+class SyncBootstrapResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    cursor: Annotated[str, Field(max_length=2048, min_length=1)]
+    expiresAt: AwareDatetime
+    generatedAt: AwareDatetime
+    highWaterMark: Annotated[str, Field(max_length=2048, min_length=1)]
+    projections: Annotated[list[SyncProjectionDelta], Field(max_length=5000)]
+    snapshotChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    snapshotSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    streamId: UUID
+    tombstones: Annotated[list[Tombstone], Field(max_length=5000)]
+
+
 class SyncFeedEvent(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -1464,6 +2284,40 @@ class SyncFeedEvent(BaseModel):
     sequence: Annotated[int, Field(gt=0, le=9007199254740991)]
 
 
+class SyncFeedEventV2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    feedEventId: UUID
+    integrationEvent: MilestoneTwoEvent
+    projectionDeltas: Annotated[list[SyncProjectionDelta], Field(max_length=100)]
+    sequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+
+
+class SyncFeedPageResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    feedEvents: Annotated[list[SyncFeedEvent], Field(max_length=100)]
+    hasMore: bool
+    highWaterMark: Annotated[str, Field(max_length=2048, min_length=1)]
+    nextCursor: Annotated[str, Field(max_length=2048, min_length=1)]
+    serverTime: AwareDatetime
+
+
+class SyncFeedPageResponseV2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    feedEvents: Annotated[list[SyncFeedEventV2], Field(max_length=100)]
+    hasMore: bool
+    highWaterMark: Annotated[str, Field(max_length=2048, min_length=1)]
+    nextCursor: Annotated[str, Field(max_length=2048, min_length=1)]
+    serverTime: AwareDatetime
+
+
 class SyncBatchResponse(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -1472,6 +2326,20 @@ class SyncBatchResponse(BaseModel):
     batchId: UUID
     dispositions: Annotated[list[SyncCommandDisposition], Field(max_length=100)]
     feedEvents: Annotated[list[SyncFeedEvent], Field(max_length=100)]
+    hasMore: bool
+    highWaterMark: Annotated[str, Field(max_length=2048, min_length=1)]
+    nextCursor: Annotated[str, Field(max_length=2048, min_length=1)]
+    serverTime: AwareDatetime
+
+
+class SyncBatchResponseV2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    batchId: UUID
+    dispositions: Annotated[list[SyncCommandDisposition], Field(max_length=100)]
+    feedEvents: Annotated[list[SyncFeedEventV2], Field(max_length=100)]
     hasMore: bool
     highWaterMark: Annotated[str, Field(max_length=2048, min_length=1)]
     nextCursor: Annotated[str, Field(max_length=2048, min_length=1)]

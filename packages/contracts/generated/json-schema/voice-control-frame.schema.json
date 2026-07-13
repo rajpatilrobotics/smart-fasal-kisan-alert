@@ -1,0 +1,82 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "acknowledgedSequence": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "messageId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "propertyNames": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "protocolVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "sequence": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "session.start",
+        "audio.end",
+        "barge_in",
+        "proposal.confirm",
+        "proposal.correct",
+        "proposal.cancel",
+        "transport.ack",
+        "transport.resync_request",
+        "ping",
+        "session.close",
+        "session.ready",
+        "state.changed",
+        "transcript.partial",
+        "transcript.final",
+        "clarification",
+        "tool.proposal",
+        "proposal.state",
+        "command.state",
+        "validated.result",
+        "audio.metadata",
+        "transport.resync",
+        "error",
+        "session.expiring",
+        "session.closed"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "sessionId",
+    "messageId",
+    "sequence",
+    "acknowledgedSequence",
+    "type",
+    "payload"
+  ],
+  "type": "object",
+  "x-data-classification": "C4"
+}

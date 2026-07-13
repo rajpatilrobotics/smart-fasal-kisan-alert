@@ -61,20 +61,58 @@ const commonSurfacePaths = [
   '/v1/system/reachability',
 ];
 
+const sharedVoicePaths = [
+  '/v1/realtime',
+  '/v1/voice/sessions',
+  '/v1/voice/sessions/{sessionId}/turns',
+];
+const operationalVoicePaths = [
+  '/v1/commands/{commandId}',
+  '/v1/voice/offline-audio',
+  '/v1/voice/proposals/{proposalId}',
+  '/v1/voice/proposals/{proposalId}:cancel',
+  '/v1/voice/proposals/{proposalId}:confirm',
+  '/v1/voice/proposals/{proposalId}:correct',
+];
+const mediaPaths = [
+  '/v1/media/assets/{assetId}/status',
+  '/v1/media/attachments/{attachmentId}/content',
+  '/v1/media/upload-intents',
+  '/v1/media/upload-intents/{intentId}',
+  '/v1/media/upload-intents/{intentId}:finalize',
+];
+const farmerSyncPaths = [
+  '/v1/sync/batches',
+  '/v1/sync/bootstrap',
+  '/v1/sync/commands/{commandId}',
+  '/v1/sync/conflicts',
+  '/v1/sync/conflicts/{conflictId}',
+  '/v1/sync/conflicts/{conflictId}/resolutions',
+  '/v1/sync/feed',
+  '/v1/sync/streams',
+];
+
 const surfacePaths = {
   farmer: [
     ...commonSurfacePaths,
+    ...sharedVoicePaths,
+    ...operationalVoicePaths,
+    ...mediaPaths,
+    ...farmerSyncPaths,
     '/v1/farmer/bootstrap',
     '/v1/farmer/consent-decisions',
     '/v1/farmer/consents',
   ],
   rsk: [
     ...commonSurfacePaths,
+    ...sharedVoicePaths,
+    ...operationalVoicePaths,
+    ...mediaPaths,
     '/v1/rsk/access-grants',
     '/v1/rsk/bootstrap',
     '/v1/rsk/protected-disclosures',
   ],
-  mp: [...commonSurfacePaths, '/v1/mp/query-context'],
+  mp: [...commonSurfacePaths, ...sharedVoicePaths, '/v1/mp/query-context'],
 };
 
 const responseStatusesByOperation = {
@@ -93,6 +131,29 @@ const responseStatusesByOperation = {
   issueRskAccessGrant: ['200', '400', '401', '403', '409', '428', '503'],
   createRskProtectedDisclosure: ['200', '400', '401', '403', '409', '503'],
   getMpQueryContext: ['200', '400', '401', '403', '409', '503'],
+  openFarmerSyncStream: ['200', '400', '401', '403', '409', '415', '503'],
+  bootstrapFarmerSync: ['200', '400', '401', '403', '409', '415', '503'],
+  syncFarmerBatch: ['200', '400', '401', '403', '409', '415', '503'],
+  getFarmerSyncFeed: ['200', '400', '401', '403', '409', '410', '503'],
+  getFarmerSyncCommand: ['200', '400', '401', '403', '409', '503'],
+  listFarmerSyncConflicts: ['200', '400', '401', '403', '409', '503'],
+  getFarmerSyncConflict: ['200', '400', '401', '403', '409', '503'],
+  resolveFarmerSyncConflict: ['200', '400', '401', '403', '409', '428', '503'],
+  createMediaUploadIntent: ['201', '400', '401', '403', '409', '428', '429', '503'],
+  finalizeMediaUploadIntent: ['202', '400', '401', '403', '409', '410', '422', '428', '503'],
+  getMediaAssetStatus: ['200', '400', '401', '403', '409', '503'],
+  cancelMediaUploadIntent: ['200', '400', '401', '403', '409', '428', '503'],
+  streamMediaAttachment: ['200', '206', '400', '401', '403', '409', '416', '503'],
+  scanMediaAsset: ['202', '400', '401', '403', '422', '503'],
+  createVoiceSession: ['201', '400', '401', '403', '409', '428', '429', '503'],
+  openVoiceRealtime: ['101', '400', '401', '403', '409', '429', '503'],
+  createVoiceTurn: ['200', '400', '401', '403', '409', '428', '503'],
+  getVoiceProposal: ['200', '400', '401', '403', '409', '503'],
+  confirmVoiceProposal: ['200', '400', '401', '403', '409', '410', '428', '503'],
+  correctVoiceProposal: ['200', '400', '401', '403', '409', '410', '428', '503'],
+  cancelVoiceProposal: ['200', '400', '401', '403', '409', '410', '428', '503'],
+  getVoiceCommandStatus: ['200', '400', '401', '403', '409', '503'],
+  attachVoiceOfflineAudio: ['200', '400', '401', '403', '409', '428', '503'],
 };
 
 function roleContextCreatedEvent(overrides = {}) {
@@ -283,6 +344,8 @@ describe('OpenAPI surface policy', () => {
     expect(Object.keys(api.components.schemas).sort()).toEqual([
       'AuthorizationContext',
       'CommandResult',
+      'CreateVoiceSessionRequest',
+      'CreateVoiceSessionResponse',
       'HealthPayload',
       'MpQueryContextResponse',
       'ProblemDetails',
@@ -290,6 +353,8 @@ describe('OpenAPI surface policy', () => {
       'ReturnStateResponse',
       'SelectRoleContextCommand',
       'SessionResponse',
+      'VoiceTurnRequest',
+      'VoiceTurnResponse',
     ]);
 
     const forbidden = [
@@ -326,15 +391,7 @@ describe('OpenAPI surface policy', () => {
     const api = buildOpenApi(surface);
     expect(api.paths).toHaveProperty(expectedRoute);
     const routeNames = Object.keys(api.paths);
-    expect(
-      routeNames.every(
-        (path) =>
-          path.startsWith('/health/') ||
-          path.includes(`/${surface}/`) ||
-          path.includes('/auth/') ||
-          path.includes('/system/'),
-      ),
-    ).toBe(true);
+    expect(routeNames).toEqual(expect.arrayContaining(surfacePaths[surface]));
   });
 
   it.each(Object.entries(surfacePaths))(
@@ -373,7 +430,7 @@ describe('OpenAPI surface policy', () => {
       const parameterReferences = operation.parameters
         .filter((parameter) => '$ref' in parameter)
         .map((parameter) => parameter.$ref);
-      if (route.auth === 'none') {
+      if (route.auth === 'none' || route.auth === 'internal' || route.auth === 'voice-ticket') {
         expect(parameterReferences, route.operationId).not.toContain(
           '#/components/parameters/schemaVersion',
         );
@@ -393,7 +450,10 @@ describe('OpenAPI surface policy', () => {
           ]),
         );
       }
-      if (route.surface === 'common') {
+      const requiresRoleContext =
+        route.roleContext === 'required' ||
+        (route.roleContext === undefined && ['farmer', 'rsk', 'mp'].includes(route.surface));
+      if (!requiresRoleContext) {
         expect(parameterReferences, route.operationId).not.toContain(
           '#/components/parameters/roleContextId',
         );
@@ -418,6 +478,7 @@ describe('OpenAPI surface policy', () => {
       const validationSources = [
         ...(route.requestSchema ? ['body'] : []),
         ...(route.path.includes('{') ? ['path'] : []),
+        ...(route.queryParameters && route.queryParameters.length > 0 ? ['query'] : []),
         ...(route.auth !== 'none' ? ['headers'] : []),
       ];
       if (validationSources.length > 0) {
@@ -432,8 +493,14 @@ describe('OpenAPI surface policy', () => {
         });
       }
 
+      const successStatuses = new Set(
+        (route.success ?? [{ status: 200 }]).map((response) => String(response.status)),
+      );
       for (const [status, response] of Object.entries(operation.responses)) {
-        if (status === '200' || (route.operationId === 'getReadiness' && status === '503')) {
+        if (
+          successStatuses.has(status) ||
+          (route.operationId === 'getReadiness' && status === '503')
+        ) {
           continue;
         }
         expect(Object.keys(response.content), `${route.operationId} ${status}`).toEqual([
@@ -446,7 +513,12 @@ describe('OpenAPI surface policy', () => {
       const operation = api.paths[route.path][route.method];
       return Object.hasOwn(operation.responses, '429');
     }).map((route) => route.operationId);
-    expect(rateLimitedOperations).toEqual(['createReturnState']);
+    expect(rateLimitedOperations).toEqual([
+      'createReturnState',
+      'createMediaUploadIntent',
+      'createVoiceSession',
+      'openVoiceRealtime',
+    ]);
   });
 
   it('serializes the optional role-context header through the generated client', async () => {
@@ -553,17 +625,120 @@ describe('OpenAPI surface policy', () => {
     expect(security).toEqual([{ appCheck: [], bearerAuth: [] }]);
   });
 
-  it('keeps credentials and protected identifiers out of path and query parameters', () => {
+  it('uses only the one-time voice ticket on the realtime upgrade', () => {
     const api = buildOpenApi('platform');
-    for (const [path, pathItem] of Object.entries(api.paths)) {
-      expect(path.toLowerCase()).not.toMatch(/phone|token|contact|coordinate|subjectid/);
-      for (const operation of Object.values(pathItem)) {
-        for (const parameter of operation.parameters ?? []) {
-          if ('$ref' in parameter) continue;
-          expect(parameter.in).not.toBe('query');
-        }
+    const realtime = api.paths['/v1/realtime'].get;
+    expect(realtime.security).toEqual([{ voiceTicket: [] }]);
+    expect(realtime['x-smart-fasal-authorization']).toMatchObject({
+      authentication: 'voice-ticket',
+      denyByDefault: true,
+    });
+    expect(api.components.securitySchemes.voiceTicket).toMatchObject({
+      type: 'apiKey',
+      in: 'header',
+      name: 'Sec-WebSocket-Protocol',
+    });
+    expect(realtime.parameters).toEqual([]);
+  });
+
+  it('types only the reviewed M2 query and range parameters', () => {
+    const api = buildOpenApi('platform');
+    const feed = api.paths['/v1/sync/feed'].get;
+    expect(feed.parameters.filter((parameter) => parameter.in === 'query')).toEqual([
+      expect.objectContaining({
+        name: 'streamId',
+        required: true,
+        schema: { type: 'string', format: 'uuid' },
+      }),
+      expect.objectContaining({
+        name: 'cursor',
+        required: true,
+        schema: { type: 'string', minLength: 1, maxLength: 2048 },
+      }),
+      expect.objectContaining({
+        name: 'limit',
+        required: false,
+        schema: { type: 'integer', minimum: 1, maximum: 100, default: 100 },
+      }),
+    ]);
+    expect(
+      api.paths['/v1/sync/conflicts'].get.parameters
+        .filter((parameter) => parameter.in === 'query')
+        .map((parameter) => parameter.name),
+    ).toEqual(['cursor', 'limit']);
+    expect(api.paths['/v1/media/attachments/{attachmentId}/content'].get.parameters).toContainEqual(
+      {
+        $ref: '#/components/parameters/singleByteRange',
+      },
+    );
+    expect(api.components.parameters.singleByteRange).toMatchObject({
+      in: 'header',
+      name: 'Range',
+      required: false,
+    });
+  });
+
+  it('serializes the bounded sync feed query through the generated Farmer client', async () => {
+    const fetchMock = vi.fn(async () =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            feedEvents: [],
+            nextCursor: 'opaque-next',
+            highWaterMark: 'opaque-high-water',
+            hasMore: false,
+            serverTime: timestamp,
+            authorizationVersion: 1,
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      ),
+    );
+    const client = createFarmerClient({
+      baseUrl: 'https://farmer.api.smart-fasal.invalid',
+      fetch: fetchMock,
+    });
+
+    await client.GET('/v1/sync/feed', {
+      params: {
+        header: {
+          'X-Client-Build': 'farmer-web-1',
+          'X-Client-Installation-Id': 'test-installation',
+          'X-Client-Schema-Version': '1',
+          'X-Role-Context-Id': uuid,
+        },
+        query: { streamId: uuid2, cursor: 'opaque-cursor', limit: 100 },
+      },
+    });
+
+    const request = fetchMock.mock.calls[0]?.[0];
+    expect(request).toBeInstanceOf(Request);
+    const url = new URL(request.url);
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      streamId: uuid2,
+      cursor: 'opaque-cursor',
+      limit: '100',
+    });
+  });
+
+  it('keeps credentials and protected identifiers out of paths and allowlisted queries', () => {
+    const api = buildOpenApi('platform');
+    const routesWithQueries = [];
+    for (const route of ROUTES) {
+      expect(route.path.toLowerCase()).not.toMatch(/phone|token|contact|coordinate|subjectid/);
+      const operation = api.paths[route.path][route.method];
+      const queries = operation.parameters.filter((parameter) => parameter.in === 'query');
+      expect(queries.map((parameter) => parameter.name)).toEqual(
+        (route.queryParameters ?? []).map((parameter) => parameter.name),
+      );
+      for (const parameter of queries) {
+        expect(parameter.name.toLowerCase()).not.toMatch(
+          /phone|token|contact|coordinate|subject|identity|appcheck|authorization/,
+        );
       }
+      if (queries.length > 0) routesWithQueries.push(route.operationId);
     }
+    expect(routesWithQueries).toEqual(['getFarmerSyncFeed', 'listFarmerSyncConflicts']);
   });
 
   it('freezes exact registries with no unrestricted administrator capability', () => {
@@ -614,14 +789,17 @@ describe('release-safe MP runtime contracts', () => {
   });
 });
 
-describe('v1 compatibility baseline', () => {
-  it('freezes every HTTP operation and command/event/sync/device/voice/privacy schema', async () => {
-    const baseline = JSON.parse(
+describe('offline compatibility baselines', () => {
+  it('preserves v1 fingerprints and freezes the additive M2 surface separately', async () => {
+    const v1 = JSON.parse(
       await readFile(resolve(packageRoot, 'compatibility/v1.manifest.json'), 'utf8'),
     );
-    expect(buildCompatibilityManifest()).toEqual(baseline);
-    expect(Object.keys(baseline.httpOperations)).toHaveLength(15);
-    expect(Object.keys(baseline.schemaGroups)).toEqual([
+    const v2 = JSON.parse(
+      await readFile(resolve(packageRoot, 'compatibility/v2.manifest.json'), 'utf8'),
+    );
+    expect(buildCompatibilityManifest()).toEqual(v2);
+    expect(Object.keys(v1.httpOperations)).toHaveLength(15);
+    expect(Object.keys(v1.schemaGroups)).toEqual([
       'commands',
       'device',
       'events',
@@ -629,7 +807,15 @@ describe('v1 compatibility baseline', () => {
       'sync',
       'voice',
     ]);
-    for (const schemas of Object.values(baseline.schemaGroups)) {
+    for (const [operation, contract] of Object.entries(v1.httpOperations)) {
+      expect(v2.httpOperations[operation]).toEqual(contract);
+    }
+    for (const [group, schemas] of Object.entries(v1.schemaGroups)) {
+      for (const [name, contract] of Object.entries(schemas)) {
+        expect(v2.schemaGroups[group][name]).toEqual(contract);
+      }
+    }
+    for (const schemas of Object.values(v2.schemaGroups)) {
       for (const entry of Object.values(schemas)) {
         expect(entry).toEqual({ fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
       }
@@ -638,7 +824,7 @@ describe('v1 compatibility baseline', () => {
 });
 
 describe('event and consent authority', () => {
-  it('freezes the complete catalogue and only marks Milestone 1 emitters executable', () => {
+  it('freezes the complete catalogue and marks only M1/M2 owned emitters executable', () => {
     expect(eventCatalog.events).toHaveLength(357);
     expect(new Set(eventCatalog.events.map((event) => event.name))).toHaveProperty('size', 357);
     expect(
@@ -650,6 +836,36 @@ describe('event and consent authority', () => {
       'identity.role_context_revoked',
       'consent.decision_recorded',
     ]);
+    const reservedM2 = [
+      'sync.batch_started',
+      'sync.event_accepted',
+      'sync.event_already_accepted',
+      'sync.event_rejected',
+      'sync.conflict_detected',
+      'sync.conflict_resolved',
+      'media.upload_verified',
+      'voice.session_started',
+      'voice.session_ended',
+      'voice.intent_recognized',
+      'voice.clarification_requested',
+      'voice.proposal_created',
+      'voice.proposal_cancelled',
+      'voice.proposal_confirmed',
+      'voice.proposal_corrected',
+      'voice.proposal_expired',
+      'voice.proposal_superseded',
+      'voice.provider_failed',
+      'voice.offline_audio_attached',
+      'voice.offline_audio_transcription_started',
+      'voice.offline_audio_needs_confirmation',
+      'voice.offline_audio_declined',
+      'voice.offline_audio_deleted',
+    ];
+    expect(
+      eventCatalog.events
+        .filter((event) => reservedM2.includes(event.name))
+        .map((event) => [event.name, event.status]),
+    ).toEqual(reservedM2.map((name) => [name, 'reserved']));
   });
 
   it('rejects combined accept-all and unknown consent fields', () => {

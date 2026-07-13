@@ -1,11 +1,17 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  CancelMediaUploadIntentResponseSchema,
   CommandResultSchema,
   ConsentListResponseSchema,
+  CreateMediaUploadIntentRequestSchema,
+  CreateMediaUploadIntentResponseSchema,
+  FinalizeMediaUploadIntentRequestSchema,
   FarmerBootstrapResponseSchema,
   HealthPayloadSchema,
   IssueAccessGrantCommandSchema,
+  MediaAssetStatusResponseSchema,
+  MediaOperationAcceptedResponseSchema,
   ProblemDetailsSchema,
   ProtectedDisclosureRequestSchema,
   ProtectedDisclosureResponseSchema,
@@ -15,6 +21,17 @@ import {
   RskBootstrapResponseSchema,
   SelectRoleContextCommandSchema,
   SessionResponseSchema,
+  SyncBatchResponseV2Schema,
+  SyncBatchSchema,
+  SyncBootstrapRequestSchema,
+  SyncBootstrapResponseSchema,
+  SyncCommandStatusResponseSchema,
+  SyncConflictListResponseSchema,
+  SyncConflictResolutionRequestSchema,
+  SyncConflictSchema,
+  SyncFeedPageResponseV2Schema,
+  SyncStreamOpenRequestSchema,
+  SyncStreamOpenResponseSchema,
   UuidSchema,
 } from '@smart-fasal/contracts/schemas';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
@@ -28,6 +45,7 @@ import {
   type DomainSurface,
   type IdentityVerifier,
   type ProblemCode,
+  type ProtectedMediaContentService,
   type ProtectedDisclosureAuthorizationResource,
   type ProtectedDisclosureService,
   type RequestAuthorizer,
@@ -68,6 +86,7 @@ interface BoundaryRoute {
   mutation: boolean;
   command: boolean;
   requiresExpectedRevision?: boolean;
+  requiresRoleContext?: boolean;
   capability?: string;
   purpose?: string;
 }
@@ -83,6 +102,7 @@ export interface DomainApiOptions {
   authorizer?: RequestAuthorizer;
   operations?: DomainOperationAdapter;
   protectedDisclosure?: ProtectedDisclosureService;
+  protectedMediaContent?: ProtectedMediaContentService;
   requestLogger?: SafeRequestLogger;
 }
 
@@ -96,6 +116,16 @@ const CREDENTIAL_QUERY_KEYS = new Set([
   'firebase_appcheck',
   'id_token',
   'token',
+]);
+const SYNC_FEED_QUERY_KEYS = new Set(['streamId', 'cursor', 'limit']);
+const SYNC_CONFLICT_QUERY_KEYS = new Set(['cursor', 'limit']);
+const BOUNDED_PAGE_LIMIT_PATTERN = /^(?:[1-9]|[1-9][0-9]|100)$/u;
+const PROTECTED_MEDIA_CONTENT_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'audio/webm;codecs=opus',
+  'audio/wav',
 ]);
 const CORS_HEADERS = [
   'Accept-Language',
@@ -118,6 +148,86 @@ const unavailableOperations: DomainOperationAdapter = {
 const unavailableProtectedDisclosure: ProtectedDisclosureService = {
   disclose: () => Promise.reject(dependencyUnavailable()),
 };
+
+const unavailableProtectedMediaContent: ProtectedMediaContentService = {
+  read: () => Promise.reject(dependencyUnavailable()),
+};
+
+function parseSingleByteRange(
+  value: string | undefined,
+): { start: number; end?: number } | undefined {
+  if (value === undefined) return undefined;
+  const match = /^bytes=(0|[1-9][0-9]*)-(0|[1-9][0-9]*)?$/u.exec(value);
+  if (match?.[1] === undefined) {
+    throw new ApiBoundaryProblem({
+      code: 'MEDIA_INTEGRITY_MISMATCH',
+      status: 416,
+      title: 'Only one bounded byte range is supported.',
+    });
+  }
+  const start = Number(match[1]);
+  const end = match[2] === undefined ? undefined : Number(match[2]);
+  if (
+    !Number.isSafeInteger(start) ||
+    (end !== undefined && (!Number.isSafeInteger(end) || end < start))
+  ) {
+    throw new ApiBoundaryProblem({
+      code: 'MEDIA_INTEGRITY_MISMATCH',
+      status: 416,
+      title: 'The byte range is invalid.',
+    });
+  }
+  return { start, ...(end === undefined ? {} : { end }) };
+}
+
+function queryProblem(field: string, code = 'invalid_query'): never {
+  throw validationProblem([{ path: ['query', field], code }]);
+}
+
+function assertAllowedQueryKeys(
+  query: Readonly<Record<string, unknown>>,
+  allowed: ReadonlySet<string>,
+): void {
+  for (const key of Object.keys(query)) {
+    if (!allowed.has(key)) queryProblem(key, 'unrecognized_key');
+  }
+}
+
+function readQueryString(
+  query: Readonly<Record<string, unknown>>,
+  field: string,
+  options: { required: true; maximumLength: number },
+): string;
+function readQueryString(
+  query: Readonly<Record<string, unknown>>,
+  field: string,
+  options: { required: false; maximumLength: number },
+): string | undefined;
+function readQueryString(
+  query: Readonly<Record<string, unknown>>,
+  field: string,
+  options: { required: boolean; maximumLength: number },
+): string | undefined {
+  const value = query[field];
+  if (value === undefined && !options.required) return undefined;
+  if (typeof value !== 'string' || value.length === 0 || value.length > options.maximumLength) {
+    queryProblem(field);
+  }
+  return value;
+}
+
+function readBoundedPageLimit(query: Readonly<Record<string, unknown>>): string | undefined {
+  const value = query['limit'];
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !BOUNDED_PAGE_LIMIT_PATTERN.test(value)) {
+    queryProblem('limit');
+  }
+  return value;
+}
+
+function assertProtectedMediaContentType(contentType: string): void {
+  if (!PROTECTED_MEDIA_CONTENT_TYPES.has(contentType)) throw dependencyUnavailable();
+}
 
 function safeRuntimeMode(value: string | undefined): RuntimeMode {
   if (value === 'production' || value === 'test') return value;
@@ -313,7 +423,7 @@ function isUnexpired(expiresAt: string): boolean {
 }
 
 function routeSurfaceForPath(path: string): DomainSurface {
-  if (path.startsWith('/v1/farmer/')) return 'farmer';
+  if (path.startsWith('/v1/farmer/') || path.startsWith('/v1/sync/')) return 'farmer';
   if (path.startsWith('/v1/rsk/')) return 'rsk';
   return 'common';
 }
@@ -353,6 +463,7 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
   const states = new WeakMap<FastifyRequest, RequestState>();
   const operations = options.operations ?? unavailableOperations;
   const protectedDisclosure = options.protectedDisclosure ?? unavailableProtectedDisclosure;
+  const protectedMediaContent = options.protectedMediaContent ?? unavailableProtectedMediaContent;
 
   function stateFor(request: FastifyRequest): RequestState {
     const state = states.get(request);
@@ -407,7 +518,7 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
     const idempotencyKey = route.command ? commandIdHeader(request) : undefined;
     const expectedRevision = readExpectedRevision(request, route.requiresExpectedRevision ?? false);
     const roleContextId =
-      route.surface === 'common'
+      route.surface === 'common' && route.requiresRoleContext !== true
         ? optionalUuidHeader(request, 'x-role-context-id')
         : requiredUuidHeader(request, 'x-role-context-id');
     const appCheckToken = singleHeader(request, 'x-firebase-appcheck');
@@ -800,6 +911,207 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
     }
     return execute('recordConsentDecision', boundary, CommandResultSchema, { body });
   });
+
+  const farmerSyncRoute = (operationId: DomainOperationId): BoundaryRoute =>
+    identityRoute(operationId, {
+      surface: 'farmer',
+      purpose: 'farmer.self_service',
+    });
+
+  app.post('/v1/sync/streams', async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('openFarmerSyncStream'));
+    const body = parseContract(SyncStreamOpenRequestSchema, request.body);
+    const response = await execute('openFarmerSyncStream', boundary, SyncStreamOpenResponseSchema, {
+      body,
+    });
+    return response;
+  });
+
+  app.post('/v1/sync/bootstrap', async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('bootstrapFarmerSync'));
+    const body = parseContract(SyncBootstrapRequestSchema, request.body);
+    return execute('bootstrapFarmerSync', boundary, SyncBootstrapResponseSchema, { body });
+  });
+
+  app.post('/v1/sync/batches', { bodyLimit: 524_288 }, async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('syncFarmerBatch'));
+    const body = parseContract(SyncBatchSchema, request.body);
+    return execute('syncFarmerBatch', boundary, SyncBatchResponseV2Schema, { body });
+  });
+
+  app.get<{ Querystring: Record<string, unknown> }>('/v1/sync/feed', async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('getFarmerSyncFeed'));
+    assertAllowedQueryKeys(request.query, SYNC_FEED_QUERY_KEYS);
+    const streamId = parseContract(
+      UuidSchema,
+      readQueryString(request.query, 'streamId', { required: true, maximumLength: 36 }),
+    );
+    const cursor = readQueryString(request.query, 'cursor', {
+      required: true,
+      maximumLength: 2048,
+    });
+    const limit = readBoundedPageLimit(request.query);
+    return execute('getFarmerSyncFeed', boundary, SyncFeedPageResponseV2Schema, {
+      params: { streamId, cursor, ...(limit === undefined ? {} : { limit }) },
+    });
+  });
+
+  app.get<{ Params: { commandId: string } }>('/v1/sync/commands/:commandId', async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('getFarmerSyncCommand'));
+    const commandId = parseContract(UuidSchema, request.params.commandId);
+    return execute('getFarmerSyncCommand', boundary, SyncCommandStatusResponseSchema, {
+      params: { commandId },
+    });
+  });
+
+  app.get<{ Querystring: Record<string, unknown> }>('/v1/sync/conflicts', async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('listFarmerSyncConflicts'));
+    assertAllowedQueryKeys(request.query, SYNC_CONFLICT_QUERY_KEYS);
+    const cursor = readQueryString(request.query, 'cursor', {
+      required: false,
+      maximumLength: 2048,
+    });
+    const limit = readBoundedPageLimit(request.query);
+    return execute('listFarmerSyncConflicts', boundary, SyncConflictListResponseSchema, {
+      params: {
+        ...(cursor === undefined ? {} : { cursor }),
+        ...(limit === undefined ? {} : { limit }),
+      },
+    });
+  });
+
+  app.get<{ Params: { conflictId: string } }>('/v1/sync/conflicts/:conflictId', async (request) => {
+    const boundary = await verifyBoundary(request, farmerSyncRoute('getFarmerSyncConflict'));
+    const conflictId = parseContract(UuidSchema, request.params.conflictId);
+    return execute('getFarmerSyncConflict', boundary, SyncConflictSchema, {
+      params: { conflictId },
+    });
+  });
+
+  app.post<{ Params: { conflictId: string } }>(
+    '/v1/sync/conflicts/:conflictId/resolutions',
+    async (request) => {
+      const route = farmerSyncRoute('resolveFarmerSyncConflict');
+      route.command = true;
+      route.mutation = true;
+      const boundary = await verifyBoundary(request, route);
+      const conflictId = parseContract(UuidSchema, request.params.conflictId);
+      const body = parseContract(SyncConflictResolutionRequestSchema, request.body);
+      if (body.conflictId !== conflictId) throw validationProblem([]);
+      return execute('resolveFarmerSyncConflict', boundary, SyncCommandStatusResponseSchema, {
+        body,
+        params: { conflictId },
+      });
+    },
+  );
+
+  const mediaRoute = (
+    operationId: DomainOperationId,
+    additions: Pick<Partial<BoundaryRoute>, 'command' | 'mutation'> = {},
+  ): BoundaryRoute =>
+    identityRoute(operationId, {
+      surface: 'common',
+      requiresRoleContext: true,
+      ...additions,
+    });
+
+  app.post('/v1/media/upload-intents', async (request, reply) => {
+    const route = mediaRoute('createMediaUploadIntent', { command: true, mutation: true });
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(CreateMediaUploadIntentRequestSchema, request.body);
+    const response = await execute(
+      'createMediaUploadIntent',
+      boundary,
+      CreateMediaUploadIntentResponseSchema,
+      { body },
+    );
+    return reply.code(201).send(response);
+  });
+
+  app.post<{ Params: { intentWithAction: string } }>(
+    '/v1/media/upload-intents/:intentWithAction',
+    async (request, reply) => {
+      const route = mediaRoute('finalizeMediaUploadIntent', { command: true, mutation: true });
+      const boundary = await verifyBoundary(request, route);
+      const actionMatch = /^(.*):finalize$/u.exec(request.params.intentWithAction);
+      const intentId = parseContract(UuidSchema, actionMatch?.[1]);
+      const body = parseContract(FinalizeMediaUploadIntentRequestSchema, request.body);
+      const response = await execute(
+        'finalizeMediaUploadIntent',
+        boundary,
+        MediaOperationAcceptedResponseSchema,
+        { body, params: { intentId } },
+      );
+      return reply.code(202).send(response);
+    },
+  );
+
+  app.get<{ Params: { assetId: string } }>('/v1/media/assets/:assetId/status', async (request) => {
+    const boundary = await verifyBoundary(request, mediaRoute('getMediaAssetStatus'));
+    const assetId = parseContract(UuidSchema, request.params.assetId);
+    return execute('getMediaAssetStatus', boundary, MediaAssetStatusResponseSchema, {
+      params: { assetId },
+    });
+  });
+
+  app.delete<{ Params: { intentId: string } }>(
+    '/v1/media/upload-intents/:intentId',
+    async (request) => {
+      const route = mediaRoute('cancelMediaUploadIntent', { command: true, mutation: true });
+      const boundary = await verifyBoundary(request, route);
+      const intentId = parseContract(UuidSchema, request.params.intentId);
+      return execute('cancelMediaUploadIntent', boundary, CancelMediaUploadIntentResponseSchema, {
+        params: { intentId },
+      });
+    },
+  );
+
+  app.get<{ Params: { attachmentId: string } }>(
+    '/v1/media/attachments/:attachmentId/content',
+    async (request, reply) => {
+      const boundary = await verifyBoundary(request, mediaRoute('streamMediaAttachment'));
+      const attachmentId = parseContract(UuidSchema, request.params.attachmentId);
+      const range = parseSingleByteRange(singleHeader(request, 'range'));
+      let content;
+      try {
+        content = await protectedMediaContent.read({
+          boundary,
+          attachmentId,
+          ...(range === undefined ? {} : { range }),
+        });
+      } catch (error) {
+        if (error instanceof ApiBoundaryProblem) throw error;
+        throw dependencyUnavailable();
+      }
+      if (
+        content.bytes.byteLength !== content.end - content.start + 1 ||
+        content.end >= content.totalSize ||
+        !/^sha256:[0-9a-f]{64}$/u.test(content.sha256) ||
+        !/^[0-9]+$/u.test(content.objectGeneration)
+      ) {
+        throw dependencyUnavailable();
+      }
+      assertProtectedMediaContentType(content.contentType);
+      reply
+        .header('Accept-Ranges', 'bytes')
+        .header('Content-Type', content.contentType)
+        .header('Content-Length', String(content.bytes.byteLength))
+        .header('Content-Disposition', `attachment; filename="media-${attachmentId}"`)
+        .header('Content-Security-Policy', "default-src 'none'; sandbox")
+        .header('X-Content-Type-Options', 'nosniff')
+        .header('X-Media-Generation', content.objectGeneration)
+        .header('X-Media-SHA256', content.sha256);
+      if (range !== undefined) {
+        reply
+          .header(
+            'Content-Range',
+            `bytes ${String(content.start)}-${String(content.end)}/${String(content.totalSize)}`,
+          )
+          .code(206);
+      }
+      return reply.send(Buffer.from(content.bytes));
+    },
+  );
 
   app.get('/v1/rsk/bootstrap', async (request) => {
     const boundary = await verifyBoundary(

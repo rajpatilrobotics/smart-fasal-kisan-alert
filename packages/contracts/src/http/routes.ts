@@ -1,16 +1,46 @@
-export type Surface = 'common' | 'farmer' | 'rsk' | 'mp';
+export type Surface = 'common' | 'farmer' | 'rsk' | 'mp' | 'operational' | 'voice' | 'internal';
 export type HttpMethod = 'get' | 'post' | 'delete';
+
+export interface SuccessResponseContract {
+  status: 101 | 200 | 201 | 202 | 206;
+  description: string;
+  mediaType: 'json' | 'binary' | 'websocket';
+  responseSchema?: string;
+}
+
+export interface QueryParameterContract {
+  name: string;
+  description: string;
+  required: boolean;
+  schema:
+    | {
+        type: 'string';
+        format?: 'uuid';
+        minLength?: number;
+        maxLength?: number;
+      }
+    | {
+        type: 'integer';
+        minimum: number;
+        maximum: number;
+        default?: number;
+      };
+}
 
 export interface RouteContract {
   method: HttpMethod;
   path: string;
   operationId: string;
   surface: Surface;
-  auth: 'none' | 'app-check' | 'identity' | 'farmer' | 'rsk' | 'mp';
+  auth: 'none' | 'app-check' | 'identity' | 'farmer' | 'rsk' | 'mp' | 'internal' | 'voice-ticket';
+  roleContext?: 'none' | 'optional' | 'required';
   capability?: string;
   purpose?: string;
   requestSchema?: string;
-  responseSchema: string;
+  responseSchema?: string;
+  success?: readonly SuccessResponseContract[];
+  queryParameters?: readonly QueryParameterContract[];
+  rangeRequest?: 'single-byte';
   command?: { idempotency: boolean; expectedRevision: boolean };
   problemCodes: readonly string[];
   classification: 'C0' | 'C1' | 'C2' | 'C3' | 'C4';
@@ -208,5 +238,392 @@ export const ROUTES: readonly RouteContract[] = [
     problemCodes: [...AUTH_PROBLEMS, 'MFA_REQUIRED', 'DEPENDENCY_UNAVAILABLE'],
     classification: 'C1',
     retentionClass: 'none',
+  },
+  {
+    method: 'post',
+    path: '/v1/sync/streams',
+    operationId: 'openFarmerSyncStream',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    requestSchema: 'SyncStreamOpenRequest',
+    responseSchema: 'SyncStreamOpenResponse',
+    problemCodes: [...AUTH_PROBLEMS, 'DEVICE_BINDING_MISMATCH', 'SYNC_SCHEMA_UNSUPPORTED'],
+    classification: 'C2',
+    retentionClass: 'offline-compatibility',
+  },
+  {
+    method: 'post',
+    path: '/v1/sync/bootstrap',
+    operationId: 'bootstrapFarmerSync',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    requestSchema: 'SyncBootstrapRequest',
+    responseSchema: 'SyncBootstrapResponse',
+    problemCodes: [...AUTH_PROBLEMS, 'SYNC_SCHEMA_UNSUPPORTED', 'SYNC_CURSOR_INVALID'],
+    classification: 'C2',
+    retentionClass: 'offline-compatibility',
+  },
+  {
+    method: 'post',
+    path: '/v1/sync/batches',
+    operationId: 'syncFarmerBatch',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    requestSchema: 'SyncBatch',
+    responseSchema: 'SyncBatchResponseV2',
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      'SYNC_BATCH_ID_REUSED',
+      'SYNC_CURSOR_INVALID',
+      'SYNC_BOOTSTRAP_REQUIRED',
+      'SYNC_SCHEMA_UNSUPPORTED',
+    ],
+    classification: 'C2',
+    retentionClass: 'offline-compatibility',
+  },
+  {
+    method: 'get',
+    path: '/v1/sync/feed',
+    operationId: 'getFarmerSyncFeed',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    responseSchema: 'SyncFeedPageResponseV2',
+    queryParameters: [
+      {
+        name: 'streamId',
+        description: 'Current Farmer sync stream identifier',
+        required: true,
+        schema: { type: 'string', format: 'uuid' },
+      },
+      {
+        name: 'cursor',
+        description: 'Opaque cursor bound to the current stream and authorization',
+        required: true,
+        schema: { type: 'string', minLength: 1, maxLength: 2048 },
+      },
+      {
+        name: 'limit',
+        description: 'Maximum number of feed items to return',
+        required: false,
+        schema: { type: 'integer', minimum: 1, maximum: 100, default: 100 },
+      },
+    ],
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      'SYNC_CURSOR_INVALID',
+      'SYNC_CURSOR_EXPIRED',
+      'SYNC_BOOTSTRAP_REQUIRED',
+    ],
+    classification: 'C2',
+    retentionClass: 'none',
+  },
+  {
+    method: 'get',
+    path: '/v1/sync/commands/{commandId}',
+    operationId: 'getFarmerSyncCommand',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    responseSchema: 'SyncCommandStatusResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'command-receipt',
+  },
+  {
+    method: 'get',
+    path: '/v1/sync/conflicts',
+    operationId: 'listFarmerSyncConflicts',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    responseSchema: 'SyncConflictListResponse',
+    problemCodes: AUTH_PROBLEMS,
+    queryParameters: [
+      {
+        name: 'cursor',
+        description: 'Opaque cursor for the next authorized conflict page',
+        required: false,
+        schema: { type: 'string', minLength: 1, maxLength: 2048 },
+      },
+      {
+        name: 'limit',
+        description: 'Maximum number of conflicts to return',
+        required: false,
+        schema: { type: 'integer', minimum: 1, maximum: 100, default: 100 },
+      },
+    ],
+    classification: 'C2',
+    retentionClass: 'offline-compatibility',
+  },
+  {
+    method: 'get',
+    path: '/v1/sync/conflicts/{conflictId}',
+    operationId: 'getFarmerSyncConflict',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    responseSchema: 'SyncConflict',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'offline-compatibility',
+  },
+  {
+    method: 'post',
+    path: '/v1/sync/conflicts/{conflictId}/resolutions',
+    operationId: 'resolveFarmerSyncConflict',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    requestSchema: 'SyncConflictResolutionRequest',
+    responseSchema: 'SyncCommandStatusResponse',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'INVALID_STATE_TRANSITION'],
+    classification: 'C2',
+    retentionClass: 'offline-compatibility',
+  },
+  {
+    method: 'post',
+    path: '/v1/media/upload-intents',
+    operationId: 'createMediaUploadIntent',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'CreateMediaUploadIntentRequest',
+    success: [
+      {
+        status: 201,
+        description: 'One-time quarantine upload initiation',
+        mediaType: 'json',
+        responseSchema: 'CreateMediaUploadIntentResponse',
+      },
+    ],
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'CONSENT_OR_ACCESS_VERSION_CHANGED', 'RATE_LIMITED'],
+    classification: 'C4',
+    retentionClass: 'media-quarantine',
+  },
+  {
+    method: 'post',
+    path: '/v1/media/upload-intents/{intentId}:finalize',
+    operationId: 'finalizeMediaUploadIntent',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'FinalizeMediaUploadIntentRequest',
+    success: [
+      {
+        status: 202,
+        description: 'Verification accepted',
+        mediaType: 'json',
+        responseSchema: 'MediaOperationAcceptedResponse',
+      },
+    ],
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      'CONSENT_OR_ACCESS_VERSION_CHANGED',
+      'MEDIA_INTEGRITY_MISMATCH',
+      'UPLOAD_INTENT_EXPIRED',
+    ],
+    classification: 'C3',
+    retentionClass: 'media-quarantine',
+  },
+  {
+    method: 'get',
+    path: '/v1/media/assets/{assetId}/status',
+    operationId: 'getMediaAssetStatus',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    responseSchema: 'MediaAssetStatusResponse',
+    problemCodes: [...AUTH_PROBLEMS, 'CONSENT_OR_ACCESS_VERSION_CHANGED'],
+    classification: 'C2',
+    retentionClass: 'none',
+  },
+  {
+    method: 'delete',
+    path: '/v1/media/upload-intents/{intentId}',
+    operationId: 'cancelMediaUploadIntent',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    responseSchema: 'CancelMediaUploadIntentResponse',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'INVALID_STATE_TRANSITION'],
+    classification: 'C2',
+    retentionClass: 'media-quarantine',
+  },
+  {
+    method: 'get',
+    path: '/v1/media/attachments/{attachmentId}/content',
+    operationId: 'streamMediaAttachment',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    rangeRequest: 'single-byte',
+    success: [
+      { status: 200, description: 'Complete generation-pinned attachment', mediaType: 'binary' },
+      { status: 206, description: 'Single authorized byte range', mediaType: 'binary' },
+    ],
+    problemCodes: [...AUTH_PROBLEMS, 'CONSENT_OR_ACCESS_VERSION_CHANGED', 'MEDIA_NOT_VERIFIED'],
+    classification: 'C3',
+    retentionClass: 'none',
+  },
+  {
+    method: 'post',
+    path: '/internal/v1/media/assets/{assetId}:scan',
+    operationId: 'scanMediaAsset',
+    surface: 'internal',
+    auth: 'internal',
+    requestSchema: 'ScanMediaAssetRequest',
+    success: [
+      {
+        status: 202,
+        description: 'Scan claimed by the media scanner',
+        mediaType: 'json',
+        responseSchema: 'MediaOperationAcceptedResponse',
+      },
+    ],
+    problemCodes: [
+      'AUTHENTICATION_REQUIRED',
+      'AUTHORIZATION_DENIED',
+      'DEPENDENCY_UNAVAILABLE',
+      'MEDIA_INTEGRITY_MISMATCH',
+    ],
+    classification: 'C3',
+    retentionClass: 'media-quarantine',
+  },
+  {
+    method: 'post',
+    path: '/v1/voice/sessions',
+    operationId: 'createVoiceSession',
+    surface: 'voice',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'CreateVoiceSessionRequest',
+    success: [
+      {
+        status: 201,
+        description: 'Bound one-time voice ticket',
+        mediaType: 'json',
+        responseSchema: 'CreateVoiceSessionResponse',
+      },
+    ],
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'RATE_LIMITED'],
+    classification: 'C4',
+    retentionClass: 'voice-session',
+  },
+  {
+    method: 'get',
+    path: '/v1/realtime',
+    operationId: 'openVoiceRealtime',
+    surface: 'voice',
+    auth: 'voice-ticket',
+    roleContext: 'none',
+    success: [
+      { status: 101, description: 'sfka.voice.v1 WebSocket upgrade', mediaType: 'websocket' },
+    ],
+    problemCodes: [...AUTH_PROBLEMS, 'RATE_LIMITED'],
+    classification: 'C4',
+    retentionClass: 'ephemeral-ticket',
+  },
+  {
+    method: 'post',
+    path: '/v1/voice/sessions/{sessionId}/turns',
+    operationId: 'createVoiceTurn',
+    surface: 'voice',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'VoiceTurnRequest',
+    responseSchema: 'VoiceTurnResponse',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'DEPENDENCY_UNAVAILABLE'],
+    classification: 'C4',
+    retentionClass: 'voice-session',
+  },
+  {
+    method: 'get',
+    path: '/v1/voice/proposals/{proposalId}',
+    operationId: 'getVoiceProposal',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    responseSchema: 'VoiceProposalResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C3',
+    retentionClass: 'voice-proposal',
+  },
+  {
+    method: 'post',
+    path: '/v1/voice/proposals/{proposalId}:confirm',
+    operationId: 'confirmVoiceProposal',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'ConfirmVoiceProposalRequest',
+    responseSchema: 'VoiceCommandStatusResponse',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'VOICE_PROPOSAL_EXPIRED', 'VOICE_PROPOSAL_HASH_MISMATCH'],
+    classification: 'C3',
+    retentionClass: 'command-receipt',
+  },
+  {
+    method: 'post',
+    path: '/v1/voice/proposals/{proposalId}:correct',
+    operationId: 'correctVoiceProposal',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'CorrectVoiceProposalRequest',
+    responseSchema: 'VoiceProposalResponse',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'VOICE_PROPOSAL_EXPIRED'],
+    classification: 'C3',
+    retentionClass: 'voice-proposal',
+  },
+  {
+    method: 'post',
+    path: '/v1/voice/proposals/{proposalId}:cancel',
+    operationId: 'cancelVoiceProposal',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'CancelVoiceProposalRequest',
+    responseSchema: 'VoiceProposalResponse',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'VOICE_PROPOSAL_EXPIRED'],
+    classification: 'C2',
+    retentionClass: 'voice-proposal',
+  },
+  {
+    method: 'get',
+    path: '/v1/commands/{commandId}',
+    operationId: 'getVoiceCommandStatus',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    responseSchema: 'VoiceCommandStatusResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'command-receipt',
+  },
+  {
+    method: 'post',
+    path: '/v1/voice/offline-audio',
+    operationId: 'attachVoiceOfflineAudio',
+    surface: 'operational',
+    auth: 'identity',
+    roleContext: 'required',
+    requestSchema: 'AttachOfflineAudioRequest',
+    responseSchema: 'AttachOfflineAudioResponse',
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, 'CONSENT_OR_ACCESS_VERSION_CHANGED', 'MEDIA_NOT_VERIFIED'],
+    classification: 'C3',
+    retentionClass: 'voice-offline-audio',
   },
 ] as const;

@@ -12,11 +12,17 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
-    "test:unit": "vitest run --passWithNoTests"
+    "test": "vitest run",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@smart-fasal/contracts": "workspace:*",
+    "dexie": "4.4.4",
+    "json-canonicalize": "2.0.0"
   },
   "devDependencies": {
     "@types/node": "26.1.1",
+    "fake-indexeddb": "6.2.5",
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   }

@@ -98,7 +98,7 @@ function fakeOperations(
   return {
     execute(request) {
       onExecute?.(request.operationId);
-      const responses: Record<DomainOperationId, unknown> = {
+      const responses: Partial<Record<DomainOperationId, unknown>> = {
         createReturnState: { returnStateId: RETURN_STATE_ID, expiresAt: FUTURE },
         getAuthSession: sessionResponse(),
         listRoles: sessionResponse(),

@@ -4,6 +4,7 @@ export * from './events/index.js';
 export * from './http/auth.js';
 export * from './http/common.js';
 export * from './http/routes.js';
+export * from './media/index.js';
 export * from './privacy/index.js';
 export * from './sync/index.js';
 export * from './vocabulary.js';

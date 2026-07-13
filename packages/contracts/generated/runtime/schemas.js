@@ -19,6 +19,7 @@ var PROVENANCE_TYPES = [
   "DERIVED"
 ];
 var ROLE_TYPES = ["FARMER", "RSK", "MP"];
+var DEVICE_MODES = ["PERSONAL", "TRUSTED_FAMILY", "RSK_ASSISTED"];
 var ACTOR_TYPES = [
   "FARMER",
   "RSK_STAFF",
@@ -2557,6 +2558,80 @@ var MilestoneOneEventSchema = z4.discriminatedUnion("eventName", [
   RoleContextRevokedEventSchema,
   ConsentDecisionRecordedEventSchema
 ]).meta({ id: "MilestoneOneEvent", "x-data-classification": "C2" });
+var SyncLifecyclePayloadSchema = z4.object({
+  streamId: UuidSchema,
+  batchId: UuidSchema.optional(),
+  commandId: UuidSchema.optional(),
+  conflictId: UuidSchema.optional(),
+  disposition: z4.enum(["ACCEPTED", "ALREADY_ACCEPTED", "REJECTED", "CONFLICT"]).optional()
+}).strict();
+var SyncLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z4.enum([
+    "sync.batch_started",
+    "sync.event_accepted",
+    "sync.event_already_accepted",
+    "sync.event_rejected",
+    "sync.conflict_detected",
+    "sync.conflict_resolved"
+  ]),
+  payloadClassification: z4.literal("C2"),
+  payload: SyncLifecyclePayloadSchema
+}).strict();
+var MediaUploadVerifiedPayloadSchema = z4.object({
+  assetId: UuidSchema,
+  derivativeId: UuidSchema,
+  purpose: z4.enum([
+    "CROP_HEALTH_IMAGE",
+    "DIARY_MEDIA",
+    "RSK_VISIT_EVIDENCE",
+    "SENSOR_MAINTENANCE_EVIDENCE",
+    "VOICE_OFFLINE_AUDIO"
+  ]),
+  sourceChecksum: Sha256DigestSchema,
+  derivativeChecksum: Sha256DigestSchema,
+  scannerVersion: z4.string().min(1).max(80)
+}).strict();
+var MediaUploadVerifiedEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z4.literal("media.upload_verified"),
+  payloadClassification: z4.literal("C2"),
+  payload: MediaUploadVerifiedPayloadSchema
+}).strict();
+var VoiceLifecyclePayloadSchema = z4.object({
+  sessionId: UuidSchema,
+  proposalId: UuidSchema.optional(),
+  offlineAudioRefId: UuidSchema.optional(),
+  lifecycleState: z4.string().min(1).max(80),
+  payloadHash: Sha256DigestSchema.optional(),
+  detailCode: z4.string().min(1).max(80).optional()
+}).strict();
+var VoiceLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z4.enum([
+    "voice.session_started",
+    "voice.session_ended",
+    "voice.intent_recognized",
+    "voice.clarification_requested",
+    "voice.proposal_created",
+    "voice.proposal_cancelled",
+    "voice.proposal_confirmed",
+    "voice.proposal_corrected",
+    "voice.proposal_expired",
+    "voice.proposal_superseded",
+    "voice.provider_failed",
+    "voice.offline_audio_attached",
+    "voice.offline_audio_transcription_started",
+    "voice.offline_audio_needs_confirmation",
+    "voice.offline_audio_declined",
+    "voice.offline_audio_deleted"
+  ]),
+  payloadClassification: z4.enum(["C2", "C3"]),
+  payload: VoiceLifecyclePayloadSchema
+}).strict();
+var MilestoneTwoEventSchema = z4.union([
+  MilestoneOneEventSchema,
+  SyncLifecycleEventSchema,
+  MediaUploadVerifiedEventSchema,
+  VoiceLifecycleEventSchema
+]).meta({ id: "MilestoneTwoEvent", "x-data-classification": "C3" });
 
 // packages/contracts/src/http/auth.ts
 import { z as z5 } from "zod";
@@ -2834,136 +2909,924 @@ var ROUTES = [
     problemCodes: [...AUTH_PROBLEMS, "MFA_REQUIRED", "DEPENDENCY_UNAVAILABLE"],
     classification: "C1",
     retentionClass: "none"
+  },
+  {
+    method: "post",
+    path: "/v1/sync/streams",
+    operationId: "openFarmerSyncStream",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    requestSchema: "SyncStreamOpenRequest",
+    responseSchema: "SyncStreamOpenResponse",
+    problemCodes: [...AUTH_PROBLEMS, "DEVICE_BINDING_MISMATCH", "SYNC_SCHEMA_UNSUPPORTED"],
+    classification: "C2",
+    retentionClass: "offline-compatibility"
+  },
+  {
+    method: "post",
+    path: "/v1/sync/bootstrap",
+    operationId: "bootstrapFarmerSync",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    requestSchema: "SyncBootstrapRequest",
+    responseSchema: "SyncBootstrapResponse",
+    problemCodes: [...AUTH_PROBLEMS, "SYNC_SCHEMA_UNSUPPORTED", "SYNC_CURSOR_INVALID"],
+    classification: "C2",
+    retentionClass: "offline-compatibility"
+  },
+  {
+    method: "post",
+    path: "/v1/sync/batches",
+    operationId: "syncFarmerBatch",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    requestSchema: "SyncBatch",
+    responseSchema: "SyncBatchResponseV2",
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      "SYNC_BATCH_ID_REUSED",
+      "SYNC_CURSOR_INVALID",
+      "SYNC_BOOTSTRAP_REQUIRED",
+      "SYNC_SCHEMA_UNSUPPORTED"
+    ],
+    classification: "C2",
+    retentionClass: "offline-compatibility"
+  },
+  {
+    method: "get",
+    path: "/v1/sync/feed",
+    operationId: "getFarmerSyncFeed",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "SyncFeedPageResponseV2",
+    queryParameters: [
+      {
+        name: "streamId",
+        description: "Current Farmer sync stream identifier",
+        required: true,
+        schema: { type: "string", format: "uuid" }
+      },
+      {
+        name: "cursor",
+        description: "Opaque cursor bound to the current stream and authorization",
+        required: true,
+        schema: { type: "string", minLength: 1, maxLength: 2048 }
+      },
+      {
+        name: "limit",
+        description: "Maximum number of feed items to return",
+        required: false,
+        schema: { type: "integer", minimum: 1, maximum: 100, default: 100 }
+      }
+    ],
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      "SYNC_CURSOR_INVALID",
+      "SYNC_CURSOR_EXPIRED",
+      "SYNC_BOOTSTRAP_REQUIRED"
+    ],
+    classification: "C2",
+    retentionClass: "none"
+  },
+  {
+    method: "get",
+    path: "/v1/sync/commands/{commandId}",
+    operationId: "getFarmerSyncCommand",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "SyncCommandStatusResponse",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C2",
+    retentionClass: "command-receipt"
+  },
+  {
+    method: "get",
+    path: "/v1/sync/conflicts",
+    operationId: "listFarmerSyncConflicts",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "SyncConflictListResponse",
+    problemCodes: AUTH_PROBLEMS,
+    queryParameters: [
+      {
+        name: "cursor",
+        description: "Opaque cursor for the next authorized conflict page",
+        required: false,
+        schema: { type: "string", minLength: 1, maxLength: 2048 }
+      },
+      {
+        name: "limit",
+        description: "Maximum number of conflicts to return",
+        required: false,
+        schema: { type: "integer", minimum: 1, maximum: 100, default: 100 }
+      }
+    ],
+    classification: "C2",
+    retentionClass: "offline-compatibility"
+  },
+  {
+    method: "get",
+    path: "/v1/sync/conflicts/{conflictId}",
+    operationId: "getFarmerSyncConflict",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "SyncConflict",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C2",
+    retentionClass: "offline-compatibility"
+  },
+  {
+    method: "post",
+    path: "/v1/sync/conflicts/{conflictId}/resolutions",
+    operationId: "resolveFarmerSyncConflict",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    requestSchema: "SyncConflictResolutionRequest",
+    responseSchema: "SyncCommandStatusResponse",
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "INVALID_STATE_TRANSITION"],
+    classification: "C2",
+    retentionClass: "offline-compatibility"
+  },
+  {
+    method: "post",
+    path: "/v1/media/upload-intents",
+    operationId: "createMediaUploadIntent",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "CreateMediaUploadIntentRequest",
+    success: [
+      {
+        status: 201,
+        description: "One-time quarantine upload initiation",
+        mediaType: "json",
+        responseSchema: "CreateMediaUploadIntentResponse"
+      }
+    ],
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "CONSENT_OR_ACCESS_VERSION_CHANGED", "RATE_LIMITED"],
+    classification: "C4",
+    retentionClass: "media-quarantine"
+  },
+  {
+    method: "post",
+    path: "/v1/media/upload-intents/{intentId}:finalize",
+    operationId: "finalizeMediaUploadIntent",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "FinalizeMediaUploadIntentRequest",
+    success: [
+      {
+        status: 202,
+        description: "Verification accepted",
+        mediaType: "json",
+        responseSchema: "MediaOperationAcceptedResponse"
+      }
+    ],
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      "CONSENT_OR_ACCESS_VERSION_CHANGED",
+      "MEDIA_INTEGRITY_MISMATCH",
+      "UPLOAD_INTENT_EXPIRED"
+    ],
+    classification: "C3",
+    retentionClass: "media-quarantine"
+  },
+  {
+    method: "get",
+    path: "/v1/media/assets/{assetId}/status",
+    operationId: "getMediaAssetStatus",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    responseSchema: "MediaAssetStatusResponse",
+    problemCodes: [...AUTH_PROBLEMS, "CONSENT_OR_ACCESS_VERSION_CHANGED"],
+    classification: "C2",
+    retentionClass: "none"
+  },
+  {
+    method: "delete",
+    path: "/v1/media/upload-intents/{intentId}",
+    operationId: "cancelMediaUploadIntent",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    responseSchema: "CancelMediaUploadIntentResponse",
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "INVALID_STATE_TRANSITION"],
+    classification: "C2",
+    retentionClass: "media-quarantine"
+  },
+  {
+    method: "get",
+    path: "/v1/media/attachments/{attachmentId}/content",
+    operationId: "streamMediaAttachment",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    rangeRequest: "single-byte",
+    success: [
+      { status: 200, description: "Complete generation-pinned attachment", mediaType: "binary" },
+      { status: 206, description: "Single authorized byte range", mediaType: "binary" }
+    ],
+    problemCodes: [...AUTH_PROBLEMS, "CONSENT_OR_ACCESS_VERSION_CHANGED", "MEDIA_NOT_VERIFIED"],
+    classification: "C3",
+    retentionClass: "none"
+  },
+  {
+    method: "post",
+    path: "/internal/v1/media/assets/{assetId}:scan",
+    operationId: "scanMediaAsset",
+    surface: "internal",
+    auth: "internal",
+    requestSchema: "ScanMediaAssetRequest",
+    success: [
+      {
+        status: 202,
+        description: "Scan claimed by the media scanner",
+        mediaType: "json",
+        responseSchema: "MediaOperationAcceptedResponse"
+      }
+    ],
+    problemCodes: [
+      "AUTHENTICATION_REQUIRED",
+      "AUTHORIZATION_DENIED",
+      "DEPENDENCY_UNAVAILABLE",
+      "MEDIA_INTEGRITY_MISMATCH"
+    ],
+    classification: "C3",
+    retentionClass: "media-quarantine"
+  },
+  {
+    method: "post",
+    path: "/v1/voice/sessions",
+    operationId: "createVoiceSession",
+    surface: "voice",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "CreateVoiceSessionRequest",
+    success: [
+      {
+        status: 201,
+        description: "Bound one-time voice ticket",
+        mediaType: "json",
+        responseSchema: "CreateVoiceSessionResponse"
+      }
+    ],
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "RATE_LIMITED"],
+    classification: "C4",
+    retentionClass: "voice-session"
+  },
+  {
+    method: "get",
+    path: "/v1/realtime",
+    operationId: "openVoiceRealtime",
+    surface: "voice",
+    auth: "voice-ticket",
+    roleContext: "none",
+    success: [
+      { status: 101, description: "sfka.voice.v1 WebSocket upgrade", mediaType: "websocket" }
+    ],
+    problemCodes: [...AUTH_PROBLEMS, "RATE_LIMITED"],
+    classification: "C4",
+    retentionClass: "ephemeral-ticket"
+  },
+  {
+    method: "post",
+    path: "/v1/voice/sessions/{sessionId}/turns",
+    operationId: "createVoiceTurn",
+    surface: "voice",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "VoiceTurnRequest",
+    responseSchema: "VoiceTurnResponse",
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "DEPENDENCY_UNAVAILABLE"],
+    classification: "C4",
+    retentionClass: "voice-session"
+  },
+  {
+    method: "get",
+    path: "/v1/voice/proposals/{proposalId}",
+    operationId: "getVoiceProposal",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    responseSchema: "VoiceProposalResponse",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C3",
+    retentionClass: "voice-proposal"
+  },
+  {
+    method: "post",
+    path: "/v1/voice/proposals/{proposalId}:confirm",
+    operationId: "confirmVoiceProposal",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "ConfirmVoiceProposalRequest",
+    responseSchema: "VoiceCommandStatusResponse",
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "VOICE_PROPOSAL_EXPIRED", "VOICE_PROPOSAL_HASH_MISMATCH"],
+    classification: "C3",
+    retentionClass: "command-receipt"
+  },
+  {
+    method: "post",
+    path: "/v1/voice/proposals/{proposalId}:correct",
+    operationId: "correctVoiceProposal",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "CorrectVoiceProposalRequest",
+    responseSchema: "VoiceProposalResponse",
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "VOICE_PROPOSAL_EXPIRED"],
+    classification: "C3",
+    retentionClass: "voice-proposal"
+  },
+  {
+    method: "post",
+    path: "/v1/voice/proposals/{proposalId}:cancel",
+    operationId: "cancelVoiceProposal",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "CancelVoiceProposalRequest",
+    responseSchema: "VoiceProposalResponse",
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, "VOICE_PROPOSAL_EXPIRED"],
+    classification: "C2",
+    retentionClass: "voice-proposal"
+  },
+  {
+    method: "get",
+    path: "/v1/commands/{commandId}",
+    operationId: "getVoiceCommandStatus",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    responseSchema: "VoiceCommandStatusResponse",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C2",
+    retentionClass: "command-receipt"
+  },
+  {
+    method: "post",
+    path: "/v1/voice/offline-audio",
+    operationId: "attachVoiceOfflineAudio",
+    surface: "operational",
+    auth: "identity",
+    roleContext: "required",
+    requestSchema: "AttachOfflineAudioRequest",
+    responseSchema: "AttachOfflineAudioResponse",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "CONSENT_OR_ACCESS_VERSION_CHANGED", "MEDIA_NOT_VERIFIED"],
+    classification: "C3",
+    retentionClass: "voice-offline-audio"
   }
 ];
 
-// packages/contracts/src/privacy/index.ts
+// packages/contracts/src/media/index.ts
 import { z as z6 } from "zod";
-var MpUnavailableResultSchema = z6.object({
-  status: z6.literal("UNAVAILABLE"),
-  reasonCode: z6.enum(["NO_ACTIVE_RELEASE", "RELEASE_INVALID", "RELEASE_STALE"])
+var MediaPurposeSchema = z6.enum([
+  "CROP_HEALTH_IMAGE",
+  "DIARY_MEDIA",
+  "RSK_VISIT_EVIDENCE",
+  "SENSOR_MAINTENANCE_EVIDENCE",
+  "VOICE_OFFLINE_AUDIO"
+]);
+var MediaOwnerContextSchema = z6.discriminatedUnion("ownerType", [
+  z6.object({ ownerType: z6.literal("HEALTH_REPORT"), ownerId: UuidSchema }).strict(),
+  z6.object({ ownerType: z6.literal("DIARY_ENTRY"), ownerId: UuidSchema }).strict(),
+  z6.object({ ownerType: z6.literal("RSK_VISIT"), ownerId: UuidSchema }).strict(),
+  z6.object({ ownerType: z6.literal("SENSOR_MAINTENANCE"), ownerId: UuidSchema }).strict(),
+  z6.object({ ownerType: z6.literal("VOICE_SESSION"), ownerId: UuidSchema }).strict()
+]);
+var MediaVerificationStateSchema = z6.enum([
+  "INTENT_ISSUED",
+  "UPLOADED_UNVERIFIED",
+  "SCANNING",
+  "VERIFIED",
+  "ATTACHED",
+  "FAILED_RETRYABLE",
+  "REJECTED",
+  "EXPIRED",
+  "CANCELLED"
+]);
+var MediaFailureCodeSchema = z6.enum([
+  "GENERATION_MISMATCH",
+  "SIZE_MISMATCH",
+  "CHECKSUM_MISMATCH",
+  "MIME_MISMATCH",
+  "UNSUPPORTED_CODEC",
+  "DECODER_REJECTED",
+  "POLYGLOT_REJECTED",
+  "MALWARE_REJECTED",
+  "DIMENSION_LIMIT_EXCEEDED",
+  "DURATION_LIMIT_EXCEEDED",
+  "CONSENT_OR_ACCESS_VERSION_CHANGED"
+]);
+var CreateMediaUploadIntentRequestSchema = z6.object({
+  mediaProtocolVersion: z6.literal(1),
+  purpose: MediaPurposeSchema,
+  owner: MediaOwnerContextSchema,
+  expectedSha256: Sha256DigestSchema,
+  claimedMimeType: z6.enum([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "audio/webm;codecs=opus",
+    "audio/wav"
+  ]),
+  declaredSizeBytes: z6.int().positive().max(15 * 1024 * 1024),
+  declaredWidth: z6.int().positive().max(16384).optional(),
+  declaredHeight: z6.int().positive().max(16384).optional(),
+  declaredDurationSeconds: z6.number().positive().max(120).optional(),
+  consentAccessVersion: z6.int().positive()
+}).strict().superRefine((value, ctx) => {
+  const expectedOwnerType = {
+    CROP_HEALTH_IMAGE: "HEALTH_REPORT",
+    DIARY_MEDIA: "DIARY_ENTRY",
+    RSK_VISIT_EVIDENCE: "RSK_VISIT",
+    SENSOR_MAINTENANCE_EVIDENCE: "SENSOR_MAINTENANCE",
+    VOICE_OFFLINE_AUDIO: "VOICE_SESSION"
+  }[value.purpose];
+  if (value.owner.ownerType !== expectedOwnerType) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["owner", "ownerType"],
+      message: "Owner type does not match media purpose."
+    });
+  }
+  const imagePurpose = value.purpose !== "VOICE_OFFLINE_AUDIO";
+  const imageMime = value.claimedMimeType.startsWith("image/");
+  if (imagePurpose !== imageMime) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["claimedMimeType"],
+      message: "MIME type does not match media purpose."
+    });
+  }
+  const maximumBytes = value.purpose === "CROP_HEALTH_IMAGE" || value.purpose === "DIARY_MEDIA" || value.purpose === "VOICE_OFFLINE_AUDIO" ? 10 * 1024 * 1024 : 15 * 1024 * 1024;
+  if (value.declaredSizeBytes > maximumBytes) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["declaredSizeBytes"],
+      message: "Declared size exceeds the purpose limit."
+    });
+  }
+  if (imagePurpose) {
+    if (value.declaredWidth === void 0 || value.declaredHeight === void 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["declaredWidth"],
+        message: "Image dimensions are required."
+      });
+    }
+    if (value.declaredDurationSeconds !== void 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["declaredDurationSeconds"],
+        message: "Images cannot declare audio duration."
+      });
+    }
+  } else if (value.declaredWidth !== void 0 || value.declaredHeight !== void 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["declaredWidth"],
+      message: "Audio cannot declare image dimensions."
+    });
+  }
+}).meta({ id: "CreateMediaUploadIntentRequest", "x-data-classification": "C3" });
+var CreateMediaUploadIntentResponseSchema = z6.object({
+  intentId: UuidSchema,
+  assetId: UuidSchema,
+  state: z6.literal("INTENT_ISSUED"),
+  resumableUploadUri: z6.string().url().max(4096),
+  generationPrecondition: z6.string().regex(/^[0-9]+$/),
+  expiresAt: TimestampSchema
+}).strict().meta({ id: "CreateMediaUploadIntentResponse", "x-data-classification": "C4" });
+var FinalizeMediaUploadIntentRequestSchema = z6.object({
+  objectGeneration: z6.string().regex(/^[0-9]+$/),
+  sha256: Sha256DigestSchema,
+  finalSizeBytes: z6.int().positive().max(15 * 1024 * 1024)
+}).strict().meta({ id: "FinalizeMediaUploadIntentRequest", "x-data-classification": "C3" });
+var MediaOperationAcceptedResponseSchema = z6.object({
+  operationId: UuidSchema,
+  assetId: UuidSchema,
+  state: z6.literal("SCANNING"),
+  acceptedAt: TimestampSchema
+}).strict().meta({ id: "MediaOperationAcceptedResponse", "x-data-classification": "C2" });
+var MediaAssetStatusResponseSchema = z6.object({
+  assetId: UuidSchema,
+  purpose: MediaPurposeSchema,
+  state: MediaVerificationStateSchema,
+  revision: z6.int().nonnegative(),
+  failureCode: MediaFailureCodeSchema.optional(),
+  verifiedMimeType: z6.string().min(1).max(120).optional(),
+  verifiedSizeBytes: z6.int().positive().optional(),
+  derivativeSha256: Sha256DigestSchema.optional(),
+  updatedAt: TimestampSchema
+}).strict().meta({ id: "MediaAssetStatusResponse", "x-data-classification": "C2" });
+var CancelMediaUploadIntentResponseSchema = z6.object({
+  intentId: UuidSchema,
+  state: z6.literal("CANCELLED"),
+  cancelledAt: TimestampSchema
+}).strict().meta({ id: "CancelMediaUploadIntentResponse", "x-data-classification": "C2" });
+var ScanMediaAssetRequestSchema = z6.object({
+  scanRequestVersion: z6.literal(1),
+  assetId: UuidSchema,
+  storageEventId: UuidSchema
+}).strict().meta({ id: "ScanMediaAssetRequest", "x-data-classification": "C1" });
+var AttachOfflineAudioRequestSchema = z6.object({
+  assetId: UuidSchema,
+  localCaptureId: UuidSchema,
+  language: z6.enum(["mr", "hi", "en"]),
+  sessionId: UuidSchema,
+  audioConsentVersion: z6.int().positive(),
+  expectedSessionRevision: z6.int().nonnegative()
+}).strict().meta({ id: "AttachOfflineAudioRequest", "x-data-classification": "C3" });
+var AttachOfflineAudioResponseSchema = z6.object({
+  offlineAudioRefId: UuidSchema,
+  attachmentId: UuidSchema,
+  state: z6.literal("TRANSCRIPTION_PENDING"),
+  expiresAt: TimestampSchema
+}).strict().meta({ id: "AttachOfflineAudioResponse", "x-data-classification": "C3" });
+
+// packages/contracts/src/privacy/index.ts
+import { z as z7 } from "zod";
+var MpUnavailableResultSchema = z7.object({
+  status: z7.literal("UNAVAILABLE"),
+  reasonCode: z7.enum(["NO_ACTIVE_RELEASE", "RELEASE_INVALID", "RELEASE_STALE"])
 }).strict().meta({ id: "MpUnavailableResult", "x-data-classification": "C1" });
-var MpSuppressedResultSchema = z6.object({
-  status: z6.literal("SUPPRESSED"),
-  reasonCode: z6.enum(["COHORT_TOO_SMALL", "COMPLEMENTARY_SUPPRESSION", "STICKY_SUPPRESSION"]),
-  methodologyId: z6.string().min(1).max(120)
+var MpSuppressedResultSchema = z7.object({
+  status: z7.literal("SUPPRESSED"),
+  reasonCode: z7.enum(["COHORT_TOO_SMALL", "COMPLEMENTARY_SUPPRESSION", "STICKY_SUPPRESSION"]),
+  methodologyId: z7.string().min(1).max(120)
 }).strict().meta({ id: "MpSuppressedResult", "x-data-classification": "C1" });
-var MpSafeResultSchema = z6.discriminatedUnion("status", [
+var MpSafeResultSchema = z7.discriminatedUnion("status", [
   MpUnavailableResultSchema,
   MpSuppressedResultSchema
 ]);
 
 // packages/contracts/src/sync/index.ts
-import { z as z7 } from "zod";
-var SyncCommandEnvelopeSchema = z7.object({
+import { z as z8 } from "zod";
+var DeviceModeSchema = z8.enum(DEVICE_MODES).meta({
+  id: "DeviceMode",
+  "x-data-classification": "C1"
+});
+var SchemaVersionRangeSchema = z8.object({ minimum: z8.int().positive(), maximum: z8.int().positive() }).strict().refine((range) => range.minimum <= range.maximum, { message: "Invalid version range" });
+var SyncStreamOpenRequestSchema = z8.object({
+  streamProtocolVersion: z8.literal(1),
+  clientBuild: z8.string().min(1).max(80),
+  localDatabaseSchemaVersion: z8.int().positive(),
+  stakeholder: z8.literal("FARMER").optional(),
+  deviceMode: DeviceModeSchema,
+  commandVersions: SchemaVersionRangeSchema,
+  clientEventVersions: SchemaVersionRangeSchema,
+  projectionVersions: SchemaVersionRangeSchema,
+  mediaVersions: SchemaVersionRangeSchema,
+  priorStreamId: UuidSchema.optional(),
+  priorCursor: z8.string().min(1).max(2048).optional()
+}).strict().meta({ id: "SyncStreamOpenRequest", "x-data-classification": "C2" });
+var SyncStreamOpenResponseSchema = z8.object({
+  streamId: UuidSchema,
+  subjectDeviceBindingId: UuidSchema,
+  stakeholder: z8.literal("FARMER"),
+  scope: z8.literal("FARMER_SELF_SERVICE"),
+  authorizationVersion: z8.int().positive(),
+  acceptedCommandVersions: SchemaVersionRangeSchema,
+  acceptedClientEventVersions: SchemaVersionRangeSchema,
+  acceptedProjectionVersions: SchemaVersionRangeSchema,
+  acceptedMediaVersions: SchemaVersionRangeSchema,
+  maximumBatchCommands: z8.int().min(1).max(100),
+  maximumBatchBytes: z8.int().min(1).max(524288),
+  serverTime: TimestampSchema,
+  serverTimeSignature: z8.string().min(16).max(2048),
+  cursor: z8.string().min(1).max(2048),
+  bootstrapRequired: z8.boolean()
+}).strict().meta({ id: "SyncStreamOpenResponse", "x-data-classification": "C2" });
+var SyncCommandEnvelopeSchema = z8.object({
   commandId: UuidSchema,
-  clientEventIds: z7.array(UuidSchema).min(1).max(100),
-  operation: z7.literal("RecordConsentDecision"),
-  commandSchemaVersion: z7.literal(1),
+  clientEventIds: z8.array(UuidSchema).min(1).max(100),
+  operation: z8.literal("RecordConsentDecision"),
+  commandSchemaVersion: z8.literal(1),
   target: ConsentDecisionCommandTargetSchema,
   expectedRevision: RevisionSchema,
   occurredAt: TimestampSchema,
-  timezone: z7.string().min(1).max(64),
-  localSequence: z7.int().positive(),
-  causalCommandIds: z7.array(UuidSchema).max(100),
+  timezone: z8.string().min(1).max(64),
+  localSequence: z8.int().positive(),
+  causalCommandIds: z8.array(UuidSchema).max(100),
   requestHash: Sha256DigestSchema,
   payload: ConsentDecisionPayloadSchema
 }).strict().meta({ id: "SyncCommandEnvelope", "x-data-classification": "C2" });
-var SyncBatchSchema = z7.object({
-  syncBatchVersion: z7.literal(1),
+var SyncBatchSchema = z8.object({
+  syncBatchVersion: z8.literal(1),
   batchId: UuidSchema,
   streamId: UuidSchema,
-  cursor: z7.string().min(1).max(2048),
-  clientBuild: z7.string().min(1).max(80),
-  commands: z7.array(SyncCommandEnvelopeSchema).max(100),
-  feedLimit: z7.int().min(1).max(100)
+  cursor: z8.string().min(1).max(2048),
+  clientBuild: z8.string().min(1).max(80),
+  commands: z8.array(SyncCommandEnvelopeSchema).max(100),
+  feedLimit: z8.int().min(1).max(100)
 }).strict().meta({ id: "SyncBatch", "x-data-classification": "C2" });
-var SyncDispositionBaseSchema = z7.object({
+var SyncDispositionBaseSchema = z8.object({
   commandId: UuidSchema,
-  clientEventIds: z7.array(UuidSchema).min(1).max(100),
+  clientEventIds: z8.array(UuidSchema).min(1).max(100),
   acknowledgementId: UuidSchema,
   serverReceivedAt: TimestampSchema
-}).strict();
+});
 var SyncAcceptedDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z7.literal("ACCEPTED"),
+  disposition: z8.literal("ACCEPTED"),
   authoritativeRevision: RevisionSchema,
-  serverEventIds: z7.array(UuidV7Schema).min(1).max(20)
+  serverEventIds: z8.array(UuidV7Schema).min(1).max(20)
 }).strict();
 var SyncAlreadyAcceptedDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z7.literal("ALREADY_ACCEPTED"),
+  disposition: z8.literal("ALREADY_ACCEPTED"),
   authoritativeRevision: RevisionSchema,
-  serverEventIds: z7.array(UuidV7Schema).min(1).max(20)
+  serverEventIds: z8.array(UuidV7Schema).min(1).max(20)
 }).strict();
 var SyncRejectedDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z7.literal("REJECTED"),
+  disposition: z8.literal("REJECTED"),
   problemCode: ProblemCodeSchema,
   authoritativeRevision: RevisionSchema.optional(),
-  serverEventIds: z7.array(UuidV7Schema).max(0)
+  serverEventIds: z8.array(UuidV7Schema).max(0)
 }).strict();
 var SyncConflictDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z7.literal("CONFLICT"),
+  disposition: z8.literal("CONFLICT"),
   problemCode: ProblemCodeSchema,
   conflictId: UuidSchema,
   authoritativeRevision: RevisionSchema,
-  serverEventIds: z7.array(UuidV7Schema).max(0)
+  serverEventIds: z8.array(UuidV7Schema).max(0)
 }).strict();
-var SyncCommandDispositionSchema = z7.discriminatedUnion("disposition", [
+var SyncCommandDispositionSchema = z8.discriminatedUnion("disposition", [
   SyncAcceptedDispositionSchema,
   SyncAlreadyAcceptedDispositionSchema,
   SyncRejectedDispositionSchema,
   SyncConflictDispositionSchema
 ]).meta({ id: "SyncCommandDisposition", "x-data-classification": "C2" });
 var SyncIntegrationEventSchema = MilestoneOneEventSchema;
-var SyncProjectionDeltaSchema = z7.object({
-  projectionType: z7.string().min(1).max(80),
+var SyncIntegrationEventV2Schema = MilestoneTwoEventSchema;
+var SyncProjectionDeltaSchema = z8.object({
+  projectionType: z8.string().min(1).max(80),
   projectionId: UuidSchema,
-  projectionSchemaVersion: z7.int().positive(),
+  projectionSchemaVersion: z8.int().positive(),
   authoritativeRevision: RevisionSchema,
-  changeType: z7.enum(["UPSERT", "TOMBSTONE"]),
+  changeType: z8.enum(["UPSERT", "TOMBSTONE"]),
   dataMode: DataModeSchema,
-  payloadClassification: z7.enum(["C0", "C1", "C2"]),
+  payloadClassification: z8.enum(["C0", "C1", "C2"]),
   payload: JsonObjectSchema,
   payloadChecksum: Sha256DigestSchema
 }).strict().meta({ id: "SyncProjectionDelta", "x-data-classification": "C2" });
-var SyncFeedEventSchema = z7.object({
+var SyncFeedEventSchema = z8.object({
   feedEventId: UuidV7Schema,
-  sequence: z7.int().positive(),
+  sequence: z8.int().positive(),
   integrationEvent: SyncIntegrationEventSchema,
-  projectionDeltas: z7.array(SyncProjectionDeltaSchema).max(100)
+  projectionDeltas: z8.array(SyncProjectionDeltaSchema).max(100)
 }).strict().meta({ id: "SyncFeedEvent", "x-data-classification": "C2" });
-var SyncBatchResponseSchema = z7.object({
+var SyncFeedEventV2Schema = SyncFeedEventSchema.extend({
+  integrationEvent: SyncIntegrationEventV2Schema
+}).strict().meta({ id: "SyncFeedEventV2", "x-data-classification": "C3" });
+var SyncBatchResponseSchema = z8.object({
   batchId: UuidSchema,
-  dispositions: z7.array(SyncCommandDispositionSchema).max(100),
-  feedEvents: z7.array(SyncFeedEventSchema).max(100),
-  nextCursor: z7.string().min(1).max(2048),
-  highWaterMark: z7.string().min(1).max(2048),
-  hasMore: z7.boolean(),
+  dispositions: z8.array(SyncCommandDispositionSchema).max(100),
+  feedEvents: z8.array(SyncFeedEventSchema).max(100),
+  nextCursor: z8.string().min(1).max(2048),
+  highWaterMark: z8.string().min(1).max(2048),
+  hasMore: z8.boolean(),
   serverTime: TimestampSchema,
-  authorizationVersion: z7.int().positive()
+  authorizationVersion: z8.int().positive()
 }).strict().meta({ id: "SyncBatchResponse", "x-data-classification": "C2" });
+var SyncBatchResponseV2Schema = SyncBatchResponseSchema.extend({
+  feedEvents: z8.array(SyncFeedEventV2Schema).max(100)
+}).strict().meta({ id: "SyncBatchResponseV2", "x-data-classification": "C3" });
+var SyncBootstrapRequestSchema = z8.object({
+  bootstrapVersion: z8.literal(1),
+  streamId: UuidSchema,
+  localDatabaseSchemaVersion: z8.int().positive(),
+  supportedProjectionVersions: SchemaVersionRangeSchema
+}).strict().meta({ id: "SyncBootstrapRequest", "x-data-classification": "C2" });
+var SyncTombstoneSchema = z8.object({
+  projectionType: z8.string().min(1).max(80),
+  projectionId: UuidSchema,
+  deletionEpoch: z8.int().positive(),
+  minimumResurrectionRevision: RevisionSchema
+}).strict();
+var SyncBootstrapResponseSchema = z8.object({
+  streamId: UuidSchema,
+  snapshotSchemaVersion: z8.int().positive(),
+  snapshotChecksum: Sha256DigestSchema,
+  generatedAt: TimestampSchema,
+  expiresAt: TimestampSchema,
+  projections: z8.array(SyncProjectionDeltaSchema).max(5e3),
+  tombstones: z8.array(SyncTombstoneSchema).max(5e3),
+  highWaterMark: z8.string().min(1).max(2048),
+  cursor: z8.string().min(1).max(2048),
+  authorizationVersion: z8.int().positive()
+}).strict().meta({ id: "SyncBootstrapResponse", "x-data-classification": "C2" });
+var SyncFeedPageResponseSchema = SyncBatchResponseSchema.omit({
+  batchId: true,
+  dispositions: true
+}).meta({ id: "SyncFeedPageResponse", "x-data-classification": "C2" });
+var SyncFeedPageResponseV2Schema = SyncBatchResponseV2Schema.omit({
+  batchId: true,
+  dispositions: true
+}).meta({ id: "SyncFeedPageResponseV2", "x-data-classification": "C3" });
+var SyncCommandStatusResponseSchema = z8.object({ command: SyncCommandDispositionSchema }).strict().meta({ id: "SyncCommandStatusResponse", "x-data-classification": "C2" });
+var SyncConflictTypeSchema = z8.enum([
+  "EXPECTED_REVISION_MISMATCH",
+  "DUPLICATE_LOGICAL_ACTION",
+  "CONCURRENT_MUTABLE_FIELD",
+  "TASK_ACTUAL_VS_PLAN_CHANGE",
+  "CROP_STAGE_DISAGREEMENT",
+  "TOMBSTONED_ENTITY",
+  "ASSIGNMENT_CHANGED",
+  "CONSENT_OR_ACCESS_VERSION_CHANGED",
+  "CLOCK_UNTRUSTED",
+  "MEDIA_INTEGRITY_MISMATCH",
+  "SCHEMA_REQUIRES_MIGRATION"
+]);
+var SyncConflictSchema = z8.object({
+  conflictId: UuidSchema,
+  conflictType: SyncConflictTypeSchema,
+  revision: RevisionSchema,
+  commandId: UuidSchema,
+  clientEventIds: z8.array(UuidSchema).min(1).max(100),
+  targetType: z8.string().min(1).max(80),
+  targetId: UuidSchema,
+  localRevision: RevisionSchema,
+  authoritativeRevision: RevisionSchema,
+  localSummary: JsonObjectSchema,
+  authoritativeSummary: JsonObjectSchema,
+  allowedActions: z8.array(z8.enum(["CREATE_NEW_COMMAND", "KEEP_BOTH_FACTS", "DISCARD_LOCAL_PROPOSAL"])).min(1).max(3),
+  state: z8.enum(["OPEN", "RESOLUTION_PENDING", "RESOLVED", "LOCKED_RECOVERY"]),
+  createdAt: TimestampSchema
+}).strict().meta({ id: "SyncConflict", "x-data-classification": "C2" });
+var SyncConflictListResponseSchema = z8.object({
+  conflicts: z8.array(SyncConflictSchema).max(100),
+  nextCursor: z8.string().max(2048).optional()
+}).strict().meta({ id: "SyncConflictListResponse", "x-data-classification": "C2" });
+var SyncConflictResolutionRequestSchema = z8.object({
+  resolutionSchemaVersion: z8.literal(1),
+  conflictId: UuidSchema,
+  expectedConflictRevision: RevisionSchema,
+  action: z8.enum(["CREATE_NEW_COMMAND", "KEEP_BOTH_FACTS", "DISCARD_LOCAL_PROPOSAL"]),
+  resolutionCommandId: UuidSchema,
+  payloadHash: Sha256DigestSchema
+}).strict().meta({ id: "SyncConflictResolutionRequest", "x-data-classification": "C2" });
 
 // packages/contracts/src/voice/index.ts
-import { z as z8 } from "zod";
-var VoiceDelegationSchema = z8.object({
+import { z as z9 } from "zod";
+var VoiceLanguageSchema = z9.enum(["mr", "hi", "en"]);
+var VoiceSessionStateSchema = z9.enum(["CREATED", "READY", "RECONNECTING", "EXPIRING", "CLOSED", "UNAVAILABLE"]);
+var VoiceDelegationSchema = z9.object({
   subjectId: UuidSchema,
   roleContextId: UuidSchema,
   roleType: RoleTypeSchema,
   purpose: PurposeCodeSchema,
-  toolKey: z8.string().min(1).max(120),
-  consentAccessVersion: z8.int().positive(),
+  toolKey: z9.string().min(1).max(120),
+  consentAccessVersion: z9.int().positive(),
   sessionId: UuidSchema,
   expiresAt: TimestampSchema
 }).strict().meta({ id: "VoiceDelegation", "x-data-classification": "C4" });
+var CreateVoiceSessionRequestSchema = z9.object({
+  protocolVersion: z9.literal(1),
+  language: VoiceLanguageSchema,
+  visualRoute: z9.string().min(1).max(240).regex(/^\//),
+  contextIds: z9.array(UuidSchema).max(8),
+  audioCapabilities: z9.object({ realtime: z9.boolean(), httpsAudio: z9.boolean(), offlineAudio: z9.boolean() }).strict()
+}).strict().meta({ id: "CreateVoiceSessionRequest", "x-data-classification": "C2" });
+var CreateVoiceSessionResponseSchema = z9.object({
+  sessionId: UuidSchema,
+  state: z9.literal("CREATED"),
+  websocketEndpoint: z9.string().url().refine((value) => value.startsWith("wss://")),
+  singleUseTicket: z9.string().regex(/^[A-Za-z0-9_-]{32,512}$/),
+  ticketExpiresAt: TimestampSchema,
+  sessionExpiresAt: TimestampSchema,
+  protocolVersion: z9.literal(1),
+  httpsTurnsEndpoint: z9.string().min(1).max(512)
+}).strict().meta({ id: "CreateVoiceSessionResponse", "x-data-classification": "C4" });
+var VoiceTurnRequestSchema = z9.object({
+  turnId: UuidSchema,
+  input: z9.discriminatedUnion("type", [
+    z9.object({ type: z9.literal("TEXT"), text: z9.string().min(1).max(2e3) }).strict(),
+    z9.object({
+      type: z9.literal("AUDIO"),
+      mimeType: z9.enum(["audio/webm;codecs=opus", "audio/wav"]),
+      sha256: Sha256DigestSchema,
+      bytesBase64: z9.string().min(4).max(35e4)
+    }).strict()
+  ]),
+  clientSequence: z9.int().positive(),
+  acknowledgedServerSequence: z9.int().nonnegative()
+}).strict().meta({ id: "VoiceTurnRequest", "x-data-classification": "C4" });
+var VoiceTurnResponseSchema = z9.object({
+  turnId: UuidSchema,
+  sessionId: UuidSchema,
+  state: z9.enum(["HELP", "UNAVAILABLE", "NEEDS_CLARIFICATION", "PROPOSAL_PENDING"]),
+  messageKey: z9.string().min(1).max(120),
+  proposalId: UuidSchema.optional(),
+  serverSequence: z9.int().positive(),
+  acknowledgedClientSequence: z9.int().nonnegative()
+}).strict().meta({ id: "VoiceTurnResponse", "x-data-classification": "C2" });
+var VoiceProposalStateSchema = z9.enum([
+  "PENDING",
+  "CONFIRMED",
+  "CANCELLED",
+  "SUPERSEDED",
+  "EXPIRED",
+  "EXECUTING",
+  "COMPLETE",
+  "FAILED"
+]);
+var VoiceProposalResponseSchema = z9.object({
+  proposalId: UuidSchema,
+  sessionId: UuidSchema,
+  revision: RevisionSchema,
+  state: VoiceProposalStateSchema,
+  toolKey: z9.string().min(1).max(120),
+  payloadHash: Sha256DigestSchema,
+  readBack: JsonObjectSchema,
+  expiresAt: TimestampSchema,
+  commandId: UuidSchema.optional()
+}).strict().meta({ id: "VoiceProposalResponse", "x-data-classification": "C3" });
+var VoiceProposalActionBaseSchema = z9.object({
+  proposalId: UuidSchema,
+  expectedProposalRevision: RevisionSchema,
+  commandId: UuidSchema
+});
+var ConfirmVoiceProposalRequestSchema = VoiceProposalActionBaseSchema.extend({ payloadHash: Sha256DigestSchema }).strict().meta({ id: "ConfirmVoiceProposalRequest", "x-data-classification": "C3" });
+var CorrectVoiceProposalRequestSchema = VoiceProposalActionBaseSchema.extend({ correction: JsonObjectSchema }).strict().meta({ id: "CorrectVoiceProposalRequest", "x-data-classification": "C3" });
+var CancelVoiceProposalRequestSchema = VoiceProposalActionBaseSchema.strict().meta({
+  id: "CancelVoiceProposalRequest",
+  "x-data-classification": "C2"
+});
+var VoiceCommandStatusResponseSchema = z9.object({
+  commandId: UuidSchema,
+  state: z9.enum(["UNKNOWN", "IN_PROGRESS", "ACCEPTED", "REJECTED"]),
+  receiptReference: UuidSchema.optional()
+}).strict().meta({ id: "VoiceCommandStatusResponse", "x-data-classification": "C2" });
+var VoiceControlFrameSchema = z9.object({
+  protocolVersion: z9.literal(1),
+  sessionId: UuidSchema,
+  messageId: UuidSchema,
+  sequence: z9.int().positive(),
+  acknowledgedSequence: z9.int().nonnegative(),
+  type: z9.enum([
+    "session.start",
+    "audio.end",
+    "barge_in",
+    "proposal.confirm",
+    "proposal.correct",
+    "proposal.cancel",
+    "transport.ack",
+    "transport.resync_request",
+    "ping",
+    "session.close",
+    "session.ready",
+    "state.changed",
+    "transcript.partial",
+    "transcript.final",
+    "clarification",
+    "tool.proposal",
+    "proposal.state",
+    "command.state",
+    "validated.result",
+    "audio.metadata",
+    "transport.resync",
+    "error",
+    "session.expiring",
+    "session.closed"
+  ]),
+  payload: JsonObjectSchema
+}).strict().meta({ id: "VoiceControlFrame", "x-data-classification": "C4" });
+var M2_VOICE_TOOL_KEYS = [];
 export {
   ACTOR_TYPES,
   AccessGrantCommandTargetSchema,
   AccessGrantPayloadSchema,
   ActorTypeSchema,
+  AttachOfflineAudioRequestSchema,
+  AttachOfflineAudioResponseSchema,
   AuthorizationContextSchema,
   CAPABILITY_KEYS,
   COMMAND_DISPOSITIONS,
   CONSENT_SCOPES,
   CONSENT_STATES,
+  CancelMediaUploadIntentResponseSchema,
+  CancelVoiceProposalRequestSchema,
   CapabilityKeySchema,
   ClientContextSchema,
   CommandDispositionSchema,
@@ -2971,6 +3834,7 @@ export {
   CommandResultSchema,
   CommandSchema,
   CommandTargetSchema,
+  ConfirmVoiceProposalRequestSchema,
   ConsentDecisionCommandTargetSchema,
   ConsentDecisionPayloadSchema,
   ConsentDecisionRecordedEventSchema,
@@ -2979,22 +3843,40 @@ export {
   ConsentRecordSchema,
   ConsentScopeSchema,
   ConsentStateSchema,
+  CorrectVoiceProposalRequestSchema,
+  CreateMediaUploadIntentRequestSchema,
+  CreateMediaUploadIntentResponseSchema,
+  CreateVoiceSessionRequestSchema,
+  CreateVoiceSessionResponseSchema,
   DATA_CLASSIFICATIONS,
   DATA_MODES,
+  DEVICE_MODES,
   DataClassificationSchema,
   DataModeSchema,
   DeviceBatchReceiptSchema,
+  DeviceModeSchema,
   EVENT_CLASSES,
   EventEnvelopeSchema,
   EventNameSchema,
   FarmerBootstrapResponseSchema,
   FieldErrorSchema,
+  FinalizeMediaUploadIntentRequestSchema,
   HealthPayloadSchema,
   HealthStatusSchema,
   IssueAccessGrantCommandSchema,
   JsonObjectSchema,
   JsonValueSchema,
+  M2_VOICE_TOOL_KEYS,
+  MediaAssetStatusResponseSchema,
+  MediaFailureCodeSchema,
+  MediaOperationAcceptedResponseSchema,
+  MediaOwnerContextSchema,
+  MediaPurposeSchema,
+  MediaUploadVerifiedEventSchema,
+  MediaUploadVerifiedPayloadSchema,
+  MediaVerificationStateSchema,
   MilestoneOneEventSchema,
+  MilestoneTwoEventSchema,
   MpQueryContextResponseSchema,
   MpSafeResultSchema,
   MpSuppressedResultSchema,
@@ -3023,21 +3905,50 @@ export {
   RoleSummarySchema,
   RoleTypeSchema,
   RskBootstrapResponseSchema,
+  ScanMediaAssetRequestSchema,
+  SchemaVersionRangeSchema,
   SelectRoleContextCommandSchema,
   SelectRoleContextPayloadSchema,
   SessionResponseSchema,
   Sha256DigestSchema,
   SyncBatchResponseSchema,
+  SyncBatchResponseV2Schema,
   SyncBatchSchema,
+  SyncBootstrapRequestSchema,
+  SyncBootstrapResponseSchema,
   SyncCommandDispositionSchema,
   SyncCommandEnvelopeSchema,
+  SyncCommandStatusResponseSchema,
+  SyncConflictListResponseSchema,
+  SyncConflictResolutionRequestSchema,
+  SyncConflictSchema,
+  SyncConflictTypeSchema,
   SyncFeedEventSchema,
+  SyncFeedEventV2Schema,
+  SyncFeedPageResponseSchema,
+  SyncFeedPageResponseV2Schema,
   SyncIntegrationEventSchema,
+  SyncIntegrationEventV2Schema,
+  SyncLifecycleEventSchema,
+  SyncLifecyclePayloadSchema,
   SyncProjectionDeltaSchema,
+  SyncStreamOpenRequestSchema,
+  SyncStreamOpenResponseSchema,
+  SyncTombstoneSchema,
   TimestampSchema,
   TraceIdSchema,
   UnavailableSchema,
   UuidSchema,
   UuidV7Schema,
-  VoiceDelegationSchema
+  VoiceCommandStatusResponseSchema,
+  VoiceControlFrameSchema,
+  VoiceDelegationSchema,
+  VoiceLanguageSchema,
+  VoiceLifecycleEventSchema,
+  VoiceLifecyclePayloadSchema,
+  VoiceProposalResponseSchema,
+  VoiceProposalStateSchema,
+  VoiceSessionStateSchema,
+  VoiceTurnRequestSchema,
+  VoiceTurnResponseSchema
 };

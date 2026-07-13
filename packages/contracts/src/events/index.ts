@@ -23,7 +23,7 @@ if (eventNames.length === 0) {
   throw new Error('The canonical event catalogue must not be empty.');
 }
 
-/** Every frozen name is accepted here; only MilestoneOneEventSchema is executable in M1. */
+/** Every frozen name is accepted here; catalog status separately controls producer readiness. */
 export const EventNameSchema = z.enum(eventNames as [string, ...string[]]);
 
 const EventEnvelopeBaseSchema = z
@@ -126,5 +126,90 @@ export const MilestoneOneEventSchema = z
   ])
   .meta({ id: 'MilestoneOneEvent', 'x-data-classification': 'C2' });
 
+export const SyncLifecyclePayloadSchema = z
+  .object({
+    streamId: UuidSchema,
+    batchId: UuidSchema.optional(),
+    commandId: UuidSchema.optional(),
+    conflictId: UuidSchema.optional(),
+    disposition: z.enum(['ACCEPTED', 'ALREADY_ACCEPTED', 'REJECTED', 'CONFLICT']).optional(),
+  })
+  .strict();
+export const SyncLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.enum([
+    'sync.batch_started',
+    'sync.event_accepted',
+    'sync.event_already_accepted',
+    'sync.event_rejected',
+    'sync.conflict_detected',
+    'sync.conflict_resolved',
+  ]),
+  payloadClassification: z.literal('C2'),
+  payload: SyncLifecyclePayloadSchema,
+}).strict();
+export const MediaUploadVerifiedPayloadSchema = z
+  .object({
+    assetId: UuidSchema,
+    derivativeId: UuidSchema,
+    purpose: z.enum([
+      'CROP_HEALTH_IMAGE',
+      'DIARY_MEDIA',
+      'RSK_VISIT_EVIDENCE',
+      'SENSOR_MAINTENANCE_EVIDENCE',
+      'VOICE_OFFLINE_AUDIO',
+    ]),
+    sourceChecksum: Sha256DigestSchema,
+    derivativeChecksum: Sha256DigestSchema,
+    scannerVersion: z.string().min(1).max(80),
+  })
+  .strict();
+export const MediaUploadVerifiedEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.literal('media.upload_verified'),
+  payloadClassification: z.literal('C2'),
+  payload: MediaUploadVerifiedPayloadSchema,
+}).strict();
+export const VoiceLifecyclePayloadSchema = z
+  .object({
+    sessionId: UuidSchema,
+    proposalId: UuidSchema.optional(),
+    offlineAudioRefId: UuidSchema.optional(),
+    lifecycleState: z.string().min(1).max(80),
+    payloadHash: Sha256DigestSchema.optional(),
+    detailCode: z.string().min(1).max(80).optional(),
+  })
+  .strict();
+export const VoiceLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.enum([
+    'voice.session_started',
+    'voice.session_ended',
+    'voice.intent_recognized',
+    'voice.clarification_requested',
+    'voice.proposal_created',
+    'voice.proposal_cancelled',
+    'voice.proposal_confirmed',
+    'voice.proposal_corrected',
+    'voice.proposal_expired',
+    'voice.proposal_superseded',
+    'voice.provider_failed',
+    'voice.offline_audio_attached',
+    'voice.offline_audio_transcription_started',
+    'voice.offline_audio_needs_confirmation',
+    'voice.offline_audio_declined',
+    'voice.offline_audio_deleted',
+  ]),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: VoiceLifecyclePayloadSchema,
+}).strict();
+/** Reserved M2 wire schemas. They do not claim an executable producer or atomic outbox. */
+export const MilestoneTwoEventSchema = z
+  .union([
+    MilestoneOneEventSchema,
+    SyncLifecycleEventSchema,
+    MediaUploadVerifiedEventSchema,
+    VoiceLifecycleEventSchema,
+  ])
+  .meta({ id: 'MilestoneTwoEvent', 'x-data-classification': 'C3' });
+
 export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
 export type MilestoneOneEvent = z.infer<typeof MilestoneOneEventSchema>;
+export type MilestoneTwoEvent = z.infer<typeof MilestoneTwoEventSchema>;

@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
-import { AuthMemoryProvider } from './auth/auth-memory';
+import { FarmerClientProviders } from './farmer-client-providers';
+import { ServiceWorkerRegistration } from './service-worker/service-worker-registration';
 import './styles.css';
 
 export const metadata: Metadata = {
@@ -26,7 +27,8 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="mr">
       <body>
-        <AuthMemoryProvider>{children}</AuthMemoryProvider>
+        <FarmerClientProviders>{children}</FarmerClientProviders>
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

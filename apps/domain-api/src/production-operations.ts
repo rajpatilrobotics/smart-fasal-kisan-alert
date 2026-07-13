@@ -436,6 +436,9 @@ export interface ProductionDomainCompositionOptions {
   roleContextLifetimeMs?: number;
   returnStateLifetimeMs?: number;
   producerBuild?: string;
+  milestoneTwoOperations?: DomainOperationAdapter;
+  /** Production must never report ready with the process-local M2 simulator. */
+  requireDurableMilestoneTwo?: boolean;
 }
 
 export interface ProductionDomainComposition {
@@ -1707,6 +1710,21 @@ export function createProductionDomainComposition(
         case 'createRskProtectedDisclosure':
           // This route can only use the separately supplied narrow disclosure service.
           throw dependencyUnavailable();
+        case 'openFarmerSyncStream':
+        case 'bootstrapFarmerSync':
+        case 'syncFarmerBatch':
+        case 'getFarmerSyncFeed':
+        case 'getFarmerSyncCommand':
+        case 'listFarmerSyncConflicts':
+        case 'getFarmerSyncConflict':
+        case 'resolveFarmerSyncConflict':
+        case 'createMediaUploadIntent':
+        case 'finalizeMediaUploadIntent':
+        case 'getMediaAssetStatus':
+        case 'cancelMediaUploadIntent':
+        case 'streamMediaAttachment':
+          if (options.milestoneTwoOperations === undefined) throw dependencyUnavailable();
+          return options.milestoneTwoOperations.execute(request);
       }
     },
   };
@@ -1718,6 +1736,10 @@ export function createProductionDomainComposition(
       options.returnStateProtector !== undefined &&
       options.farmer?.role === 'sf_farmer_api' &&
       options.rsk?.role === 'sf_rsk_api' &&
-      options.protectedDisclosure?.role === 'sf_rsk_api',
+      options.protectedDisclosure?.role === 'sf_rsk_api' &&
+      options.milestoneTwoOperations !== undefined &&
+      (!options.requireDurableMilestoneTwo ||
+        ('persistence' in options.milestoneTwoOperations &&
+          options.milestoneTwoOperations.persistence === 'postgresql')),
   };
 }

@@ -131,6 +131,58 @@ describe('Farmer Today authenticated shell', () => {
     expect(await screen.findByRole('heading', { name: 'साइन इन आवश्यक आहे' })).toBeInTheDocument();
   });
 
+  it('keeps the role and credentials active when offline work blocks user switching', async () => {
+    const revokeRoleContext = vi.fn().mockResolvedValue(true);
+    render(
+      <AuthMemoryProvider initialCredentials={credentials} initialRoleContextId={roleContextId}>
+        <FarmerTodayShell
+          loadState={vi.fn().mockResolvedValue({
+            authorizationVersion: 4,
+            environment: 'demo',
+            farmContextState: 'UNAVAILABLE_UNTIL_SETUP',
+            kind: 'ready',
+            onboardingState: 'NOT_STARTED',
+            role: 'FARMER',
+            subjectId: '00000000-0000-4000-8000-123456789abc',
+          })}
+          prepareOfflineExit={vi.fn().mockRejectedValue(new Error('OFFLINE_EXIT_BLOCKED'))}
+          revokeRoleContext={revokeRoleContext}
+        />
+      </AuthMemoryProvider>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'साइन आउट' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('समक्रमित न केलेले काम');
+    expect(revokeRoleContext).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'साइन आउट' })).toBeEnabled();
+  });
+
+  it('prepares the offline partition before revoking the server role context', async () => {
+    const calls: string[] = [];
+    const prepareOfflineExit = vi.fn().mockImplementation(async () => {
+      calls.push('offline');
+    });
+    const revokeRoleContext = vi.fn().mockImplementation(async () => {
+      calls.push('revoke');
+      return true;
+    });
+    render(
+      <AuthMemoryProvider initialCredentials={credentials} initialRoleContextId={roleContextId}>
+        <FarmerTodayShell
+          loadState={vi.fn().mockResolvedValue({ kind: 'unavailable' })}
+          prepareOfflineExit={prepareOfflineExit}
+          revokeRoleContext={revokeRoleContext}
+        />
+      </AuthMemoryProvider>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'साइन आउट' }));
+    await waitFor(() => expect(revokeRoleContext).toHaveBeenCalledOnce());
+
+    expect(calls).toEqual(['offline', 'revoke']);
+  });
+
   it('retries a failed revocation with the same command before clearing local credentials', async () => {
     const revokeRoleContext = vi.fn().mockResolvedValue(false);
     render(

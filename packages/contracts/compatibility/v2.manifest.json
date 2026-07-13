@@ -1,0 +1,370 @@
+{
+  "baselineVersion": 2,
+  "contractVersion": "1.1.0-m2",
+  "eventCatalogue": {
+    "eventCount": 357,
+    "fingerprint": "107a3fd45a11f77137d2da305c5f56a87925c216d5356001661882632e93ff91"
+  },
+  "httpOperations": {
+    "DELETE /v1/auth/role-contexts/{roleContextId}": {
+      "fingerprint": "48c2c30a0b41d9131c48eb337c7d2568a49726a8ec0b5665040dc823b512d538",
+      "operationId": "revokeRoleContext",
+      "surface": "common"
+    },
+    "DELETE /v1/media/upload-intents/{intentId}": {
+      "fingerprint": "acd187a74061bc0baf1f2b9863039fc2866e2da999d00d10bf1d9631bf98e5a5",
+      "operationId": "cancelMediaUploadIntent",
+      "surface": "operational"
+    },
+    "GET /health/live": {
+      "fingerprint": "c71002fce937fbf7bc0718c0dbe2bf9499b5d50c4cd9ffaec1a1432780ef2b40",
+      "operationId": "getLiveness",
+      "surface": "common"
+    },
+    "GET /health/ready": {
+      "fingerprint": "8f10d9e7113c9d75b49162b2b3fb6dab0506e14c2a4da7c861ce29f8e48c49e5",
+      "operationId": "getReadiness",
+      "surface": "common"
+    },
+    "GET /v1/auth/roles": {
+      "fingerprint": "13d77f84a28790918a295906fa0512358b95917030f93a45568c86c48e7208cb",
+      "operationId": "listRoles",
+      "surface": "common"
+    },
+    "GET /v1/auth/session": {
+      "fingerprint": "02be21582d79d1c6258d20ae42c12e6c307f724f45d1aae9153139770c6250a6",
+      "operationId": "getAuthSession",
+      "surface": "common"
+    },
+    "GET /v1/commands/{commandId}": {
+      "fingerprint": "a29c500c487aace9c3132273253f47b99265163d109f2879514d625bc95a5d0a",
+      "operationId": "getVoiceCommandStatus",
+      "surface": "operational"
+    },
+    "GET /v1/farmer/bootstrap": {
+      "fingerprint": "b3e990ba9649becd188a66f227aecbba4f28dd5640c1ea014ed6a96b5520e064",
+      "operationId": "getFarmerBootstrap",
+      "surface": "farmer"
+    },
+    "GET /v1/farmer/consents": {
+      "fingerprint": "3e49f00307f22b532174de69f7d452356ea3670a11dff879273fe64ef2609962",
+      "operationId": "listFarmerConsents",
+      "surface": "farmer"
+    },
+    "GET /v1/media/assets/{assetId}/status": {
+      "fingerprint": "8def2b95df7835ae90d38513a6164074ea7fed2a6d6370b1d6251f805fe71558",
+      "operationId": "getMediaAssetStatus",
+      "surface": "operational"
+    },
+    "GET /v1/media/attachments/{attachmentId}/content": {
+      "fingerprint": "53c384e8d26f5a0e94aa693d74b5d98d9647cfb30ab12cbdd9a9166b9ee13cc8",
+      "operationId": "streamMediaAttachment",
+      "surface": "operational"
+    },
+    "GET /v1/mp/query-context": {
+      "fingerprint": "2c940fcc1286ea10ec720d7163369f9361ae908fdc9332e64c38827763c94207",
+      "operationId": "getMpQueryContext",
+      "surface": "mp"
+    },
+    "GET /v1/realtime": {
+      "fingerprint": "7c74046bff97f1331c4dc9ee91ac4f2af9b6b30876c0be6b75c64123e304e597",
+      "operationId": "openVoiceRealtime",
+      "surface": "voice"
+    },
+    "GET /v1/rsk/bootstrap": {
+      "fingerprint": "715682a8cef8c347eb49f949877ea1ffb7e04b9dadf6e2393d47118f0d0f4a74",
+      "operationId": "getRskBootstrap",
+      "surface": "rsk"
+    },
+    "GET /v1/sync/commands/{commandId}": {
+      "fingerprint": "c0ec62510c23160ff150de99c421b059ec225a8df146c4ac3c853f5f959053a0",
+      "operationId": "getFarmerSyncCommand",
+      "surface": "farmer"
+    },
+    "GET /v1/sync/conflicts": {
+      "fingerprint": "b4a0ca872ecaa6748d7bab44107da16b048861ed5cd1090393140f5d88fef98b",
+      "operationId": "listFarmerSyncConflicts",
+      "surface": "farmer"
+    },
+    "GET /v1/sync/conflicts/{conflictId}": {
+      "fingerprint": "e8c1775ddaa0c80050e83029b5ba5a80c0f77793d5cbf94ee08fc50e0545642c",
+      "operationId": "getFarmerSyncConflict",
+      "surface": "farmer"
+    },
+    "GET /v1/sync/feed": {
+      "fingerprint": "77697e7ea5a585d253db58862f75db7696f611af98d6809e9bf660c79ed713f0",
+      "operationId": "getFarmerSyncFeed",
+      "surface": "farmer"
+    },
+    "GET /v1/system/reachability": {
+      "fingerprint": "bc1564784e929d24317300562c165473b030143ab95614e13e680567bf0304b8",
+      "operationId": "getReachability",
+      "surface": "common"
+    },
+    "GET /v1/voice/proposals/{proposalId}": {
+      "fingerprint": "1f95cf50ef808691a8f7a1635221df5424b024db577799830cbf13ae33c91760",
+      "operationId": "getVoiceProposal",
+      "surface": "operational"
+    },
+    "POST /internal/v1/media/assets/{assetId}:scan": {
+      "fingerprint": "ff891f15794d8b19e8966d55cd341cd163abb31bfe2cf7be99ef414055641c65",
+      "operationId": "scanMediaAsset",
+      "surface": "internal"
+    },
+    "POST /v1/auth/return-states": {
+      "fingerprint": "15023172d0c3854e546adf2c495dcb44ef0285be15441409b527de058874ec1d",
+      "operationId": "createReturnState",
+      "surface": "common"
+    },
+    "POST /v1/auth/role-contexts": {
+      "fingerprint": "0fc092af5bc4cb7eb2ee775a27cf0d147c58636f659a8b26bd3b14084fce08a9",
+      "operationId": "selectRoleContext",
+      "surface": "common"
+    },
+    "POST /v1/farmer/consent-decisions": {
+      "fingerprint": "3b073e838156be3f6a3a653aa41074aaa80c945ee4b6ca36bf23924f178829e0",
+      "operationId": "recordConsentDecision",
+      "surface": "farmer"
+    },
+    "POST /v1/media/upload-intents": {
+      "fingerprint": "40e0cf664e508f9339e4a88d56bf5e3b7e6344fd9975e62efdcb8a2f359a38cc",
+      "operationId": "createMediaUploadIntent",
+      "surface": "operational"
+    },
+    "POST /v1/media/upload-intents/{intentId}:finalize": {
+      "fingerprint": "fc9fadab7739c640eb360ec91920d2c2981d4d93c2b98fe095d4f7006aa619d3",
+      "operationId": "finalizeMediaUploadIntent",
+      "surface": "operational"
+    },
+    "POST /v1/rsk/access-grants": {
+      "fingerprint": "93c741e1887e82e7f633733fdf2a97701ac8d2f848f721431b163b21d73374c4",
+      "operationId": "issueRskAccessGrant",
+      "surface": "rsk"
+    },
+    "POST /v1/rsk/protected-disclosures": {
+      "fingerprint": "79d7f1b17fdcffc039824fd4412b3bbd19770ac56a16ac2f3a86ec3574288706",
+      "operationId": "createRskProtectedDisclosure",
+      "surface": "rsk"
+    },
+    "POST /v1/sync/batches": {
+      "fingerprint": "113a31493c47a1dd7971d132737116845418b0463619fa4c96aefe692e85af9b",
+      "operationId": "syncFarmerBatch",
+      "surface": "farmer"
+    },
+    "POST /v1/sync/bootstrap": {
+      "fingerprint": "46b0060c095e3cd3c7a72de00200fac4edf7c7a5e8311615835784487e763f85",
+      "operationId": "bootstrapFarmerSync",
+      "surface": "farmer"
+    },
+    "POST /v1/sync/conflicts/{conflictId}/resolutions": {
+      "fingerprint": "baa81a2a689073b03b9e795078e3747b56536ab9fa599cb9c315dedb0b445183",
+      "operationId": "resolveFarmerSyncConflict",
+      "surface": "farmer"
+    },
+    "POST /v1/sync/streams": {
+      "fingerprint": "cc39e8898560912e78efb46a642dc36f5e0cf89d3cffe68436c46c13a9e7c3f3",
+      "operationId": "openFarmerSyncStream",
+      "surface": "farmer"
+    },
+    "POST /v1/voice/offline-audio": {
+      "fingerprint": "2f63b9bbcd5f8150b69202ed388fc91b4c12a1eb0c9ca951aca0401ce27feb94",
+      "operationId": "attachVoiceOfflineAudio",
+      "surface": "operational"
+    },
+    "POST /v1/voice/proposals/{proposalId}:cancel": {
+      "fingerprint": "4832a37434577ca04ad2701b13b03a06674db7819c55be6142095c203e34e243",
+      "operationId": "cancelVoiceProposal",
+      "surface": "operational"
+    },
+    "POST /v1/voice/proposals/{proposalId}:confirm": {
+      "fingerprint": "45a7d31a6915878107989781ef9af6412fc116bc220f338caf5944f47b83d403",
+      "operationId": "confirmVoiceProposal",
+      "surface": "operational"
+    },
+    "POST /v1/voice/proposals/{proposalId}:correct": {
+      "fingerprint": "dbc0f1ea5d0d4736ec020a71f2bafab20b9356924ac05d42121f6718fe189c29",
+      "operationId": "correctVoiceProposal",
+      "surface": "operational"
+    },
+    "POST /v1/voice/sessions": {
+      "fingerprint": "6c60c83e3f31139023737944e079bd504a093f6539794d79a35d2a9df30f29f1",
+      "operationId": "createVoiceSession",
+      "surface": "voice"
+    },
+    "POST /v1/voice/sessions/{sessionId}/turns": {
+      "fingerprint": "10fbd1dbc4d9372c61facce79d74ae02cd57f52982f345874e366e352f3539c3",
+      "operationId": "createVoiceTurn",
+      "surface": "voice"
+    }
+  },
+  "policy": "exact-wire-freeze",
+  "schemaGroups": {
+    "commands": {
+      "Command": {
+        "fingerprint": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359"
+      },
+      "CommandEnvelope": {
+        "fingerprint": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359"
+      },
+      "CommandResult": {
+        "fingerprint": "f9d9a95e77a5f06fb92feebc3bc697b3d4ce7d602da65f1946759f88c0f493fe"
+      },
+      "IssueAccessGrantCommand": {
+        "fingerprint": "b23b55401f22b96b373bb52e7a355bacef043c9bb311fd9623b9d3940925bc08"
+      },
+      "RecordConsentDecisionCommand": {
+        "fingerprint": "203ce4e0cc512f6b7728c68d69a178b1aef9dfa3fa4b1417c0a375a9940699d0"
+      },
+      "SelectRoleContextCommand": {
+        "fingerprint": "b6665edd14cfa9ee26ab3170d637ff99fc6b1f34bb551106ecd9845e5ab11511"
+      }
+    },
+    "device": {
+      "DeviceBatchReceipt": {
+        "fingerprint": "548687babf669180db9ffeb8f590bd9dc0c6c1c1ec14131f51725c6f2be755e5"
+      }
+    },
+    "events": {
+      "EventEnvelope": {
+        "fingerprint": "3816a947d2f94977c3a2b74745fa28b8c671fcadeb0d35a7306046c2cdf14429"
+      },
+      "MilestoneOneEvent": {
+        "fingerprint": "293b3fb109443cab41267bcf817d68b56d7801136158d7af4405f30606caca5b"
+      },
+      "MilestoneTwoEvent": {
+        "fingerprint": "b87cbc30873c596f1aad63d73cfdca8c49a74875c7efc1273a0aa36f0050f536"
+      }
+    },
+    "media": {
+      "AttachOfflineAudioRequest": {
+        "fingerprint": "3b65176ff9762c92896531ada6b0f400eddac95b5832879eafcec45119382fb9"
+      },
+      "AttachOfflineAudioResponse": {
+        "fingerprint": "871b2db4e2144c7b2d90462450f4c418b489df28dca5d6801e0427a6a3e35569"
+      },
+      "CancelMediaUploadIntentResponse": {
+        "fingerprint": "59d2c7092c8f0d355d0aad59ac400e5bded47013566fd589f7ab00d0ef5e4661"
+      },
+      "CreateMediaUploadIntentRequest": {
+        "fingerprint": "8e64fc4766a4fd1bee7ea00087290705e951af78d9baacfac719493a69f41a79"
+      },
+      "CreateMediaUploadIntentResponse": {
+        "fingerprint": "b87fe85337db3037d70d6ab178ee1ddbcaabee7dd2cc11172e589c7ee6b61973"
+      },
+      "FinalizeMediaUploadIntentRequest": {
+        "fingerprint": "9bd15b104746553f1f1555c0dbb43deaf661a90d82ee3737811c7571d05c0196"
+      },
+      "MediaAssetStatusResponse": {
+        "fingerprint": "b24f556ff3eb67340e145c125aaecc4a11379c703f76b1d5ebe2b3a6abb90053"
+      },
+      "MediaOperationAcceptedResponse": {
+        "fingerprint": "2d23b375a952bdcabc9ea4c586b1ab471c2956bfff8a010b6aa64c3ac8e1a143"
+      },
+      "ScanMediaAssetRequest": {
+        "fingerprint": "6df4e31e308fbc6e9a4c87d2927975ae6ca49bf35afc3fbf94fcb0656c8b66db"
+      }
+    },
+    "privacy": {
+      "MpSafeResult": {
+        "fingerprint": "d5546217b32a83823c394a53b43aa93b5b77b9bd138226e4197eae85d6848559"
+      },
+      "MpSuppressedResult": {
+        "fingerprint": "bace36e2c934ada0f4d71c5048d7a5249de0d718416d5d4921a0738f8266eb25"
+      },
+      "MpUnavailableResult": {
+        "fingerprint": "fdcf03de34a7d163ff2b72dd3ab5eaa204dd20388b6bdfb5d7b8228d40edbb21"
+      }
+    },
+    "sync": {
+      "SyncBatch": {
+        "fingerprint": "3847784511c2f26532eede91cde859cb695c28017a4df2448deac3e89e6657f6"
+      },
+      "SyncBatchResponse": {
+        "fingerprint": "f4d5bdce21a81422d67ce6b53035d8c8c1031a03fa90071b6ca02a65682d084c"
+      },
+      "SyncBatchResponseV2": {
+        "fingerprint": "22f317b1997fc4baa592d66034901a3532d1187c4771bc40a59ed7944de55358"
+      },
+      "SyncBootstrapRequest": {
+        "fingerprint": "0bd4dbab7d9fe70dc8db0bb91e520c3a3e21376c83113e6f0040076964ad1f39"
+      },
+      "SyncBootstrapResponse": {
+        "fingerprint": "b069f357e66ec0579b816b67ca6b2f54f7b54fc7922d9877b905737c0f953168"
+      },
+      "SyncCommandDisposition": {
+        "fingerprint": "0d334531a01f95d0d2c267f1ca541613044c5199104f21c534719d192aa7b4de"
+      },
+      "SyncCommandEnvelope": {
+        "fingerprint": "b6ac67fd1945f531c62fd78f6c63c95e1140314baad9c77b64e3471d170fe3ee"
+      },
+      "SyncCommandStatusResponse": {
+        "fingerprint": "a051104edf45383242f1f9e1452430385362b095a99855f9848ba326e4d5c324"
+      },
+      "SyncConflict": {
+        "fingerprint": "dde4ccf36f76340795954c33aeeff7910b6357fd908bebe260e2459fecfe0b68"
+      },
+      "SyncConflictListResponse": {
+        "fingerprint": "979375254880a64e94cceb46d8bd5715050eb7184f244aa92890badbad6ca9e0"
+      },
+      "SyncConflictResolutionRequest": {
+        "fingerprint": "f1a32e6ab98e05f62e7171315b31ea99447aabea8546f27da4bde82378a82dc4"
+      },
+      "SyncFeedEvent": {
+        "fingerprint": "782fa56f6f6c4239f07355c134f91a7ddfefab10164bbd151ac9421dc226b7e1"
+      },
+      "SyncFeedEventV2": {
+        "fingerprint": "28d8d2c74f5aae3ec562b236fdfdf0e622294fae5f7dc72c8265eb9ec2e4a65b"
+      },
+      "SyncFeedPageResponse": {
+        "fingerprint": "1b23d6b6680a4d16d5b18517ce1e60ed8ef9b84cef89813db8853b542306cdca"
+      },
+      "SyncFeedPageResponseV2": {
+        "fingerprint": "e39bb7572dfd8d8cb0f21e0fe7f7e0f6fcc5385101af9eb4a4c7d43516b86258"
+      },
+      "SyncProjectionDelta": {
+        "fingerprint": "6bbd23f20eacfc4d7d2085e936db4a7e5d3ec7673ca00209a42309d1ffef7b07"
+      },
+      "SyncStreamOpenRequest": {
+        "fingerprint": "2cf17a889cee212063e9bbff27cbef521edcccf1657232ec6e51d1870654ed09"
+      },
+      "SyncStreamOpenResponse": {
+        "fingerprint": "c50f48951d9c014d47520d3c0c49d282c7c6ae1560f4a6d41e5b31843323fc65"
+      }
+    },
+    "voice": {
+      "CancelVoiceProposalRequest": {
+        "fingerprint": "7868ea4c8c5b9aac48cfa011424bd43b91ef1158aa10bba41709db0a63e45842"
+      },
+      "ConfirmVoiceProposalRequest": {
+        "fingerprint": "86fbb84b78efa554bd996bcbde79894cd1f8b164c7126966f31491a799fec148"
+      },
+      "CorrectVoiceProposalRequest": {
+        "fingerprint": "0173fc355034d1399efc5a5a4117884affbfef56ce92115bcfa16d04331ae382"
+      },
+      "CreateVoiceSessionRequest": {
+        "fingerprint": "483cc10245639b774a5657a0fabbb5bc85ddc542b419ccd462a063f342d5e193"
+      },
+      "CreateVoiceSessionResponse": {
+        "fingerprint": "231ebb5499097cb976e4b4e97c40a83298e3182eb158f88bfc9b26750dbc89c2"
+      },
+      "VoiceCommandStatusResponse": {
+        "fingerprint": "db9bd1a933b81d4ec2a71775542f946b4c43cd6b3df5fb09df740798a3fed028"
+      },
+      "VoiceControlFrame": {
+        "fingerprint": "f74e05d554aa557f50da07a8acaf1e10b7aaa95ad680ca799c807d8c9981de0b"
+      },
+      "VoiceDelegation": {
+        "fingerprint": "56d6be031fdc832bf53e8ee1b1de32af0157880711446aec4b096b5c949eb674"
+      },
+      "VoiceProposalResponse": {
+        "fingerprint": "3107aeb2e1acbf94391c1099a3387eb765d0344fe989cb4c30d6c0495097a032"
+      },
+      "VoiceTurnRequest": {
+        "fingerprint": "a19cc501cb5b1764112b308449d351e643cf271f0258522c08893fd2530502cc"
+      },
+      "VoiceTurnResponse": {
+        "fingerprint": "132ca8cc12639fdf500de0202561193c9d5a6ca7f2004e00d217e50e39eb7cbd"
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
   "authority": "../src/index.ts",
-  "contractVersion": "1.0.0-m1",
+  "contractVersion": "1.1.0-m2",
   "note": "Compatibility pointer only. Strict Zod schemas and registries under src are authoritative."
 }

@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "claimedMimeType": {
+      "enum": [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "audio/webm;codecs=opus",
+        "audio/wav"
+      ],
+      "type": "string"
+    },
+    "consentAccessVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "declaredDurationSeconds": {
+      "exclusiveMinimum": 0,
+      "maximum": 120,
+      "type": "number"
+    },
+    "declaredHeight": {
+      "exclusiveMinimum": 0,
+      "maximum": 16384,
+      "type": "integer"
+    },
+    "declaredSizeBytes": {
+      "exclusiveMinimum": 0,
+      "maximum": 15728640,
+      "type": "integer"
+    },
+    "declaredWidth": {
+      "exclusiveMinimum": 0,
+      "maximum": 16384,
+      "type": "integer"
+    },
+    "expectedSha256": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "mediaProtocolVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "owner": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ownerId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "ownerType": {
+              "const": "HEALTH_REPORT",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ownerType",
+            "ownerId"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ownerId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "ownerType": {
+              "const": "DIARY_ENTRY",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ownerType",
+            "ownerId"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ownerId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "ownerType": {
+              "const": "RSK_VISIT",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ownerType",
+            "ownerId"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ownerId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "ownerType": {
+              "const": "SENSOR_MAINTENANCE",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ownerType",
+            "ownerId"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ownerId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "ownerType": {
+              "const": "VOICE_SESSION",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ownerType",
+            "ownerId"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "purpose": {
+      "enum": [
+        "CROP_HEALTH_IMAGE",
+        "DIARY_MEDIA",
+        "RSK_VISIT_EVIDENCE",
+        "SENSOR_MAINTENANCE_EVIDENCE",
+        "VOICE_OFFLINE_AUDIO"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "mediaProtocolVersion",
+    "purpose",
+    "owner",
+    "expectedSha256",
+    "claimedMimeType",
+    "declaredSizeBytes",
+    "consentAccessVersion"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}
