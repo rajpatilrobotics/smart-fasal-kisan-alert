@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "next build",
+    "build": "next build && node ./scripts/build-service-worker.mjs",
     "start": "next start --port 3000",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -22,6 +22,7 @@
     "@smart-fasal/contracts": "workspace:*",
     "@smart-fasal/health": "workspace:*",
     "@smart-fasal/i18n": "workspace:*",
+    "@smart-fasal/offline": "workspace:*",
     "next": "16.2.10",
     "react": "19.2.7",
     "react-dom": "19.2.7"
@@ -34,9 +35,15 @@
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.10",
+    "esbuild": "0.28.1",
     "jsdom": "29.1.1",
     "prettier": "3.9.5",
     "typescript": "6.0.3",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "workbox-build": "7.4.1",
+    "workbox-core": "7.4.1",
+    "workbox-precaching": "7.4.1",
+    "workbox-routing": "7.4.1",
+    "workbox-strategies": "7.4.1"
   }
 }

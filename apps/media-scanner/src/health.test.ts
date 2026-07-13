@@ -12,7 +12,7 @@ afterEach(async () => {
 
 describe(`${SERVICE_NAME} worker health contract`, () => {
   it('reports readiness only while the worker lifecycle is running', async () => {
-    const worker = new WorkerLifecycle();
+    const worker = new WorkerLifecycle(() => ({ ready: true }));
     const app = buildService({
       readiness: () => worker.isReady,
       serviceName: SERVICE_NAME,
@@ -44,5 +44,18 @@ describe(`${SERVICE_NAME} worker health contract`, () => {
     worker.stop();
     const readyAfterStop = await app.inject({ method: 'GET', url: '/health/ready' });
     expect(readyAfterStop.statusCode).toBe(503);
+  });
+
+  it('stays unavailable when production adapters have not been wired', () => {
+    const worker = new WorkerLifecycle();
+    worker.start();
+
+    expect(worker.isReady).toBe(false);
+    expect(worker.readiness).toEqual({
+      ready: false,
+      code: 'MEDIA_SCANNER_ADAPTERS_UNAVAILABLE',
+      missing: ['CONSENT_ACCESS_CHECKER', 'DECODER', 'LIFECYCLE_STORE', 'MALWARE_SCANNER'],
+      retryable: true,
+    });
   });
 });

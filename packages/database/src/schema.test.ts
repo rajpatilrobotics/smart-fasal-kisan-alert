@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { createDatabaseClient } from './client';
-import { seedRuns } from './schema';
+import { mediaAssets, schemaCompatibility, seedRuns, syncStreams, voiceSessions } from './schema';
 
 describe('foundation migration', () => {
   it('enables required spatial and cryptographic extensions', async () => {
@@ -144,8 +144,47 @@ describe('foundation migration', () => {
     expect(migration).not.toContain('ip_address');
   });
 
+  it('adds the Milestone 2 offline, quarantine and voice transport boundaries', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0004_milestone_2_offline_media_voice.sql'),
+      'utf8',
+    );
+    expect(migration).toContain("array['sf_media_scanner', 'sf_voice_gateway']");
+    expect(migration).toContain("supported_until >= supported_from + interval '90 days'");
+    expect(migration).toContain('subject_device_binding_id uuid not null');
+    expect(migration).toContain("'platform.sync_stream'");
+    expect(migration).toContain("'media.asset'");
+    expect(migration).toContain("'voice.ticket'");
+    expect(migration).toContain("execute format('alter table %s force row level security'");
+    expect(migration).toContain("check (owner_type = 'VOICE_SESSION')");
+    expect(migration).toContain("check (purpose = 'VOICE_OFFLINE_AUDIO')");
+    expect(migration).toContain("ticket_hash ~ '^sha256:[0-9a-f]{64}$'");
+    expect(migration).toContain("expires_at <= issued_at + interval '60 seconds'");
+    expect(migration).toContain('create or replace function voice.consume_ticket');
+    expect(migration).toContain('verified media evidence incomplete');
+    expect(migration).toContain('derivative_id uuid not null unique');
+    expect(migration).toContain('finalized_sha256');
+    expect(migration).not.toMatch(
+      /grant update \([^)]*verified_sha256[^)]*\) on media\.asset to sf_farmer_api/i,
+    );
+    expect(migration).not.toMatch(
+      /grant update \(consumed_at, consumed_connection_id\)\s+on voice\.ticket to sf_voice_gateway/i,
+    );
+    expect(migration).not.toMatch(/grant\s+update\s+on\s+media\.asset\s+to\s+sf_media_scanner/i);
+    expect(migration).not.toMatch(
+      /grant\s+select\s+on\s+media\.upload_intent\s+to\s+sf_media_scanner/i,
+    );
+  });
+
   it('exposes the typed foundation schema', () => {
     expect(seedRuns.profile.name).toBe('profile');
+    expect(schemaCompatibility.schemaVersion.name).toBe('schema_version');
+    expect(syncStreams.subjectDeviceBindingId.name).toBe('subject_device_binding_id');
+    expect(mediaAssets.storageObjectName.name).toBe('storage_object_name');
+    expect(mediaAssets.subjectDeviceBindingId.name).toBe('subject_device_binding_id');
+    expect(mediaAssets.finalizedSha256.name).toBe('finalized_sha256');
+    expect(voiceSessions.roleContextId.name).toBe('role_context_id');
+    expect(voiceSessions.subjectDeviceBindingId.name).toBe('subject_device_binding_id');
   });
 
   it('requires an explicit database URL', () => {

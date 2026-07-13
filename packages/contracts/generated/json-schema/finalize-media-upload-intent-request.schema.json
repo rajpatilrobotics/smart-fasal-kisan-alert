@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "finalSizeBytes": {
+      "exclusiveMinimum": 0,
+      "maximum": 15728640,
+      "type": "integer"
+    },
+    "objectGeneration": {
+      "pattern": "^[0-9]+$",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "objectGeneration",
+    "sha256",
+    "finalSizeBytes"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

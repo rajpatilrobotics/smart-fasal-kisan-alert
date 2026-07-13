@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assetId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "derivativeSha256": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "failureCode": {
+      "enum": [
+        "GENERATION_MISMATCH",
+        "SIZE_MISMATCH",
+        "CHECKSUM_MISMATCH",
+        "MIME_MISMATCH",
+        "UNSUPPORTED_CODEC",
+        "DECODER_REJECTED",
+        "POLYGLOT_REJECTED",
+        "MALWARE_REJECTED",
+        "DIMENSION_LIMIT_EXCEEDED",
+        "DURATION_LIMIT_EXCEEDED",
+        "CONSENT_OR_ACCESS_VERSION_CHANGED"
+      ],
+      "type": "string"
+    },
+    "purpose": {
+      "enum": [
+        "CROP_HEALTH_IMAGE",
+        "DIARY_MEDIA",
+        "RSK_VISIT_EVIDENCE",
+        "SENSOR_MAINTENANCE_EVIDENCE",
+        "VOICE_OFFLINE_AUDIO"
+      ],
+      "type": "string"
+    },
+    "revision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "state": {
+      "enum": [
+        "INTENT_ISSUED",
+        "UPLOADED_UNVERIFIED",
+        "SCANNING",
+        "VERIFIED",
+        "ATTACHED",
+        "FAILED_RETRYABLE",
+        "REJECTED",
+        "EXPIRED",
+        "CANCELLED"
+      ],
+      "type": "string"
+    },
+    "updatedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "verifiedMimeType": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "verifiedSizeBytes": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "assetId",
+    "purpose",
+    "state",
+    "revision",
+    "updatedAt"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

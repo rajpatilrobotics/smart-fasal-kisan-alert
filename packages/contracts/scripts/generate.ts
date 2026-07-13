@@ -11,17 +11,32 @@ import { z, type ZodType } from 'zod';
 
 import {
   AuthorizationContextSchema,
+  AttachOfflineAudioRequestSchema,
+  AttachOfflineAudioResponseSchema,
+  CancelMediaUploadIntentResponseSchema,
+  CancelVoiceProposalRequestSchema,
   CommandEnvelopeSchema,
   CommandResultSchema,
   CommandSchema,
+  ConfirmVoiceProposalRequestSchema,
   ConsentListResponseSchema,
+  CorrectVoiceProposalRequestSchema,
+  CreateMediaUploadIntentRequestSchema,
+  CreateMediaUploadIntentResponseSchema,
+  CreateVoiceSessionRequestSchema,
+  CreateVoiceSessionResponseSchema,
+  DeviceModeSchema,
   DeviceBatchReceiptSchema,
   EventEnvelopeSchema,
   FarmerBootstrapResponseSchema,
+  FinalizeMediaUploadIntentRequestSchema,
   HealthPayloadSchema,
   IssueAccessGrantCommandSchema,
   JsonValueSchema,
+  MediaAssetStatusResponseSchema,
+  MediaOperationAcceptedResponseSchema,
   MilestoneOneEventSchema,
+  MilestoneTwoEventSchema,
   MpQueryContextResponseSchema,
   MpSafeResultSchema,
   MpSuppressedResultSchema,
@@ -34,16 +49,34 @@ import {
   ReturnStateResponseSchema,
   RoleContextResponseSchema,
   RskBootstrapResponseSchema,
+  ScanMediaAssetRequestSchema,
   SelectRoleContextCommandSchema,
   SessionResponseSchema,
   SyncBatchResponseSchema,
+  SyncBatchResponseV2Schema,
   SyncBatchSchema,
+  SyncBootstrapRequestSchema,
+  SyncBootstrapResponseSchema,
   SyncCommandDispositionSchema,
   SyncCommandEnvelopeSchema,
+  SyncCommandStatusResponseSchema,
+  SyncConflictListResponseSchema,
+  SyncConflictResolutionRequestSchema,
+  SyncConflictSchema,
   SyncFeedEventSchema,
+  SyncFeedEventV2Schema,
+  SyncFeedPageResponseSchema,
+  SyncFeedPageResponseV2Schema,
   SyncProjectionDeltaSchema,
+  SyncStreamOpenRequestSchema,
+  SyncStreamOpenResponseSchema,
   UnavailableSchema,
+  VoiceCommandStatusResponseSchema,
+  VoiceControlFrameSchema,
   VoiceDelegationSchema,
+  VoiceProposalResponseSchema,
+  VoiceTurnRequestSchema,
+  VoiceTurnResponseSchema,
 } from '../src/index.js';
 import eventCatalog from '../src/events/catalog.json' with { type: 'json' };
 import { ROUTES, type RouteContract, type Surface } from '../src/http/routes.js';
@@ -58,21 +91,36 @@ const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workspaceRoot = resolve(packageRoot, '../..');
 const generatedRoot = resolve(packageRoot, 'generated');
-const contractVersion = '1.0.0-m1';
+const contractVersion = '1.1.0-m2';
 
 const schemaRegistry = {
   AuthorizationContext: AuthorizationContextSchema,
+  AttachOfflineAudioRequest: AttachOfflineAudioRequestSchema,
+  AttachOfflineAudioResponse: AttachOfflineAudioResponseSchema,
+  CancelMediaUploadIntentResponse: CancelMediaUploadIntentResponseSchema,
+  CancelVoiceProposalRequest: CancelVoiceProposalRequestSchema,
   Command: CommandSchema,
   CommandEnvelope: CommandEnvelopeSchema,
   CommandResult: CommandResultSchema,
+  ConfirmVoiceProposalRequest: ConfirmVoiceProposalRequestSchema,
   ConsentListResponse: ConsentListResponseSchema,
+  CorrectVoiceProposalRequest: CorrectVoiceProposalRequestSchema,
+  CreateMediaUploadIntentRequest: CreateMediaUploadIntentRequestSchema,
+  CreateMediaUploadIntentResponse: CreateMediaUploadIntentResponseSchema,
+  CreateVoiceSessionRequest: CreateVoiceSessionRequestSchema,
+  CreateVoiceSessionResponse: CreateVoiceSessionResponseSchema,
   DeviceBatchReceipt: DeviceBatchReceiptSchema,
+  DeviceMode: DeviceModeSchema,
   EventEnvelope: EventEnvelopeSchema,
   FarmerBootstrapResponse: FarmerBootstrapResponseSchema,
+  FinalizeMediaUploadIntentRequest: FinalizeMediaUploadIntentRequestSchema,
   HealthPayload: HealthPayloadSchema,
   IssueAccessGrantCommand: IssueAccessGrantCommandSchema,
   JsonValue: JsonValueSchema,
+  MediaAssetStatusResponse: MediaAssetStatusResponseSchema,
+  MediaOperationAcceptedResponse: MediaOperationAcceptedResponseSchema,
   MilestoneOneEvent: MilestoneOneEventSchema,
+  MilestoneTwoEvent: MilestoneTwoEventSchema,
   MpQueryContextResponse: MpQueryContextResponseSchema,
   MpSafeResult: MpSafeResultSchema,
   MpSuppressedResult: MpSuppressedResultSchema,
@@ -85,16 +133,34 @@ const schemaRegistry = {
   ReturnStateResponse: ReturnStateResponseSchema,
   RoleContextResponse: RoleContextResponseSchema,
   RskBootstrapResponse: RskBootstrapResponseSchema,
+  ScanMediaAssetRequest: ScanMediaAssetRequestSchema,
   SelectRoleContextCommand: SelectRoleContextCommandSchema,
   SessionResponse: SessionResponseSchema,
   SyncBatch: SyncBatchSchema,
   SyncBatchResponse: SyncBatchResponseSchema,
+  SyncBatchResponseV2: SyncBatchResponseV2Schema,
+  SyncBootstrapRequest: SyncBootstrapRequestSchema,
+  SyncBootstrapResponse: SyncBootstrapResponseSchema,
   SyncCommandDisposition: SyncCommandDispositionSchema,
   SyncCommandEnvelope: SyncCommandEnvelopeSchema,
+  SyncCommandStatusResponse: SyncCommandStatusResponseSchema,
+  SyncConflict: SyncConflictSchema,
+  SyncConflictListResponse: SyncConflictListResponseSchema,
+  SyncConflictResolutionRequest: SyncConflictResolutionRequestSchema,
   SyncFeedEvent: SyncFeedEventSchema,
+  SyncFeedEventV2: SyncFeedEventV2Schema,
+  SyncFeedPageResponse: SyncFeedPageResponseSchema,
+  SyncFeedPageResponseV2: SyncFeedPageResponseV2Schema,
   SyncProjectionDelta: SyncProjectionDeltaSchema,
+  SyncStreamOpenRequest: SyncStreamOpenRequestSchema,
+  SyncStreamOpenResponse: SyncStreamOpenResponseSchema,
   Unavailable: UnavailableSchema,
+  VoiceCommandStatusResponse: VoiceCommandStatusResponseSchema,
+  VoiceControlFrame: VoiceControlFrameSchema,
   VoiceDelegation: VoiceDelegationSchema,
+  VoiceProposalResponse: VoiceProposalResponseSchema,
+  VoiceTurnRequest: VoiceTurnRequestSchema,
+  VoiceTurnResponse: VoiceTurnResponseSchema,
 } satisfies Record<string, ZodType>;
 
 const compatibilitySchemaGroups = {
@@ -107,25 +173,65 @@ const compatibilitySchemaGroups = {
     'SelectRoleContextCommand',
   ],
   device: ['DeviceBatchReceipt'],
-  events: ['EventEnvelope', 'MilestoneOneEvent'],
+  events: ['EventEnvelope', 'MilestoneOneEvent', 'MilestoneTwoEvent'],
+  media: [
+    'AttachOfflineAudioRequest',
+    'AttachOfflineAudioResponse',
+    'CancelMediaUploadIntentResponse',
+    'CreateMediaUploadIntentRequest',
+    'CreateMediaUploadIntentResponse',
+    'FinalizeMediaUploadIntentRequest',
+    'MediaAssetStatusResponse',
+    'MediaOperationAcceptedResponse',
+    'ScanMediaAssetRequest',
+  ],
   privacy: ['MpSafeResult', 'MpSuppressedResult', 'MpUnavailableResult'],
   sync: [
     'SyncBatch',
     'SyncBatchResponse',
+    'SyncBatchResponseV2',
     'SyncCommandDisposition',
     'SyncCommandEnvelope',
     'SyncFeedEvent',
+    'SyncFeedEventV2',
+    'SyncFeedPageResponse',
+    'SyncFeedPageResponseV2',
     'SyncProjectionDelta',
+    'SyncBootstrapRequest',
+    'SyncBootstrapResponse',
+    'SyncCommandStatusResponse',
+    'SyncConflict',
+    'SyncConflictListResponse',
+    'SyncConflictResolutionRequest',
+    'SyncStreamOpenRequest',
+    'SyncStreamOpenResponse',
   ],
-  voice: ['VoiceDelegation'],
+  voice: [
+    'CancelVoiceProposalRequest',
+    'ConfirmVoiceProposalRequest',
+    'CorrectVoiceProposalRequest',
+    'CreateVoiceSessionRequest',
+    'CreateVoiceSessionResponse',
+    'VoiceCommandStatusResponse',
+    'VoiceControlFrame',
+    'VoiceDelegation',
+    'VoiceProposalResponse',
+    'VoiceTurnRequest',
+    'VoiceTurnResponse',
+  ],
 } as const satisfies Record<string, readonly (keyof typeof schemaRegistry)[]>;
 
-type ContractSurface = 'platform' | Exclude<Surface, 'common'>;
+type ContractSurface = 'platform' | 'farmer' | 'rsk' | 'mp';
 type JsonObject = Record<string, unknown>;
 
 export async function createOutputs(): Promise<Map<string, string>> {
   const outputs = new Map<string, string>();
   const openApis = new Map<ContractSurface, JsonObject>();
+
+  outputs.set(
+    resolve(packageRoot, 'compatibility/v2.manifest.json'),
+    prettyJson(buildCompatibilityManifest()),
+  );
 
   for (const surface of ['platform', 'farmer', 'rsk', 'mp'] as const) {
     const document = buildOpenApi(surface);
@@ -150,7 +256,7 @@ export async function createOutputs(): Promise<Map<string, string>> {
     prettyJson({
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: 'https://contracts.smart-fasal.invalid/platform.schema.json',
-      title: 'Smart Fasal Milestone 1 contract registry',
+      title: 'Smart Fasal Milestone 2 contract registry',
       $defs: Object.fromEntries(
         Object.entries(schemaRegistry).map(([name, schema]) => [name, toJsonSchema(schema)]),
       ),
@@ -195,7 +301,7 @@ export async function createOutputs(): Promise<Map<string, string>> {
   );
   outputs.set(
     resolve(generatedRoot, 'pydantic/smart_fasal_contracts/health.py'),
-    '# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, Status as HealthStatus\n\nCONTRACT_VERSION = "1.0.0-m1"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n',
+    '# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, Status as HealthStatus\n\nCONTRACT_VERSION = "1.1.0-m2"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n',
   );
   outputs.set(resolve(generatedRoot, 'pydantic/smart_fasal_contracts/py.typed'), '');
 
@@ -204,9 +310,7 @@ export async function createOutputs(): Promise<Map<string, string>> {
 
 export function buildOpenApi(surface: ContractSurface): JsonObject {
   const paths: Record<string, Record<string, unknown>> = {};
-  const selected = ROUTES.filter(
-    (route) => surface === 'platform' || route.surface === 'common' || route.surface === surface,
-  );
+  const selected = ROUTES.filter((route) => routeVisibleOnSurface(route.surface, surface));
 
   for (const route of selected) {
     paths[route.path] ??= {};
@@ -223,7 +327,7 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
     info: {
       title: `Smart Fasal ${surface} API`,
       version: contractVersion,
-      description: 'Generated Milestone 1 contract. JSON fields use lower camel case.',
+      description: 'Generated Milestone 2 contract. JSON fields use lower camel case.',
     },
     servers: [{ url: `https://${surface}.api.smart-fasal.invalid` }],
     tags: [
@@ -232,6 +336,10 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
       { name: 'farmer' },
       { name: 'rsk' },
       { name: 'mp' },
+      { name: 'media' },
+      { name: 'sync' },
+      { name: 'voice' },
+      { name: 'internal' },
     ],
     paths,
     components: {
@@ -239,6 +347,17 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
       securitySchemes: {
         bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'Firebase ID token' },
         appCheck: { type: 'apiKey', in: 'header', name: 'X-Firebase-AppCheck' },
+        internalIdentity: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'Google service identity token',
+        },
+        voiceTicket: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'Sec-WebSocket-Protocol',
+          description: 'Exact sfka.voice.v1 plus dedicated ticket.<base64url> subprotocol tokens',
+        },
       },
       parameters: {
         installationId: requiredHeader(
@@ -259,7 +378,7 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
         }),
         schemaVersion: requiredHeader(
           'X-Client-Schema-Version',
-          'Supported Milestone 1 contract schema version',
+          'Supported Milestone 2 contract schema version',
           { type: 'string', const: '1' },
         ),
         roleContextId: requiredHeader(
@@ -283,6 +402,16 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
           'Quoted entity revision, for example "rev:3"',
           { type: 'string', pattern: '^"rev:(0|[1-9][0-9]*)"$' },
         ),
+        singleByteRange: {
+          in: 'header',
+          name: 'Range',
+          description: 'Optional single inclusive byte range',
+          required: false,
+          schema: {
+            type: 'string',
+            pattern: '^bytes=(0|[1-9][0-9]*)-(0|[1-9][0-9]*)?$',
+          },
+        },
       },
     },
     'x-smart-fasal-capability-registry': CAPABILITY_KEYS,
@@ -326,7 +455,7 @@ export function buildCompatibilityManifest(): JsonObject {
   );
 
   return {
-    baselineVersion: 1,
+    baselineVersion: 2,
     contractVersion,
     policy: 'exact-wire-freeze',
     httpOperations,
@@ -377,16 +506,20 @@ function openApiOperation(route: RouteContract): JsonObject {
     route.operationId === 'getReadiness'
       ? { '503': schemaResponse('A required dependency is unavailable', 'HealthPayload') }
       : problemResponses(operationProblemCodes);
+  if (route.operationId === 'streamMediaAttachment') {
+    errors['416'] = {
+      ...problemSchemaResponse('The requested byte range is not satisfiable'),
+      'x-smart-fasal-problem-codes': ['MEDIA_INTEGRITY_MISMATCH'],
+      'x-smart-fasal-error-family': 'RANGE_NOT_SATISFIABLE',
+    };
+  }
   Object.assign(errors, standardBoundaryProblemResponses(route, errors));
 
   const operation: JsonObject = {
     operationId: route.operationId,
-    tags: [route.surface === 'common' ? route.path.split('/')[2] : route.surface],
+    tags: [routeTag(route)],
     parameters: requiredParameters(route),
-    responses: {
-      '200': schemaResponse('Successful response', route.responseSchema),
-      ...errors,
-    },
+    responses: { ...successResponses(route), ...errors },
     security: securityFor(route.auth),
     'x-data-classification': route.classification,
     'x-retention-class': route.retentionClass,
@@ -413,7 +546,7 @@ function openApiOperation(route: RouteContract): JsonObject {
 
 function requiredParameters(route: RouteContract): JsonObject[] {
   const parameters: JsonObject[] = [];
-  if (route.auth !== 'none') {
+  if (route.auth !== 'none' && route.auth !== 'internal' && route.auth !== 'voice-ticket') {
     parameters.push(
       { $ref: '#/components/parameters/installationId' },
       { $ref: '#/components/parameters/clientBuild' },
@@ -421,18 +554,39 @@ function requiredParameters(route: RouteContract): JsonObject[] {
     );
   }
   if (route.command?.idempotency) parameters.push({ $ref: '#/components/parameters/commandId' });
-  if (route.surface !== 'common') {
+  const roleContext =
+    route.roleContext ??
+    (route.surface === 'farmer' || route.surface === 'rsk' || route.surface === 'mp'
+      ? 'required'
+      : 'none');
+  if (roleContext === 'required') {
     parameters.push({ $ref: '#/components/parameters/roleContextId' });
-  } else if (route.operationId === 'getAuthSession' || route.operationId === 'listRoles') {
+  } else if (
+    roleContext === 'optional' ||
+    route.operationId === 'getAuthSession' ||
+    route.operationId === 'listRoles'
+  ) {
     parameters.push({ $ref: '#/components/parameters/optionalRoleContextId' });
   }
   if (route.command?.expectedRevision) {
     parameters.push({ $ref: '#/components/parameters/expectedRevision' });
   }
-  if (route.path.includes('{roleContextId}')) {
+  if (route.rangeRequest === 'single-byte') {
+    parameters.push({ $ref: '#/components/parameters/singleByteRange' });
+  }
+  for (const query of route.queryParameters ?? []) {
+    parameters.push({
+      in: 'query',
+      name: query.name,
+      description: query.description,
+      required: query.required,
+      schema: query.schema,
+    });
+  }
+  for (const match of route.path.matchAll(/\{([A-Za-z][A-Za-z0-9]*)\}/g)) {
     parameters.push({
       in: 'path',
-      name: 'roleContextId',
+      name: match[1],
       required: true,
       schema: { type: 'string', format: 'uuid' },
     });
@@ -443,7 +597,71 @@ function requiredParameters(route: RouteContract): JsonObject[] {
 function securityFor(auth: RouteContract['auth']): JsonObject[] {
   if (auth === 'none') return [];
   if (auth === 'app-check') return [{ appCheck: [] }];
+  if (auth === 'internal') return [{ internalIdentity: [] }];
+  if (auth === 'voice-ticket') return [{ voiceTicket: [] }];
   return [{ appCheck: [], bearerAuth: [] }];
+}
+
+function routeVisibleOnSurface(routeSurface: Surface, surface: ContractSurface): boolean {
+  if (surface === 'platform') return true;
+  if (routeSurface === 'common' || routeSurface === 'voice') return true;
+  if (routeSurface === 'operational') return surface === 'farmer' || surface === 'rsk';
+  if (routeSurface === 'internal') return false;
+  return routeSurface === surface;
+}
+
+function routeTag(route: RouteContract): string {
+  if (route.surface === 'common') return route.path.split('/')[2] ?? 'system';
+  if (route.surface === 'operational') {
+    return route.path.includes('/voice/') || route.path.includes('/commands/') ? 'voice' : 'media';
+  }
+  return route.surface;
+}
+
+function successResponses(route: RouteContract): JsonObject {
+  const configured = route.success ?? [
+    {
+      status: 200 as const,
+      description: 'Successful response',
+      mediaType: 'json' as const,
+      responseSchema: route.responseSchema,
+    },
+  ];
+  return Object.fromEntries(
+    configured.map((response) => {
+      if (response.mediaType === 'websocket') {
+        return [
+          String(response.status),
+          {
+            description: response.description,
+            'x-websocket-protocol': 'sfka.voice.v1',
+          },
+        ];
+      }
+      if (response.mediaType === 'binary') {
+        return [
+          String(response.status),
+          {
+            description: response.description,
+            content: {
+              'application/octet-stream': {
+                schema: { type: 'string', format: 'binary' },
+              },
+            },
+            'x-generation-pinned': true,
+            'x-single-range-only': true,
+          },
+        ];
+      }
+      if (!response.responseSchema) {
+        throw new Error(`Missing response schema for ${route.operationId}`);
+      }
+      return [
+        String(response.status),
+        schemaResponse(response.description, response.responseSchema),
+      ];
+    }),
+  );
 }
 
 function requiredHeader(
@@ -511,6 +729,7 @@ function standardBoundaryProblemResponses(
   const validationSources = [
     ...(route.requestSchema ? ['body'] : []),
     ...(route.path.includes('{') ? ['path'] : []),
+    ...(route.queryParameters && route.queryParameters.length > 0 ? ['query'] : []),
     ...(route.auth !== 'none' ? ['headers'] : []),
   ];
   const responses: JsonObject = {};

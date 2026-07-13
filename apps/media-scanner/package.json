@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@smart-fasal/config": "workspace:*",
-    "@smart-fasal/service-runtime": "workspace:*"
+    "@smart-fasal/contracts": "workspace:*",
+    "@smart-fasal/service-runtime": "workspace:*",
+    "sharp": "0.34.5"
   }
 }

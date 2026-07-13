@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "DeviceMode": {
+      "enum": [
+        "PERSONAL",
+        "TRUSTED_FAMILY",
+        "RSK_ASSISTED"
+      ],
+      "type": "string",
+      "x-data-classification": "C1"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "clientBuild": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": "string"
+    },
+    "clientEventVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "minimum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "type": "object"
+    },
+    "commandVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "minimum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "type": "object"
+    },
+    "deviceMode": {
+      "$ref": "#/$defs/DeviceMode"
+    },
+    "localDatabaseSchemaVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "mediaVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "minimum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "type": "object"
+    },
+    "priorCursor": {
+      "maxLength": 2048,
+      "minLength": 1,
+      "type": "string"
+    },
+    "priorStreamId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "projectionVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "minimum": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "type": "object"
+    },
+    "stakeholder": {
+      "const": "FARMER",
+      "type": "string"
+    },
+    "streamProtocolVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "streamProtocolVersion",
+    "clientBuild",
+    "localDatabaseSchemaVersion",
+    "deviceMode",
+    "commandVersions",
+    "clientEventVersions",
+    "projectionVersions",
+    "mediaVersions"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

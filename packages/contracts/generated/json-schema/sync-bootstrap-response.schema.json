@@ -1,0 +1,179 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "SyncProjectionDelta": {
+      "additionalProperties": false,
+      "properties": {
+        "authoritativeRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "changeType": {
+          "enum": [
+            "UPSERT",
+            "TOMBSTONE"
+          ],
+          "type": "string"
+        },
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "payloadChecksum": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "payloadClassification": {
+          "enum": [
+            "C0",
+            "C1",
+            "C2"
+          ],
+          "type": "string"
+        },
+        "projectionId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "projectionSchemaVersion": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "projectionType": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectionType",
+        "projectionId",
+        "projectionSchemaVersion",
+        "authoritativeRevision",
+        "changeType",
+        "dataMode",
+        "payloadClassification",
+        "payload",
+        "payloadChecksum"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authorizationVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "cursor": {
+      "maxLength": 2048,
+      "minLength": 1,
+      "type": "string"
+    },
+    "expiresAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "generatedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "highWaterMark": {
+      "maxLength": 2048,
+      "minLength": 1,
+      "type": "string"
+    },
+    "projections": {
+      "items": {
+        "$ref": "#/$defs/SyncProjectionDelta"
+      },
+      "maxItems": 5000,
+      "type": "array"
+    },
+    "snapshotChecksum": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "snapshotSchemaVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "streamId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "tombstones": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "deletionEpoch": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "minimumResurrectionRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "projectionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "projectionType": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectionType",
+          "projectionId",
+          "deletionEpoch",
+          "minimumResurrectionRevision"
+        ],
+        "type": "object"
+      },
+      "maxItems": 5000,
+      "type": "array"
+    }
+  },
+  "required": [
+    "streamId",
+    "snapshotSchemaVersion",
+    "snapshotChecksum",
+    "generatedAt",
+    "expiresAt",
+    "projections",
+    "tombstones",
+    "highWaterMark",
+    "cursor",
+    "authorizationVersion"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

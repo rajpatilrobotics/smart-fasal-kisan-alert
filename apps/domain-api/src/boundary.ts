@@ -17,6 +17,19 @@ export const DOMAIN_OPERATION_IDS = [
   'getRskBootstrap',
   'issueRskAccessGrant',
   'createRskProtectedDisclosure',
+  'openFarmerSyncStream',
+  'bootstrapFarmerSync',
+  'syncFarmerBatch',
+  'getFarmerSyncFeed',
+  'getFarmerSyncCommand',
+  'listFarmerSyncConflicts',
+  'getFarmerSyncConflict',
+  'resolveFarmerSyncConflict',
+  'createMediaUploadIntent',
+  'finalizeMediaUploadIntent',
+  'getMediaAssetStatus',
+  'cancelMediaUploadIntent',
+  'streamMediaAttachment',
 ] as const;
 
 export type DomainOperationId = (typeof DOMAIN_OPERATION_IDS)[number];
@@ -136,6 +149,25 @@ export interface ProtectedDisclosureService {
     boundary: VerifiedRequestBoundary;
     resource: ProtectedDisclosureAuthorizationResource;
   }): Promise<ProtectedDisclosureServiceResult>;
+}
+
+export interface ProtectedMediaContent {
+  bytes: Uint8Array;
+  contentType: string;
+  totalSize: number;
+  start: number;
+  end: number;
+  objectGeneration: string;
+  sha256: string;
+}
+
+export interface ProtectedMediaContentService {
+  /** Must reauthorize ownership/consent and read only a verified, generation-pinned derivative. */
+  read(request: {
+    boundary: VerifiedRequestBoundary;
+    attachmentId: string;
+    range?: { start: number; end?: number };
+  }): Promise<ProtectedMediaContent>;
 }
 
 export interface DomainOperationRequest {

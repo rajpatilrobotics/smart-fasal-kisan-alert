@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "CREATE_NEW_COMMAND",
+        "KEEP_BOTH_FACTS",
+        "DISCARD_LOCAL_PROPOSAL"
+      ],
+      "type": "string"
+    },
+    "conflictId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "expectedConflictRevision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "payloadHash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "resolutionCommandId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "resolutionSchemaVersion": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "resolutionSchemaVersion",
+    "conflictId",
+    "expectedConflictRevision",
+    "action",
+    "resolutionCommandId",
+    "payloadHash"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

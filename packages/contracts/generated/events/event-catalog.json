@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.0.0-m1",
+  "contractVersion": "1.1.0-m2",
   "events": [
     {
       "eventClass": "CLIENT_LOCAL",
