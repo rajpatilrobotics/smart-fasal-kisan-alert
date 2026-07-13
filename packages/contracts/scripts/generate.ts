@@ -1040,6 +1040,8 @@ async function generatePydantic(openApi: JsonObject): Promise<string> {
       'run',
       '--project',
       resolve(workspaceRoot, 'apps/intelligence-service'),
+      '--extra',
+      'dev',
       'datamodel-codegen',
       '--input',
       inputPath,
