@@ -1,5 +1,15 @@
 # Smart Fasal Kisan Alert — Codex Execution Guide
 
+## Hackathon Delivery Mode (Milestones 2–16)
+
+This user-authorized exception overrides conflicting coverage, Sonar and routine CI gate requirements in this file and Documents 10–11 for Milestones 2–16. Do not rewrite the approved documents to apply it.
+
+- Automatic blocking checks are frozen dependency installation, architecture isolation, lint, TypeScript/Python types, deterministic contracts, fresh migrations and synthetic seed, affected tests, the fixed authentication/authorization/ownership/consent/audit-before-disclose/RLS suite, the small integration/security suite, production builds, Gitleaks and High/Critical findings introduced by changed dependencies.
+- Use fast affected tests during development. Run full regression, formatting, browser/accessibility, CodeQL and Terraform validation manually for final-release evidence.
+- Coverage may be collected but has no minimum threshold. SonarCloud coverage, duplication, maintainability, code-smell, rating and quality-gate results are informational and never a merge requirement in this mode.
+- Do not spend feature time chasing coverage percentages or Sonar maintainability metrics. Do not hide real test, build, runtime or security failures.
+- Runtime authorization, ownership, consent, RLS, secret handling and truthful `LIVE`/`RECORDED`/`SIMULATED` labels remain non-negotiable. A failed automatic blocking check keeps the affected task incomplete.
+
 ## Mission
 
 Build the approved Raigad pilot as three real products:

@@ -19,6 +19,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:unit": "turbo run test:unit",
+    "test:affected": "turbo run test:unit --affected",
+    "test:security": "node -e \"if (!process.env.DATABASE_URL) { console.error('DATABASE_URL is required for the blocking security/RLS suite'); process.exit(1); }\" && turbo run test:unit --filter=@smart-fasal/application --filter=@smart-fasal/authz --filter=@smart-fasal/browser-auth --filter=@smart-fasal/database --filter=@smart-fasal/domain-api --filter=@smart-fasal/farmer-web --filter=@smart-fasal/mp-query-api --filter=@smart-fasal/mp-web --filter=@smart-fasal/rsk-web --force",
     "test:coverage": "turbo run test:unit --filter=!@smart-fasal/intelligence-service -- --coverage --coverage.reporter=text --coverage.reporter=lcov && turbo run test:coverage --filter=@smart-fasal/intelligence-service",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test --grep-invert @a11y",
