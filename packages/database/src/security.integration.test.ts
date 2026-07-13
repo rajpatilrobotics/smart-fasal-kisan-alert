@@ -1,9 +1,30 @@
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-const configuredDatabaseUrl = process.env['DATABASE_URL'];
+const configuredDatabaseUrl = resolveDatabaseUrl(process.env);
 const databaseUrl = configuredDatabaseUrl ?? 'postgres://localhost:1/smart_fasal_unconfigured';
 const describeDatabase = configuredDatabaseUrl ? describe : describe.skip;
+
+function resolveDatabaseUrl(environment: NodeJS.ProcessEnv): string | undefined {
+  const explicitDatabaseUrl = environment['DATABASE_URL'];
+  if (explicitDatabaseUrl) return explicitDatabaseUrl;
+
+  const runId = environment['GITHUB_RUN_ID'];
+  const runAttempt = environment['GITHUB_RUN_ATTEMPT'];
+  if (
+    environment['GITHUB_ACTIONS'] !== 'true' ||
+    !runId ||
+    !runAttempt ||
+    !/^\d+$/.test(runId) ||
+    !/^\d+$/.test(runAttempt)
+  ) {
+    return undefined;
+  }
+
+  // The CI service uses this deterministic, run-scoped password. GitHub's
+  // default variables survive Turbo strict mode even when DATABASE_URL does not.
+  return `postgresql://smart_fasal:${runId}-${runAttempt}@127.0.0.1:5432/smart_fasal`;
+}
 
 const ids = {
   retention: '00000000-0000-4000-8000-000000000101',
