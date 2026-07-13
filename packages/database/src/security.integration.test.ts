@@ -96,6 +96,7 @@ describeDatabase('Milestone 1 PostgreSQL security spine', () => {
       '0002_milestone_1_security_spine.sql',
       '0003_assisted_context_row_lock_permission.sql',
       '0004_milestone_2_offline_media_voice.sql',
+      '0005_milestone_3_farmer_farm_setup.sql',
     ]);
   });
 
