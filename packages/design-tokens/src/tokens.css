@@ -1,0 +1,19 @@
+:root {
+  --color-canvas: #f7f8f2;
+  --color-surface: #ffffff;
+  --color-ink: #172019;
+  --color-muted: #5d695f;
+  --color-primary: #176b3a;
+  --color-primary-strong: #0e4d29;
+  --color-focus: #175cd3;
+  --color-danger: #b42318;
+  --color-warning: #9a6700;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --radius-control: 0.75rem;
+  --radius-panel: 1rem;
+}

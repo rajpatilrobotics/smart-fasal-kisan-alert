@@ -1,0 +1,20 @@
+{
+  "name": "@smart-fasal/intelligence-service",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@smart-fasal/contracts": "workspace:*"
+  },
+  "scripts": {
+    "build": "python -m compileall -q src ../../packages/contracts/generated/pydantic",
+    "dev": "PYTHONPATH=src:../../packages/contracts/generated/pydantic python -m intelligence_service",
+    "start": "PYTHONPATH=src:../../packages/contracts/generated/pydantic python -m intelligence_service",
+    "format": "ruff format src tests",
+    "format:check": "ruff format --check src tests",
+    "lint": "ruff check src tests",
+    "typecheck": "MYPYPATH=../../packages/contracts/generated/pydantic mypy --cache-dir=/dev/null src tests ../../packages/contracts/generated/pydantic/smart_fasal_contracts",
+    "test": "PYTHONPATH=src:../../packages/contracts/generated/pydantic pytest",
+    "test:unit": "PYTHONPATH=src:../../packages/contracts/generated/pydantic pytest",
+    "test:coverage": "PYTHONPATH=src:../../packages/contracts/generated/pydantic coverage run -m pytest && coverage xml -o coverage.xml"
+  }
+}

@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools==82.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smart-fasal-intelligence-service"
+version = "0.0.0"
+description = "Internal scientific-service shell for Smart Fasal."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi==0.139.0",
+  "pydantic==2.13.4",
+  "uvicorn==0.51.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "coverage==7.15.1",
+  "httpx2==2.5.0",
+  "mypy==2.2.0",
+  "pytest==9.1.1",
+  "ruff==0.15.21",
+]
+
+[project.scripts]
+smart-fasal-intelligence-service = "intelligence_service.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = ["../../packages/contracts/generated/pydantic"]
+
+[[tool.mypy.overrides]]
+module = ["uvicorn"]
+ignore_missing_imports = true

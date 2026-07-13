@@ -1,0 +1,37 @@
+[project]
+name = "smart-fasal-kisan-alert"
+version = "0.0.0"
+description = "Python tooling boundary for Smart Fasal intelligence services"
+requires-python = ">=3.12,<3.13"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["packages/contracts/generated"]
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "RUF", "S", "SIM", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["apps/intelligence-service", "packages/contracts/generated/pydantic"]
+exclude = ["**/__pycache__", "**/.pytest_cache", "**/.ruff_cache"]
+reportMissingTypeStubs = "warning"
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers -ra"
+testpaths = ["apps/intelligence-service/tests"]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["apps/intelligence-service"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
