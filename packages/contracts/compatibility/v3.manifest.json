@@ -2,8 +2,8 @@
   "baselineVersion": 3,
   "contractVersion": "1.2.0-m3",
   "eventCatalogue": {
-    "eventCount": 369,
-    "fingerprint": "651fbcaf78bd70aae58b07cab1ed8bd0de40d26ef5aba114e643c224e4811de4"
+    "eventCount": 357,
+    "fingerprint": "f7ccf9b99cd4cd589686ba8fea398ee9fb21cabb9c45c4593fe76fb7db6928c0"
   },
   "httpOperations": {
     "DELETE /v1/auth/role-contexts/{roleContextId}": {

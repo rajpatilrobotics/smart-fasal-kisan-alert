@@ -619,19 +619,19 @@ var catalog_default = {
       name: "farmer.setup_saved",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farmer.preferences_changed",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farmer.setup_completed",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "identity.role_context_created",
@@ -649,7 +649,7 @@ var catalog_default = {
       name: "identity.device_mode_changed",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "consent.decision_recorded",
@@ -661,49 +661,49 @@ var catalog_default = {
       name: "farm.created",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farm.updated",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "plot.created",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "plot.updated",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "soil_record.added",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "water_context.updated",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farm.crop_history_recorded",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "profile.snapshot_created",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "season.created",
@@ -2750,78 +2750,6 @@ var catalog_default = {
       eventClass: "AUDIT",
       version: 1,
       status: "reserved"
-    },
-    {
-      name: "farmer.setup_saved",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "farmer.preferences_changed",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "farmer.setup_completed",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "identity.device_mode_changed",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "farm.created",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "farm.updated",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "plot.created",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "plot.updated",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "soil_record.added",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "water_context.updated",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "farm.crop_history_recorded",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
-    },
-    {
-      name: "profile.snapshot_created",
-      eventClass: "DOMAIN",
-      version: 1,
-      status: "executable"
     }
   ]
 };

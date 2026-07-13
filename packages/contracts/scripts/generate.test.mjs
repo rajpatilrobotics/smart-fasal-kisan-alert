@@ -91,6 +91,18 @@ const farmerSyncPaths = [
   '/v1/sync/feed',
   '/v1/sync/streams',
 ];
+const farmerSetupPaths = [
+  '/v1/farmer/device-mode-changes',
+  '/v1/farmer/farms',
+  '/v1/farmer/farms/{farmId}',
+  '/v1/farmer/farms/{farmId}/plots',
+  '/v1/farmer/my-farm',
+  '/v1/farmer/plots/{plotId}',
+  '/v1/farmer/plots/{plotId}/geometry-versions',
+  '/v1/farmer/preferences',
+  '/v1/farmer/setup-drafts',
+  '/v1/farmer/setup:complete',
+];
 
 const surfacePaths = {
   farmer: [
@@ -99,6 +111,7 @@ const surfacePaths = {
     ...operationalVoicePaths,
     ...mediaPaths,
     ...farmerSyncPaths,
+    ...farmerSetupPaths,
     '/v1/farmer/bootstrap',
     '/v1/farmer/consent-decisions',
     '/v1/farmer/consents',
@@ -127,6 +140,19 @@ const responseStatusesByOperation = {
   getFarmerBootstrap: ['200', '400', '401', '403', '409', '503'],
   listFarmerConsents: ['200', '400', '401', '403', '409', '503'],
   recordConsentDecision: ['200', '400', '401', '403', '409', '428', '503'],
+  saveFarmerSetupDraft: ['200', '400', '401', '403', '409', '428', '503'],
+  completeFarmerSetup: ['200', '400', '401', '403', '409', '428', '503'],
+  getMyFarm: ['200', '400', '401', '403', '409', '503'],
+  listFarmerFarms: ['200', '400', '401', '403', '409', '503'],
+  createFarmerFarm: ['200', '400', '401', '403', '409', '428', '503'],
+  getFarmerFarm: ['200', '400', '401', '403', '409', '503'],
+  updateFarmerFarm: ['200', '400', '401', '403', '409', '428', '503'],
+  createFarmerPlot: ['200', '400', '401', '403', '409', '428', '503'],
+  getFarmerPlot: ['200', '400', '401', '403', '409', '503'],
+  updateFarmerPlot: ['200', '400', '401', '403', '409', '428', '503'],
+  createFarmerPlotGeometryVersion: ['200', '400', '401', '403', '409', '422', '428', '503'],
+  updateFarmerPreferences: ['200', '400', '401', '403', '409', '428', '503'],
+  changeFarmerDeviceMode: ['200', '400', '401', '403', '409', '428', '503'],
   getRskBootstrap: ['200', '400', '401', '403', '409', '503'],
   issueRskAccessGrant: ['200', '400', '401', '403', '409', '428', '503'],
   createRskProtectedDisclosure: ['200', '400', '401', '403', '409', '503'],
@@ -790,14 +816,17 @@ describe('release-safe MP runtime contracts', () => {
 });
 
 describe('offline compatibility baselines', () => {
-  it('preserves v1 fingerprints and freezes the additive M2 surface separately', async () => {
+  it('preserves v1 and v2 fingerprints and freezes the additive M3 surface separately', async () => {
     const v1 = JSON.parse(
       await readFile(resolve(packageRoot, 'compatibility/v1.manifest.json'), 'utf8'),
     );
     const v2 = JSON.parse(
       await readFile(resolve(packageRoot, 'compatibility/v2.manifest.json'), 'utf8'),
     );
-    expect(buildCompatibilityManifest()).toEqual(v2);
+    const v3 = JSON.parse(
+      await readFile(resolve(packageRoot, 'compatibility/v3.manifest.json'), 'utf8'),
+    );
+    expect(buildCompatibilityManifest()).toEqual(v3);
     expect(Object.keys(v1.httpOperations)).toHaveLength(15);
     expect(Object.keys(v1.schemaGroups)).toEqual([
       'commands',
@@ -815,7 +844,7 @@ describe('offline compatibility baselines', () => {
         expect(v2.schemaGroups[group][name]).toEqual(contract);
       }
     }
-    for (const schemas of Object.values(v2.schemaGroups)) {
+    for (const schemas of Object.values(v3.schemaGroups)) {
       for (const entry of Object.values(schemas)) {
         expect(entry).toEqual({ fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
       }
@@ -824,7 +853,7 @@ describe('offline compatibility baselines', () => {
 });
 
 describe('event and consent authority', () => {
-  it('freezes the complete catalogue and marks only M1/M2 owned emitters executable', () => {
+  it('freezes the complete catalogue and marks only M1/M3 owned emitters executable', () => {
     expect(eventCatalog.events).toHaveLength(357);
     expect(new Set(eventCatalog.events.map((event) => event.name))).toHaveProperty('size', 357);
     expect(
@@ -832,9 +861,21 @@ describe('event and consent authority', () => {
         .filter((event) => event.status === 'executable')
         .map((event) => event.name),
     ).toEqual([
+      'farmer.setup_saved',
+      'farmer.preferences_changed',
+      'farmer.setup_completed',
       'identity.role_context_created',
       'identity.role_context_revoked',
+      'identity.device_mode_changed',
       'consent.decision_recorded',
+      'farm.created',
+      'farm.updated',
+      'plot.created',
+      'plot.updated',
+      'soil_record.added',
+      'water_context.updated',
+      'farm.crop_history_recorded',
+      'profile.snapshot_created',
     ]);
     const reservedM2 = [
       'sync.batch_started',
