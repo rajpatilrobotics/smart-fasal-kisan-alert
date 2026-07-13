@@ -1,0 +1,30 @@
+{
+  "name": "@smart-fasal/browser-auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:unit": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@smart-fasal/i18n": "workspace:*",
+    "firebase": "12.16.0"
+  },
+  "peerDependencies": {
+    "react": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.17",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}

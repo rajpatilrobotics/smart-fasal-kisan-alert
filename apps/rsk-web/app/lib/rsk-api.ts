@@ -1,0 +1,277 @@
+import { createRskClient } from '@smart-fasal/contracts/clients/rsk';
+
+import type { InMemoryCredentials } from '../auth/auth-memory';
+
+export type ShellIssue = 'unauthenticated' | 'denied' | 'expired' | 'withdrawn' | 'unavailable';
+export type RoleEstablishment =
+  ShellIssue | { readonly kind: 'ready'; readonly roleContextId: string };
+
+export type RskShellState =
+  | { readonly kind: ShellIssue }
+  | {
+      readonly kind: 'ready';
+      readonly subjectId: string;
+      readonly role: 'RSK';
+      readonly environment: string;
+      readonly authorizationVersion: number;
+      readonly officeId: string;
+      readonly jurisdictionId: string;
+      readonly workState: 'UNAVAILABLE_UNTIL_WORK_MILESTONE';
+    };
+
+interface ApiOptions {
+  readonly baseUrl?: string;
+  readonly revokeCommandId?: string;
+  readonly roleContextId?: string;
+  readonly roleCommand?: {
+    readonly commandId: string;
+    readonly recordedAt: string;
+    readonly timezone: string;
+  };
+  readonly signal?: AbortSignal;
+}
+
+const CLIENT_BUILD = process.env.NEXT_PUBLIC_CLIENT_BUILD ?? 'rsk-web-local';
+const SCHEMA_VERSION = '1';
+
+function requiredHeaders(installationId: string) {
+  return {
+    'X-Client-Build': CLIENT_BUILD,
+    'X-Client-Installation-Id': installationId,
+    'X-Client-Schema-Version': SCHEMA_VERSION,
+  } as const;
+}
+
+function protectedHeaders(installationId: string, roleContextId: string) {
+  return {
+    ...requiredHeaders(installationId),
+    'X-Role-Context-Id': roleContextId,
+  } as const;
+}
+
+function baseUrl(override?: string): string {
+  const configured = override ?? process.env.NEXT_PUBLIC_DOMAIN_API_ORIGIN;
+  if (!configured) throw new Error('DOMAIN_API_UNAVAILABLE');
+  return configured;
+}
+
+function authenticatedClient(
+  credentials: InMemoryCredentials,
+  override?: string,
+  roleContextId?: string,
+) {
+  return createRskClient({
+    baseUrl: baseUrl(override),
+    cache: 'no-store',
+    credentials: 'omit',
+    headers: {
+      Authorization: `Bearer ${credentials.idToken}`,
+      'X-Firebase-AppCheck': credentials.appCheckToken,
+      'X-Client-Schema-Version': SCHEMA_VERSION,
+      ...(roleContextId === undefined ? {} : { 'X-Role-Context-Id': roleContextId }),
+    },
+    redirect: 'error',
+    referrerPolicy: 'no-referrer',
+  });
+}
+
+export function problemToShellIssue(code: string | undefined, status: number): ShellIssue {
+  if (status === 401 || code === 'AUTHENTICATION_REQUIRED') return 'unauthenticated';
+  if (code === 'AUTHORIZATION_VERSION_CHANGED' || code === 'SOURCE_VERSION_EXPIRED') {
+    return 'expired';
+  }
+  if (code === 'CONSENT_OR_ACCESS_VERSION_CHANGED') return 'withdrawn';
+  if (code === 'DEPENDENCY_UNAVAILABLE') return 'unavailable';
+  return 'denied';
+}
+
+export async function createRskReturnState(
+  appCheckToken: string,
+  installationId: string,
+  options: ApiOptions = {},
+): Promise<string> {
+  const client = createRskClient({
+    baseUrl: baseUrl(options.baseUrl),
+    cache: 'no-store',
+    credentials: 'omit',
+    headers: {
+      'X-Firebase-AppCheck': appCheckToken,
+      'X-Client-Schema-Version': SCHEMA_VERSION,
+    },
+    redirect: 'error',
+    referrerPolicy: 'no-referrer',
+  });
+  const { data, error, response } = await client.POST('/v1/auth/return-states', {
+    body: { routeKey: 'RSK_HOME' },
+    params: { header: requiredHeaders(installationId) },
+    signal: options.signal,
+  });
+  if (!data || error) throw new Error(error?.code ?? `RETURN_STATE_${response.status}`);
+  return data.returnStateId;
+}
+
+export async function establishRskRole(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  options: ApiOptions = {},
+): Promise<RoleEstablishment> {
+  try {
+    const client = authenticatedClient(credentials, options.baseUrl);
+    const rolesResult = await client.GET('/v1/auth/roles', {
+      params: { header: requiredHeaders(installationId) },
+      signal: options.signal,
+    });
+    if (!rolesResult.data || rolesResult.error) {
+      return problemToShellIssue(rolesResult.error?.code, rolesResult.response.status);
+    }
+    const session = rolesResult.data;
+    if (session.mfaState === 'EXPIRED') return 'expired';
+    if (session.mfaState !== 'CURRENT') return 'denied';
+    if (session.activeRoleContext?.roleType === 'RSK') {
+      return { kind: 'ready', roleContextId: session.activeRoleContext.roleContextId };
+    }
+    const roles = session.roles as unknown as readonly {
+      readonly roleGrantId: string;
+      readonly roleType: 'FARMER' | 'RSK' | 'MP';
+      readonly officeId?: string;
+      readonly jurisdictionId?: string;
+    }[];
+    const role = roles.find((candidate) => candidate.roleType === 'RSK');
+    if (!role?.officeId || !role.jurisdictionId) return 'denied';
+
+    const commandId = options.roleCommand?.commandId ?? globalThis.crypto.randomUUID();
+    const recordedAt = options.roleCommand?.recordedAt ?? new Date().toISOString();
+    const timezone =
+      options.roleCommand?.timezone ??
+      Intl.DateTimeFormat().resolvedOptions().timeZone ??
+      'Asia/Kolkata';
+    const result = await client.POST('/v1/auth/role-contexts', {
+      body: {
+        clientContext: {
+          clientRecordedAt: recordedAt,
+          dataModeClaim: 'LIVE',
+          timezone,
+        },
+        commandSchemaVersion: 1,
+        expectedRevision: 0,
+        operation: 'SelectRoleContext',
+        payload: {
+          jurisdictionId: role.jurisdictionId,
+          officeId: role.officeId,
+          roleGrantId: role.roleGrantId,
+        },
+        target: { id: commandId, type: 'roleContext' },
+      },
+      params: {
+        header: {
+          ...requiredHeaders(installationId),
+          'Idempotency-Key': commandId,
+          'X-Client-Schema-Version': SCHEMA_VERSION,
+        },
+      },
+      signal: options.signal,
+    });
+    if (!result.data || result.error) {
+      return problemToShellIssue(result.error?.code, result.response.status);
+    }
+    if (
+      !['ACCEPTED', 'ALREADY_ACCEPTED'].includes(result.data.disposition) ||
+      result.data.result?.type !== 'roleContext'
+    ) {
+      return 'denied';
+    }
+    return { kind: 'ready', roleContextId: result.data.result.id };
+  } catch {
+    return 'unavailable';
+  }
+}
+
+export async function loadRskShell(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  options: ApiOptions = {},
+): Promise<RskShellState> {
+  try {
+    if (options.roleContextId === undefined) return { kind: 'denied' };
+    const headers = protectedHeaders(installationId, options.roleContextId);
+    const client = authenticatedClient(credentials, options.baseUrl, options.roleContextId);
+    const sessionResult = await client.GET('/v1/auth/session', {
+      params: { header: headers },
+      signal: options.signal,
+    });
+    if (!sessionResult.data || sessionResult.error) {
+      return {
+        kind: problemToShellIssue(sessionResult.error?.code, sessionResult.response.status),
+      };
+    }
+    const session = sessionResult.data;
+    const context = session.activeRoleContext;
+    if (!context) return { kind: 'expired' };
+    if (context.roleType !== 'RSK') return { kind: 'denied' };
+    if (session.mfaState === 'EXPIRED') return { kind: 'expired' };
+    if (session.mfaState !== 'CURRENT' || session.deviceBindingState !== 'ACTIVE') {
+      return { kind: 'denied' };
+    }
+
+    const bootstrapResult = await client.GET('/v1/rsk/bootstrap', {
+      params: { header: headers },
+      signal: options.signal,
+    });
+    if (!bootstrapResult.data || bootstrapResult.error) {
+      return {
+        kind: problemToShellIssue(bootstrapResult.error?.code, bootstrapResult.response.status),
+      };
+    }
+    const bootstrap = bootstrapResult.data;
+    if (
+      bootstrap.authorizationVersion !== context.authorizationVersion ||
+      bootstrap.officeId !== context.officeId ||
+      bootstrap.jurisdictionId !== context.jurisdictionId
+    ) {
+      return { kind: 'expired' };
+    }
+
+    return {
+      kind: 'ready',
+      subjectId: session.subjectId,
+      role: 'RSK',
+      environment: session.environment,
+      authorizationVersion: context.authorizationVersion,
+      officeId: bootstrap.officeId,
+      jurisdictionId: bootstrap.jurisdictionId,
+      workState: bootstrap.workState,
+    };
+  } catch (error) {
+    if (options.signal?.aborted) throw error;
+    return { kind: 'unavailable' };
+  }
+}
+
+export async function revokeRskRoleContext(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  options: ApiOptions = {},
+): Promise<boolean> {
+  try {
+    const commandId = options.revokeCommandId ?? globalThis.crypto.randomUUID();
+    const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+    const { data, error } = await client.DELETE('/v1/auth/role-contexts/{roleContextId}', {
+      params: {
+        header: {
+          ...requiredHeaders(installationId),
+          'Idempotency-Key': commandId,
+        },
+        path: { roleContextId },
+      },
+      signal: options.signal,
+    });
+    return (
+      data !== undefined &&
+      error === undefined &&
+      ['ACCEPTED', 'ALREADY_ACCEPTED'].includes(data.disposition)
+    );
+  } catch {
+    return false;
+  }
+}

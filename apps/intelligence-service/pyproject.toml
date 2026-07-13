@@ -16,6 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "coverage==7.15.1",
+  "datamodel-code-generator==0.68.1",
   "httpx2==2.5.0",
   "mypy==2.2.0",
   "pytest==9.1.1",

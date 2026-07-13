@@ -1,0 +1,157 @@
+{
+  "baselineVersion": 1,
+  "contractVersion": "1.0.0-m1",
+  "policy": "exact-wire-freeze",
+  "httpOperations": {
+    "GET /health/live": {
+      "operationId": "getLiveness",
+      "surface": "common",
+      "fingerprint": "c71002fce937fbf7bc0718c0dbe2bf9499b5d50c4cd9ffaec1a1432780ef2b40"
+    },
+    "GET /health/ready": {
+      "operationId": "getReadiness",
+      "surface": "common",
+      "fingerprint": "8f10d9e7113c9d75b49162b2b3fb6dab0506e14c2a4da7c861ce29f8e48c49e5"
+    },
+    "GET /v1/system/reachability": {
+      "operationId": "getReachability",
+      "surface": "common",
+      "fingerprint": "bc1564784e929d24317300562c165473b030143ab95614e13e680567bf0304b8"
+    },
+    "POST /v1/auth/return-states": {
+      "operationId": "createReturnState",
+      "surface": "common",
+      "fingerprint": "15023172d0c3854e546adf2c495dcb44ef0285be15441409b527de058874ec1d"
+    },
+    "GET /v1/auth/session": {
+      "operationId": "getAuthSession",
+      "surface": "common",
+      "fingerprint": "02be21582d79d1c6258d20ae42c12e6c307f724f45d1aae9153139770c6250a6"
+    },
+    "GET /v1/auth/roles": {
+      "operationId": "listRoles",
+      "surface": "common",
+      "fingerprint": "13d77f84a28790918a295906fa0512358b95917030f93a45568c86c48e7208cb"
+    },
+    "POST /v1/auth/role-contexts": {
+      "operationId": "selectRoleContext",
+      "surface": "common",
+      "fingerprint": "0fc092af5bc4cb7eb2ee775a27cf0d147c58636f659a8b26bd3b14084fce08a9"
+    },
+    "DELETE /v1/auth/role-contexts/{roleContextId}": {
+      "operationId": "revokeRoleContext",
+      "surface": "common",
+      "fingerprint": "48c2c30a0b41d9131c48eb337c7d2568a49726a8ec0b5665040dc823b512d538"
+    },
+    "GET /v1/farmer/bootstrap": {
+      "operationId": "getFarmerBootstrap",
+      "surface": "farmer",
+      "fingerprint": "b3e990ba9649becd188a66f227aecbba4f28dd5640c1ea014ed6a96b5520e064"
+    },
+    "GET /v1/farmer/consents": {
+      "operationId": "listFarmerConsents",
+      "surface": "farmer",
+      "fingerprint": "3e49f00307f22b532174de69f7d452356ea3670a11dff879273fe64ef2609962"
+    },
+    "POST /v1/farmer/consent-decisions": {
+      "operationId": "recordConsentDecision",
+      "surface": "farmer",
+      "fingerprint": "3b073e838156be3f6a3a653aa41074aaa80c945ee4b6ca36bf23924f178829e0"
+    },
+    "GET /v1/rsk/bootstrap": {
+      "operationId": "getRskBootstrap",
+      "surface": "rsk",
+      "fingerprint": "715682a8cef8c347eb49f949877ea1ffb7e04b9dadf6e2393d47118f0d0f4a74"
+    },
+    "POST /v1/rsk/access-grants": {
+      "operationId": "issueRskAccessGrant",
+      "surface": "rsk",
+      "fingerprint": "93c741e1887e82e7f633733fdf2a97701ac8d2f848f721431b163b21d73374c4"
+    },
+    "POST /v1/rsk/protected-disclosures": {
+      "operationId": "createRskProtectedDisclosure",
+      "surface": "rsk",
+      "fingerprint": "79d7f1b17fdcffc039824fd4412b3bbd19770ac56a16ac2f3a86ec3574288706"
+    },
+    "GET /v1/mp/query-context": {
+      "operationId": "getMpQueryContext",
+      "surface": "mp",
+      "fingerprint": "2c940fcc1286ea10ec720d7163369f9361ae908fdc9332e64c38827763c94207"
+    }
+  },
+  "schemaGroups": {
+    "commands": {
+      "Command": {
+        "fingerprint": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359"
+      },
+      "CommandEnvelope": {
+        "fingerprint": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359"
+      },
+      "CommandResult": {
+        "fingerprint": "f9d9a95e77a5f06fb92feebc3bc697b3d4ce7d602da65f1946759f88c0f493fe"
+      },
+      "IssueAccessGrantCommand": {
+        "fingerprint": "b23b55401f22b96b373bb52e7a355bacef043c9bb311fd9623b9d3940925bc08"
+      },
+      "RecordConsentDecisionCommand": {
+        "fingerprint": "203ce4e0cc512f6b7728c68d69a178b1aef9dfa3fa4b1417c0a375a9940699d0"
+      },
+      "SelectRoleContextCommand": {
+        "fingerprint": "b6665edd14cfa9ee26ab3170d637ff99fc6b1f34bb551106ecd9845e5ab11511"
+      }
+    },
+    "device": {
+      "DeviceBatchReceipt": {
+        "fingerprint": "548687babf669180db9ffeb8f590bd9dc0c6c1c1ec14131f51725c6f2be755e5"
+      }
+    },
+    "events": {
+      "EventEnvelope": {
+        "fingerprint": "3816a947d2f94977c3a2b74745fa28b8c671fcadeb0d35a7306046c2cdf14429"
+      },
+      "MilestoneOneEvent": {
+        "fingerprint": "293b3fb109443cab41267bcf817d68b56d7801136158d7af4405f30606caca5b"
+      }
+    },
+    "privacy": {
+      "MpSafeResult": {
+        "fingerprint": "d5546217b32a83823c394a53b43aa93b5b77b9bd138226e4197eae85d6848559"
+      },
+      "MpSuppressedResult": {
+        "fingerprint": "bace36e2c934ada0f4d71c5048d7a5249de0d718416d5d4921a0738f8266eb25"
+      },
+      "MpUnavailableResult": {
+        "fingerprint": "fdcf03de34a7d163ff2b72dd3ab5eaa204dd20388b6bdfb5d7b8228d40edbb21"
+      }
+    },
+    "sync": {
+      "SyncBatch": {
+        "fingerprint": "3847784511c2f26532eede91cde859cb695c28017a4df2448deac3e89e6657f6"
+      },
+      "SyncBatchResponse": {
+        "fingerprint": "f4d5bdce21a81422d67ce6b53035d8c8c1031a03fa90071b6ca02a65682d084c"
+      },
+      "SyncCommandDisposition": {
+        "fingerprint": "0d334531a01f95d0d2c267f1ca541613044c5199104f21c534719d192aa7b4de"
+      },
+      "SyncCommandEnvelope": {
+        "fingerprint": "b6ac67fd1945f531c62fd78f6c63c95e1140314baad9c77b64e3471d170fe3ee"
+      },
+      "SyncFeedEvent": {
+        "fingerprint": "782fa56f6f6c4239f07355c134f91a7ddfefab10164bbd151ac9421dc226b7e1"
+      },
+      "SyncProjectionDelta": {
+        "fingerprint": "6bbd23f20eacfc4d7d2085e936db4a7e5d3ec7673ca00209a42309d1ffef7b07"
+      }
+    },
+    "voice": {
+      "VoiceDelegation": {
+        "fingerprint": "56d6be031fdc832bf53e8ee1b1de32af0157880711446aec4b096b5c949eb674"
+      }
+    }
+  },
+  "eventCatalogue": {
+    "eventCount": 357,
+    "fingerprint": "107a3fd45a11f77137d2da305c5f56a87925c216d5356001661882632e93ff91"
+  }
+}

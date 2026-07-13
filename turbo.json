@@ -3,6 +3,7 @@
   "ui": "tui",
   "tasks": {
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
@@ -10,8 +11,8 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "build/**", "dist/**"]
     },
-    "@smart-fasal/application#build": { "outputs": [] },
-    "@smart-fasal/authz#build": { "outputs": [] },
+    "@smart-fasal/application#build": { "outputs": ["dist/**"] },
+    "@smart-fasal/authz#build": { "outputs": ["dist/**"] },
     "@smart-fasal/config#build": { "outputs": [] },
     "@smart-fasal/contracts#build": { "outputs": ["generated/**"] },
     "@smart-fasal/database#build": { "outputs": [] },
@@ -46,11 +47,11 @@
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^test"],
+      "dependsOn": ["^build", "^test"],
       "outputs": []
     },
     "test:unit": {
-      "dependsOn": ["^test:unit"],
+      "dependsOn": ["^build", "^test:unit"],
       "outputs": []
     },
     "test:coverage": {

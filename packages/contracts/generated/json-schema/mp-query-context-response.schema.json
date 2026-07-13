@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "activeRelease": {
+      "type": "null"
+    },
+    "availableMetricKeys": {
+      "items": {
+        "not": {}
+      },
+      "maxItems": 0,
+      "type": "array"
+    },
+    "code": {
+      "const": "DEPENDENCY_UNAVAILABLE",
+      "type": "string"
+    },
+    "state": {
+      "const": "UNAVAILABLE",
+      "type": "string"
+    }
+  },
+  "required": [
+    "state",
+    "code",
+    "availableMetricKeys",
+    "activeRelease"
+  ],
+  "type": "object",
+  "x-data-classification": "C1"
+}

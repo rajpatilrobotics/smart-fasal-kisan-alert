@@ -1,6 +1,20 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import {
+  E2E_APP_ORIGINS,
+  E2E_DOMAIN_API_ORIGIN,
+  E2E_MP_QUERY_API_ORIGIN,
+} from './tests/e2e/origins';
+
 const isContinuousIntegration = Boolean(process.env['CI']);
+const e2ePublicEnvironment = {
+  NEXT_PUBLIC_CLIENT_BUILD: 'e2e-synthetic',
+  NEXT_PUBLIC_DOMAIN_API_ORIGIN: E2E_DOMAIN_API_ORIGIN,
+  NEXT_PUBLIC_MP_QUERY_API_ORIGIN: E2E_MP_QUERY_API_ORIGIN,
+};
+const pnpmCommand = process.env['npm_execpath']?.includes('pnpm')
+  ? `${JSON.stringify(process.execPath)} ${JSON.stringify(process.env['npm_execpath'])}`
+  : 'corepack pnpm';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -15,36 +29,39 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'pnpm --filter @smart-fasal/farmer-web dev',
-      reuseExistingServer: !isContinuousIntegration,
+      command: `${pnpmCommand} --filter @smart-fasal/farmer-web dev`,
+      env: e2ePublicEnvironment,
+      reuseExistingServer: false,
       timeout: 120_000,
-      url: 'http://127.0.0.1:3000/api/health/ready',
+      url: `${E2E_APP_ORIGINS.farmer}/api/health/ready`,
     },
     {
-      command: 'pnpm --filter @smart-fasal/rsk-web dev',
-      reuseExistingServer: !isContinuousIntegration,
+      command: `${pnpmCommand} --filter @smart-fasal/rsk-web dev`,
+      env: e2ePublicEnvironment,
+      reuseExistingServer: false,
       timeout: 120_000,
-      url: 'http://127.0.0.1:3001/api/health/ready',
+      url: `${E2E_APP_ORIGINS.rsk}/api/health/ready`,
     },
     {
-      command: 'pnpm --filter @smart-fasal/mp-web dev',
-      reuseExistingServer: !isContinuousIntegration,
+      command: `${pnpmCommand} --filter @smart-fasal/mp-web dev`,
+      env: e2ePublicEnvironment,
+      reuseExistingServer: false,
       timeout: 120_000,
-      url: 'http://127.0.0.1:3002/api/health/ready',
+      url: `${E2E_APP_ORIGINS.mp}/api/health/ready`,
     },
   ],
   projects: [
     {
       name: 'farmer',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:3000' },
+      use: { ...devices['Desktop Chrome'], baseURL: E2E_APP_ORIGINS.farmer },
     },
     {
       name: 'rsk',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:3001' },
+      use: { ...devices['Desktop Chrome'], baseURL: E2E_APP_ORIGINS.rsk },
     },
     {
       name: 'mp',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:3002' },
+      use: { ...devices['Desktop Chrome'], baseURL: E2E_APP_ORIGINS.mp },
     },
   ],
 });

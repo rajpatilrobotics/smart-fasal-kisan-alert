@@ -1,17 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import RskFoundationPage from './page';
+const { redirectMock } = vi.hoisted(() => ({ redirectMock: vi.fn() }));
 
-describe('RSK foundation shell', () => {
-  it('states the RSK boundary without fake operational data', () => {
-    render(<RskFoundationPage />);
+vi.mock('next/navigation', () => ({ redirect: redirectMock }));
 
-    expect(screen.getByRole('heading', { name: 'RSK operations foundation' })).toBeInTheDocument();
-    expect(screen.getByText('No farmer records loaded')).toBeInTheDocument();
-    expect(screen.getByText(/no invented work items/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open readiness response' })).toHaveAttribute(
-      'href',
-      '/api/health/ready',
-    );
+import RskEntryPage from './page';
+
+describe('RSK entry route', () => {
+  it('redirects to the real authentication route', () => {
+    RskEntryPage();
+    expect(redirectMock).toHaveBeenCalledWith('/auth');
   });
 });

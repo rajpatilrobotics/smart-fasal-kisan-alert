@@ -501,6 +501,272 @@ h2 {
   }
 }
 
+/* Milestone 1 authenticated shell */
+.auth-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.simple-header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px clamp(18px, 4vw, 48px);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.simple-header strong,
+.simple-header span {
+  display: block;
+}
+
+.simple-header span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth-main {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  padding: clamp(32px, 8vw, 80px) 18px;
+}
+
+.auth-card,
+.status-card,
+.boundary-card,
+.context-grid {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.auth-card {
+  padding: clamp(24px, 5vw, 42px);
+  box-shadow: 0 18px 45px rgb(23 33 28 / 8%);
+}
+
+.auth-card h1,
+.authenticated-workspace h1 {
+  outline: none;
+}
+
+.auth-card h1:focus,
+.authenticated-workspace h1:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 6px;
+}
+
+.language-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0;
+  padding: 0;
+  border: 0;
+}
+
+.language-picker legend {
+  width: 100%;
+  margin-block-end: 7px;
+  font-weight: 750;
+}
+
+.choice-button,
+.primary-button,
+.text-button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.choice-button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.choice-button[aria-pressed='true'] {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.status-card,
+.boundary-card {
+  padding: 22px;
+}
+
+.status-card h2,
+.status-card p,
+.boundary-card h2,
+.boundary-card p {
+  margin: 0;
+}
+
+.status-card p,
+.boundary-card p {
+  margin-block-start: 10px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.primary-button,
+.primary-link,
+.text-button {
+  border: 0;
+}
+
+.primary-button,
+.primary-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-block-start: 18px;
+  padding: 10px 17px;
+  border-radius: 8px;
+  color: white;
+  background: var(--primary);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.text-button {
+  padding: 8px 12px;
+  color: var(--primary);
+  background: transparent;
+}
+
+.rsk-app {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+.authenticated-rail {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  padding: 24px 18px;
+  color: white;
+  background: var(--primary-strong);
+}
+
+.authenticated-rail > span {
+  margin-block-start: 5px;
+  color: #c4d9cf;
+  font-size: 12px;
+}
+
+.rail-boundary-copy {
+  margin-block-start: auto;
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 10px;
+  color: #d9e9e1;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.authenticated-canvas {
+  min-width: 0;
+}
+
+.authenticated-workspace {
+  width: min(100%, 1100px);
+  padding: clamp(28px, 5vw, 58px);
+}
+
+.ready-layout {
+  display: grid;
+  gap: 24px;
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.context-grid > div {
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.context-grid dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.context-grid dd {
+  overflow-wrap: anywhere;
+  margin: 7px 0 0;
+  font-weight: 700;
+}
+
+.technical-state {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+@media (max-width: 800px) {
+  .rsk-app {
+    grid-template-columns: 1fr;
+  }
+
+  .authenticated-rail {
+    min-height: auto;
+  }
+
+  .rail-boundary-copy {
+    margin-block-start: 20px;
+  }
+
+  .context-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .auth-card,
+  .status-card,
+  .boundary-card,
+  .context-grid,
+  .choice-button,
+  .rail-boundary-copy {
+    border: 1px solid CanvasText;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

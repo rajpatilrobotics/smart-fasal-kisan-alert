@@ -1,18 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import FarmerFoundationPage from './page';
+const { redirectMock } = vi.hoisted(() => ({ redirectMock: vi.fn() }));
 
-describe('Farmer foundation shell', () => {
-  it('explains the honest Milestone 0 state in Marathi', () => {
-    render(<FarmerFoundationPage />);
+vi.mock('next/navigation', () => ({ redirect: redirectMock }));
 
-    expect(
-      screen.getByRole('heading', { name: 'शेतकरी अ‍ॅपची मजबूत पायाभरणी तयार आहे' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/बनावट सल्ला/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'अ‍ॅपची तयारी तपासा' })).toHaveAttribute(
-      'href',
-      '/api/health/ready',
-    );
+import FarmerEntryPage from './page';
+
+describe('Farmer entry route', () => {
+  it('redirects to the real authentication route', () => {
+    FarmerEntryPage();
+    expect(redirectMock).toHaveBeenCalledWith('/auth');
   });
 });

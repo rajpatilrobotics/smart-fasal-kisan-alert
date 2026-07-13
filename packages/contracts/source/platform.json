@@ -1,9 +1,5 @@
 {
-  "contractVersion": "0.1.0",
-  "serviceHealth": {
-    "livePath": "/health/live",
-    "readyPath": "/health/ready",
-    "statuses": ["ok", "not_ready"]
-  },
-  "events": []
+  "authority": "../src/index.ts",
+  "contractVersion": "1.0.0-m1",
+  "note": "Compatibility pointer only. Strict Zod schemas and registries under src are authoritative."
 }

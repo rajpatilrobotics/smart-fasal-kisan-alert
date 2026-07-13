@@ -26,7 +26,7 @@ def create_app(readiness: Callable[[], bool] | None = None) -> FastAPI:
     @application.get("/health/live")
     async def health_live(response: Response) -> HealthPayload:
         response.headers["Cache-Control"] = "no-store"
-        return _health_payload("ok")
+        return _health_payload(HealthStatus.ok)
 
     @application.get(
         "/health/ready",
@@ -41,8 +41,8 @@ def create_app(readiness: Callable[[], bool] | None = None) -> FastAPI:
 
         if not ready:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-            return _health_payload("not_ready")
-        return _health_payload("ok")
+            return _health_payload(HealthStatus.not_ready)
+        return _health_payload(HealthStatus.ok)
 
     return application
 

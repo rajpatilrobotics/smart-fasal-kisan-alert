@@ -1,0 +1,212 @@
+export type Surface = 'common' | 'farmer' | 'rsk' | 'mp';
+export type HttpMethod = 'get' | 'post' | 'delete';
+
+export interface RouteContract {
+  method: HttpMethod;
+  path: string;
+  operationId: string;
+  surface: Surface;
+  auth: 'none' | 'app-check' | 'identity' | 'farmer' | 'rsk' | 'mp';
+  capability?: string;
+  purpose?: string;
+  requestSchema?: string;
+  responseSchema: string;
+  command?: { idempotency: boolean; expectedRevision: boolean };
+  problemCodes: readonly string[];
+  classification: 'C0' | 'C1' | 'C2' | 'C3' | 'C4';
+  retentionClass: string;
+}
+
+const APP_CHECK_PROBLEMS = [
+  'AUTHENTICATION_REQUIRED',
+  'AUTHORIZATION_DENIED',
+  'DEPENDENCY_UNAVAILABLE',
+] as const;
+
+const AUTH_PROBLEMS = [...APP_CHECK_PROBLEMS, 'AUTHORIZATION_VERSION_CHANGED'] as const;
+
+export const ROUTES: readonly RouteContract[] = [
+  {
+    method: 'get',
+    path: '/health/live',
+    operationId: 'getLiveness',
+    surface: 'common',
+    auth: 'none',
+    responseSchema: 'HealthPayload',
+    problemCodes: [],
+    classification: 'C0',
+    retentionClass: 'none',
+  },
+  {
+    method: 'get',
+    path: '/health/ready',
+    operationId: 'getReadiness',
+    surface: 'common',
+    auth: 'none',
+    responseSchema: 'HealthPayload',
+    problemCodes: ['DEPENDENCY_UNAVAILABLE'],
+    classification: 'C0',
+    retentionClass: 'none',
+  },
+  {
+    method: 'get',
+    path: '/v1/system/reachability',
+    operationId: 'getReachability',
+    surface: 'common',
+    auth: 'none',
+    responseSchema: 'HealthPayload',
+    problemCodes: [],
+    classification: 'C0',
+    retentionClass: 'none',
+  },
+  {
+    method: 'post',
+    path: '/v1/auth/return-states',
+    operationId: 'createReturnState',
+    surface: 'common',
+    auth: 'app-check',
+    requestSchema: 'ReturnStateRequest',
+    responseSchema: 'ReturnStateResponse',
+    problemCodes: [...APP_CHECK_PROBLEMS, 'RATE_LIMITED'],
+    classification: 'C4',
+    retentionClass: 'ephemeral-ticket',
+  },
+  {
+    method: 'get',
+    path: '/v1/auth/session',
+    operationId: 'getAuthSession',
+    surface: 'common',
+    auth: 'identity',
+    responseSchema: 'SessionResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'session',
+  },
+  {
+    method: 'get',
+    path: '/v1/auth/roles',
+    operationId: 'listRoles',
+    surface: 'common',
+    auth: 'identity',
+    responseSchema: 'SessionResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'session',
+  },
+  {
+    method: 'post',
+    path: '/v1/auth/role-contexts',
+    operationId: 'selectRoleContext',
+    surface: 'common',
+    auth: 'identity',
+    capability: 'identity.role_context.select',
+    requestSchema: 'SelectRoleContextCommand',
+    responseSchema: 'CommandResult',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: [...AUTH_PROBLEMS, 'MFA_REQUIRED'],
+    classification: 'C2',
+    retentionClass: 'command-receipt',
+  },
+  {
+    method: 'delete',
+    path: '/v1/auth/role-contexts/{roleContextId}',
+    operationId: 'revokeRoleContext',
+    surface: 'common',
+    auth: 'identity',
+    capability: 'identity.role_context.select',
+    responseSchema: 'CommandResult',
+    command: { idempotency: true, expectedRevision: false },
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'command-receipt',
+  },
+  {
+    method: 'get',
+    path: '/v1/farmer/bootstrap',
+    operationId: 'getFarmerBootstrap',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    responseSchema: 'FarmerBootstrapResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'none',
+  },
+  {
+    method: 'get',
+    path: '/v1/farmer/consents',
+    operationId: 'listFarmerConsents',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    responseSchema: 'ConsentListResponse',
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'none',
+  },
+  {
+    method: 'post',
+    path: '/v1/farmer/consent-decisions',
+    operationId: 'recordConsentDecision',
+    surface: 'farmer',
+    auth: 'farmer',
+    purpose: 'farmer.self_service',
+    requestSchema: 'RecordConsentDecisionCommand',
+    responseSchema: 'CommandResult',
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: AUTH_PROBLEMS,
+    classification: 'C2',
+    retentionClass: 'consent',
+  },
+  {
+    method: 'get',
+    path: '/v1/rsk/bootstrap',
+    operationId: 'getRskBootstrap',
+    surface: 'rsk',
+    auth: 'rsk',
+    responseSchema: 'RskBootstrapResponse',
+    problemCodes: [...AUTH_PROBLEMS, 'MFA_REQUIRED'],
+    classification: 'C1',
+    retentionClass: 'none',
+  },
+  {
+    method: 'post',
+    path: '/v1/rsk/access-grants',
+    operationId: 'issueRskAccessGrant',
+    surface: 'rsk',
+    auth: 'rsk',
+    capability: 'rsk.access_grant.issue',
+    purpose: 'assisted.service',
+    requestSchema: 'IssueAccessGrantCommand',
+    responseSchema: 'CommandResult',
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, 'CONSENT_OR_ACCESS_VERSION_CHANGED'],
+    classification: 'C2',
+    retentionClass: 'access-grant',
+  },
+  {
+    method: 'post',
+    path: '/v1/rsk/protected-disclosures',
+    operationId: 'createRskProtectedDisclosure',
+    surface: 'rsk',
+    auth: 'rsk',
+    capability: 'rsk.protected_disclose',
+    purpose: 'assisted.service',
+    requestSchema: 'ProtectedDisclosureRequest',
+    responseSchema: 'ProtectedDisclosureResponse',
+    problemCodes: [...AUTH_PROBLEMS, 'CONSENT_OR_ACCESS_VERSION_CHANGED'],
+    classification: 'C3',
+    retentionClass: 'audit',
+  },
+  {
+    method: 'get',
+    path: '/v1/mp/query-context',
+    operationId: 'getMpQueryContext',
+    surface: 'mp',
+    auth: 'mp',
+    responseSchema: 'MpQueryContextResponse',
+    problemCodes: [...AUTH_PROBLEMS, 'MFA_REQUIRED', 'DEPENDENCY_UNAVAILABLE'],
+    classification: 'C1',
+    retentionClass: 'none',
+  },
+] as const;

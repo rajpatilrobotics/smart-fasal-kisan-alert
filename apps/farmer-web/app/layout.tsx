@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { AuthMemoryProvider } from './auth/auth-memory';
 import './styles.css';
 
 export const metadata: Metadata = {
@@ -19,10 +20,14 @@ export const viewport: Viewport = {
   width: 'device-width',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="mr">
-      <body>{children}</body>
+      <body>
+        <AuthMemoryProvider>{children}</AuthMemoryProvider>
+      </body>
     </html>
   );
 }

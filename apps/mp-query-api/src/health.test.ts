@@ -1,9 +1,31 @@
-import { buildService, type HealthPayload } from '@smart-fasal/service-runtime';
+import type { HealthPayload } from '@smart-fasal/contracts/release/mp';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { buildMpQueryApi } from './app.js';
 import { SERVICE_NAME } from './config.js';
 
-const openApps: ReturnType<typeof buildService>[] = [];
+const openApps: ReturnType<typeof buildMpQueryApi>[] = [];
+
+function buildTestApp(readiness: () => boolean = () => true) {
+  return buildMpQueryApi({
+    environment: 'local',
+    origins: ['http://mp.test'],
+    appIds: [],
+    identityVerifier: {
+      mode: 'synthetic-test',
+      verifyIdToken: () => Promise.reject(new Error('not used by health tests')),
+    },
+    appCheckVerifier: {
+      mode: 'synthetic-test',
+      verifyAppCheckToken: () => Promise.reject(new Error('not used by health tests')),
+    },
+    authorizer: {
+      authorize: () => Promise.resolve({ allowed: false, code: 'AUTHORIZATION_DENIED' }),
+    },
+    readiness,
+    runtimeMode: 'test',
+  });
+}
 
 afterEach(async () => {
   await Promise.all(openApps.splice(0).map(async (app) => app.close()));
@@ -11,7 +33,7 @@ afterEach(async () => {
 
 describe(`${SERVICE_NAME} health contract`, () => {
   it.each(['/health/live', '/health/ready'])('returns a safe response for %s', async (url) => {
-    const app = buildService({ serviceName: SERVICE_NAME });
+    const app = buildTestApp();
     openApps.push(app);
 
     const response = await app.inject({ method: 'GET', url });
@@ -23,10 +45,7 @@ describe(`${SERVICE_NAME} health contract`, () => {
   });
 
   it('fails readiness closed without failing liveness', async () => {
-    const app = buildService({
-      readiness: () => false,
-      serviceName: SERVICE_NAME,
-    });
+    const app = buildTestApp(() => false);
     openApps.push(app);
 
     const [live, ready] = await Promise.all([
@@ -40,5 +59,21 @@ describe(`${SERVICE_NAME} health contract`, () => {
       service: SERVICE_NAME,
       status: 'not_ready',
     });
+  });
+
+  it('does not let a readiness callback override an absent credential boundary', async () => {
+    const app = buildMpQueryApi({
+      environment: 'local',
+      origins: ['http://mp.test'],
+      appIds: [],
+      readiness: () => true,
+      runtimeMode: 'test',
+    });
+    openApps.push(app);
+
+    const response = await app.inject({ method: 'GET', url: '/health/ready' });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json<HealthPayload>().status).toBe('not_ready');
   });
 });

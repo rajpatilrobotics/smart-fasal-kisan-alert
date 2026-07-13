@@ -10,7 +10,7 @@ from intelligence_service.main import SERVICE_NAME, create_app
 
 
 def test_generated_contract_is_available_to_python() -> None:
-    assert CONTRACT_VERSION == "0.1.0"
+    assert CONTRACT_VERSION == "1.0.0-m1"
     with pytest.raises(ValidationError):
         HealthPayload.model_validate(
             {

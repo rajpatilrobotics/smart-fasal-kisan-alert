@@ -1,17 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-import MpFoundationPage from './page';
+const { redirectMock } = vi.hoisted(() => ({ redirectMock: vi.fn() }));
 
-describe('MP Office foundation shell', () => {
-  it('shows only the privacy-release foundation', () => {
-    render(<MpFoundationPage />);
+vi.mock('next/navigation', () => ({ redirect: redirectMock }));
 
-    expect(screen.getByRole('heading', { name: 'MP Office foundation' })).toBeInTheDocument();
-    expect(screen.getByText('Released aggregates only')).toBeInTheDocument();
-    expect(screen.getByText(/no invented maps/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'View readiness response' })).toHaveAttribute(
-      'href',
-      '/api/health/ready',
-    );
+import MpEntryPage from './page';
+
+describe('MP entry route', () => {
+  it('redirects to the real authentication route', () => {
+    MpEntryPage();
+    expect(redirectMock).toHaveBeenCalledWith('/auth');
   });
 });

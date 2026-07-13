@@ -1,86 +1,5513 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Smart Fasal platform health contract",
-    "version": "0.1.0"
-  },
-  "paths": {
-    "/health/live": {
-      "get": {
-        "operationId": "getLiveness",
-        "responses": {
-          "200": {
-            "description": "Process is alive",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthPayload"
-                }
-              }
-            }
-          }
+  "components": {
+    "parameters": {
+      "clientBuild": {
+        "description": "Client build identifier",
+        "in": "header",
+        "name": "X-Client-Build",
+        "required": true,
+        "schema": {
+          "maxLength": 80,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+          "type": "string"
+        }
+      },
+      "commandId": {
+        "description": "Stable command UUID",
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "expectedRevision": {
+        "description": "Quoted entity revision, for example \"rev:3\"",
+        "in": "header",
+        "name": "If-Match",
+        "required": true,
+        "schema": {
+          "pattern": "^\"rev:(0|[1-9][0-9]*)\"$",
+          "type": "string"
+        }
+      },
+      "installationId": {
+        "description": "Stable installation identifier",
+        "in": "header",
+        "name": "X-Client-Installation-Id",
+        "required": true,
+        "schema": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:+-]{0,127}$",
+          "type": "string"
+        }
+      },
+      "optionalRoleContextId": {
+        "description": "Selected role-context identifier when resolving the current session",
+        "in": "header",
+        "name": "X-Role-Context-Id",
+        "required": false,
+        "schema": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "roleContextId": {
+        "description": "Current authorized role-context identifier",
+        "in": "header",
+        "name": "X-Role-Context-Id",
+        "required": true,
+        "schema": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "schemaVersion": {
+        "description": "Supported Milestone 1 contract schema version",
+        "in": "header",
+        "name": "X-Client-Schema-Version",
+        "required": true,
+        "schema": {
+          "const": "1",
+          "type": "string"
         }
       }
     },
-    "/health/ready": {
-      "get": {
-        "operationId": "getReadiness",
-        "responses": {
-          "200": {
-            "description": "Service dependencies are ready",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthPayload"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "A required dependency is unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthPayload"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
     "schemas": {
-      "HealthPayload": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://smart-fasal.example/contracts/health.schema.json",
-        "title": "HealthPayload",
-        "type": "object",
+      "AuthorizationContext": {
         "additionalProperties": false,
+        "properties": {
+          "authorizationVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "case.response.draft",
+                "case.care_plan.issue",
+                "case.severe.resolve",
+                "advisory.review.decide",
+                "alert.draft",
+                "alert.approve",
+                "alert.publish",
+                "alert.delivery.monitor",
+                "alert.delivery.operate",
+                "sensor.agronomic_invalidate",
+                "template.draft",
+                "template.approve",
+                "template.publish",
+                "calendar.review",
+                "market.support",
+                "market.mapping.review",
+                "market.mapping.approve",
+                "assisted_session.operate",
+                "visit.manage",
+                "visit.execute.field",
+                "visit.execute.sensor",
+                "visit.outcome.review",
+                "audit.investigate_sensitive",
+                "rsk.work.read",
+                "rsk.work.operate",
+                "rsk.work.assign",
+                "rsk.protected_search",
+                "rsk.access_grant.issue",
+                "rsk.protected_disclose",
+                "case.read",
+                "case.evidence.request",
+                "case.follow_up.record",
+                "case.resolve.routine",
+                "advisory.review.read",
+                "outreach.operate",
+                "sensor.issue.operate",
+                "sensor.install",
+                "sensor.calibration.record",
+                "sensor.maintenance.execute",
+                "template.read",
+                "alert.read",
+                "identity.role_context.select",
+                "profile.correct",
+                "device_mode.change"
+              ],
+              "type": "string"
+            },
+            "maxItems": 44,
+            "type": "array"
+          },
+          "capabilitySetVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "environment": {
+            "enum": [
+              "local",
+              "preview",
+              "staging",
+              "demo",
+              "production"
+            ],
+            "type": "string"
+          },
+          "jurisdictionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "officeId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "purposeCode": {
+            "enum": [
+              "farmer.self_service",
+              "case.expert_support",
+              "field.visit",
+              "sensor.maintenance",
+              "assisted.service",
+              "alert.delivery",
+              "market.support",
+              "data.rights"
+            ],
+            "type": "string"
+          },
+          "roleContextId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "roleType": {
+            "enum": [
+              "FARMER",
+              "RSK",
+              "MP"
+            ],
+            "type": "string"
+          },
+          "subjectId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "environment",
+          "subjectId",
+          "roleContextId",
+          "roleType",
+          "purposeCode",
+          "authorizationVersion",
+          "capabilitySetVersion",
+          "capabilities"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "Command": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SelectRoleContextCommand"
+          },
+          {
+            "$ref": "#/components/schemas/RecordConsentDecisionCommand"
+          },
+          {
+            "$ref": "#/components/schemas/IssueAccessGrantCommand"
+          }
+        ],
+        "x-data-classification": "C2"
+      },
+      "CommandEnvelope": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SelectRoleContextCommand"
+          },
+          {
+            "$ref": "#/components/schemas/RecordConsentDecisionCommand"
+          },
+          {
+            "$ref": "#/components/schemas/IssueAccessGrantCommand"
+          }
+        ],
+        "x-data-classification": "C2"
+      },
+      "CommandResult": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "ACCEPTED",
+              "ALREADY_ACCEPTED",
+              "REJECTED",
+              "CONFLICT",
+              "IN_PROGRESS"
+            ],
+            "type": "string"
+          },
+          "eventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "result": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "revision": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "type": {
+                "enum": [
+                  "roleContext",
+                  "consentDecision",
+                  "accessGrant"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id",
+              "revision"
+            ],
+            "type": "object"
+          },
+          "serverReceivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "syncAcknowledgementId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "disposition",
+          "eventIds",
+          "serverReceivedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "ConsentListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "accessVersion": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                },
+                "consentDecisionId": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                  "type": "string"
+                },
+                "purposeKey": {
+                  "enum": [
+                    "farmer.self_service",
+                    "case.expert_support",
+                    "field.visit",
+                    "sensor.maintenance",
+                    "assisted.service",
+                    "alert.delivery",
+                    "market.support",
+                    "data.rights"
+                  ],
+                  "type": "string"
+                },
+                "scopeKey": {
+                  "enum": [
+                    "location.processing",
+                    "audio.storage",
+                    "case.sharing",
+                    "sensor.collection",
+                    "sensor.maintenance_location",
+                    "visit.access",
+                    "assisted_service.access",
+                    "channel.app_push",
+                    "channel.sms",
+                    "channel.ivr",
+                    "market.private_fields"
+                  ],
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "MISSING",
+                    "ALLOWED",
+                    "DENIED",
+                    "EXPIRED",
+                    "WITHDRAWN"
+                  ],
+                  "type": "string"
+                },
+                "targetId": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "targetKind": {
+                  "enum": [
+                    "ACCOUNT",
+                    "ASSISTED_FARMER_CONTEXT"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "scopeKey",
+                "purposeKey",
+                "targetKind",
+                "targetId",
+                "state",
+                "accessVersion"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "revision"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "DeviceBatchReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "batchId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "explicitlyNotAgronomicTrust": {
+            "const": true,
+            "type": "boolean"
+          },
+          "receivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "DURABLY_ACCEPTED",
+              "ALREADY_ACCEPTED",
+              "REJECTED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "batchId",
+          "state",
+          "receivedAt",
+          "explicitlyNotAgronomicTrust"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "EventEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "actorRef": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "actorType": {
+            "enum": [
+              "FARMER",
+              "RSK_STAFF",
+              "MP_STAFF",
+              "SYSTEM",
+              "DEVICE",
+              "PROVIDER"
+            ],
+            "type": "string"
+          },
+          "aggregateId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "aggregateRevision": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "aggregateType": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "causationId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "clientRecordedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "committedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "consentAccessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "correlationId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "deviceRef": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+            "type": "string"
+          },
+          "eventName": {
+            "enum": [
+              "farmer.setup_saved_local",
+              "farmer.setup_saved",
+              "farmer.preferences_changed",
+              "farmer.setup_completed",
+              "identity.role_context_created",
+              "identity.role_context_revoked",
+              "identity.device_mode_changed",
+              "consent.decision_recorded",
+              "farm.created",
+              "farm.updated",
+              "plot.created",
+              "plot.updated",
+              "soil_record.added",
+              "water_context.updated",
+              "farm.crop_history_recorded",
+              "profile.snapshot_created",
+              "season.created",
+              "season.start_confirmed",
+              "season.activated",
+              "harvest.window_confirmed",
+              "harvest.readiness_updated",
+              "harvest.actual_recorded",
+              "today.briefing_generated",
+              "today.briefing_played",
+              "today.primary_action_selected",
+              "today.card_opened",
+              "evidence.validated",
+              "evidence.snapshot_created",
+              "evidence.snapshot_finalized",
+              "evidence.snapshot_invalidated",
+              "evidence.freshness_changed",
+              "recommendation.requested",
+              "recommendation.input_rejected",
+              "recommendation.generated",
+              "recommendation.no_safe_result",
+              "recommendation.review_requested",
+              "recommendation.accepted",
+              "recommendation.superseded",
+              "decision.impact_review_requested",
+              "decision.impact_review_completed",
+              "dry_spell.evaluated",
+              "advisory.evaluated",
+              "advisory.no_action",
+              "advisory.review_requested",
+              "advisory.review_claimed",
+              "advisory.consent_checked",
+              "advisory.evidence_accessed",
+              "advisory.review_decided",
+              "advisory.issued",
+              "advisory.publication_started",
+              "advisory.publication_failed",
+              "advisory.publication_retried",
+              "advisory.publication_blocked",
+              "advisory.published",
+              "advisory.recalculated",
+              "advisory.replaced",
+              "advisory.cancelled",
+              "advisory.disputed",
+              "farmer.response_recorded",
+              "constraint.recorded",
+              "template.version_created",
+              "template.submitted",
+              "template.reviewed",
+              "template.approved",
+              "template.changes_requested",
+              "template.activation_started",
+              "template.activation_failed",
+              "template.published",
+              "template.expired",
+              "template.retired",
+              "template.rolled_back",
+              "calendar.instantiated",
+              "calendar.task_created",
+              "calendar.task_changed",
+              "calendar.task_replaced",
+              "calendar.task_completed",
+              "calendar.task_partially_completed",
+              "calendar.task_blocked",
+              "calendar.task_cancelled",
+              "calendar.reminder_scheduled_local",
+              "calendar.reminder_requested",
+              "calendar.review_created",
+              "calendar.review_claimed",
+              "calendar.review_evidence_requested",
+              "calendar.review_decided",
+              "calendar.change_application_started",
+              "calendar.change_application_failed",
+              "calendar.change_applied",
+              "diary.entry_saved_local",
+              "diary.activity_recorded",
+              "diary.observation_recorded",
+              "diary.entry_corrected",
+              "diary.entry_voided",
+              "sync.batch_started",
+              "sync.event_accepted",
+              "sync.event_already_accepted",
+              "sync.event_rejected",
+              "sync.conflict_detected",
+              "sync.conflict_resolved",
+              "media.upload_verified",
+              "diary.media_attached",
+              "health_media.attached",
+              "visit.media_attached",
+              "data.export_requested",
+              "data.export_retrieved",
+              "data.export_cancelled",
+              "data.export_preparation_started",
+              "data.export_ready",
+              "data.export_failed",
+              "data.export_expired",
+              "data.export_artifact_deleted",
+              "data.deletion_requested",
+              "data.deletion_completed",
+              "data.deletion_started",
+              "data.deletion_item_completed",
+              "data.deletion_item_failed",
+              "data.deletion_ledger_committed",
+              "data.restore_ledger_verified",
+              "data.tombstone_created",
+              "health_report.saved",
+              "health_media.queued",
+              "health_report.synced",
+              "health_report.triage_ready",
+              "triage.completed",
+              "triage.escalated",
+              "triage.escalation_sharing_declined",
+              "case.created",
+              "case.contact_access_authorized",
+              "case.evidence_accessed",
+              "case.evidence_requested",
+              "case.care_plan_issued",
+              "case.visit_scheduled",
+              "case.follow_up_recorded",
+              "case.resolved",
+              "case.closed",
+              "case.reopened",
+              "rsk.work_created",
+              "rsk.work_assigned",
+              "rsk.work_claimed",
+              "rsk.work_started",
+              "rsk.work_resumed",
+              "rsk.work_waiting",
+              "rsk.work_scheduled",
+              "rsk.work_resolved",
+              "rsk.work_reopened",
+              "rsk.work_cancelled",
+              "rsk.work_marked_duplicate",
+              "outreach.created",
+              "outreach.assigned",
+              "outreach.claimed",
+              "outreach.contact_access_checked",
+              "outreach.contact_revealed",
+              "outreach.attempted",
+              "outreach.response_recorded",
+              "outreach.follow_up_scheduled",
+              "outreach.resolved",
+              "contact.correction_requested",
+              "alert.delivery_incident_created",
+              "alert.delivery_incident_triaged",
+              "alert.delivery_mitigation_started",
+              "alert.delivery_incident_resolved",
+              "alert.delivery_incident_reopened",
+              "alert.delivery_exception_resolved",
+              "alert.retry_requested",
+              "alert.alternate_channel_selected",
+              "alert.provider_noncritical_pause_started",
+              "assisted.search_attempted",
+              "assisted.protected_data_accessed",
+              "assisted.farmer_verified",
+              "assisted.consent_checked",
+              "assisted.session_started",
+              "assisted.session_revoked",
+              "assisted.mutation_confirmed",
+              "assisted.receipt_issued",
+              "assisted.client_data_purged",
+              "assisted.recovery_locked",
+              "visit.requested",
+              "visit.approved",
+              "visit.scheduled",
+              "visit.assigned",
+              "visit.accepted",
+              "visit.cancelled",
+              "visit.consent_checked",
+              "visit.location_accessed",
+              "visit.pack_issued",
+              "visit.started",
+              "visit.observation_recorded",
+              "visit.farmer_response_recorded",
+              "visit.saved_offline",
+              "visit.synced",
+              "visit.completed",
+              "visit.outcome_reviewed",
+              "visit.closed",
+              "visit.access_revoked",
+              "visit.client_data_purged",
+              "sensor.consent_recorded",
+              "sensor.consent_withdrawn",
+              "sensor.collection_stopped",
+              "sensor.location_access_revoked",
+              "sensor.deassigned",
+              "sensor.removal_requested",
+              "sensor.installed",
+              "sensor.activated",
+              "sensor.device_registered",
+              "sensor.calibration_recorded",
+              "sensor.maintenance_requested",
+              "sensor.batch_rejected",
+              "sensor.batch_durably_accepted",
+              "sensor.observation_received",
+              "sensor.observation_normalized",
+              "sensor.trust_interval_created",
+              "sensor.interval_flagged",
+              "sensor.issue_created",
+              "sensor.issue_triaged",
+              "sensor.issue_mitigation_recorded",
+              "sensor.issue_resolved",
+              "sensor.issue_reopened",
+              "sensor.location_accessed",
+              "sensor.interval_invalidated",
+              "sensor.advice_impact_reviewed",
+              "sensor.maintenance_saved_offline",
+              "sensor.maintenance_started",
+              "sensor.maintenance_observation_recorded",
+              "sensor.maintenance_validation_started",
+              "sensor.maintenance_completed",
+              "sensor.maintenance_closed",
+              "sensor.returned_to_service",
+              "sensor.maintenance_media_attached",
+              "sensor.credential_revoked",
+              "alert.draft_created",
+              "alert.draft_submitted",
+              "alert.draft_approved",
+              "alert.changes_requested",
+              "alert.draft_rejected",
+              "alert.draft_expired",
+              "alert.draft_cancelled",
+              "alert.publication_started",
+              "alert.publication_failed",
+              "alert.draft_published",
+              "alert.version_created",
+              "alert.cohort_frozen",
+              "alert.attempt_queued",
+              "alert.provider_accepted",
+              "alert.delivered",
+              "alert.delivery_failed",
+              "alert.delivery_unknown",
+              "alert.attempt_expired",
+              "alert.recipient_reached",
+              "alert.opened_or_heard",
+              "alert.acknowledged",
+              "alert.response_recorded",
+              "alert.expired",
+              "alert.replaced",
+              "alert.corrected",
+              "alert.cancelled",
+              "alert.push_registration_created",
+              "alert.push_registration_rotated",
+              "alert.push_registration_revoked",
+              "market.raw_record_archived",
+              "market.mapping_requested",
+              "market.mapping_claimed",
+              "market.mapping_decided",
+              "market.mapping_approved",
+              "market.mapping_rejected",
+              "market.mapping_superseded",
+              "market.mapping_rollback_started",
+              "market.mapping_rolled_back",
+              "market.reprocessing_started",
+              "market.reprocessing_completed",
+              "market.reprocessing_failed",
+              "market.comparison_replaced",
+              "market.watch_created",
+              "market.watch_updated",
+              "market.watch_paused",
+              "market.watch_resumed",
+              "market.watch_completed",
+              "market.watch_expired",
+              "market.watch_cancelled",
+              "market.watch_triggered",
+              "market.watch_cooldown_started",
+              "market.watch_rearmed",
+              "market.support_created",
+              "market.support_claimed",
+              "market.support_information_requested",
+              "market.support_response_issued",
+              "market.support_follow_up_recorded",
+              "market.support_resolved",
+              "market.support_closed",
+              "market.sale_recorded",
+              "voice.session_started",
+              "voice.session_ended",
+              "voice.intent_recognized",
+              "voice.clarification_requested",
+              "voice.proposal_created",
+              "voice.proposal_cancelled",
+              "voice.proposal_confirmed",
+              "voice.proposal_corrected",
+              "voice.proposal_expired",
+              "voice.proposal_superseded",
+              "voice.provider_failed",
+              "voice.offline_audio_attached",
+              "voice.offline_audio_transcription_started",
+              "voice.offline_audio_needs_confirmation",
+              "voice.offline_audio_declined",
+              "voice.offline_audio_deleted",
+              "ai.invocation_started",
+              "ai.invocation_completed",
+              "ai.invocation_failed",
+              "ai.output_validation_failed",
+              "ai.extraction_accepted",
+              "ai.extraction_rejected",
+              "ai.explanation_published",
+              "model.kill_switch_activated",
+              "model.alias_rolled_back",
+              "external.import_started",
+              "external.import_completed",
+              "external.import_failed",
+              "external.raw_artifact_deleted",
+              "weather.forecast_edition_ingested",
+              "weather.forecast_edition_expired",
+              "weather.freshness_changed",
+              "weather.warning_version_ingested",
+              "weather.warning_corrected",
+              "weather.warning_cancelled",
+              "earth.job_requested",
+              "earth.job_started",
+              "earth.job_completed",
+              "earth.job_failed",
+              "earth.job_cancelled",
+              "earth.snapshot_created",
+              "earth.snapshot_expired",
+              "earth.snapshot_invalidated",
+              "earth.location_consent_blocked",
+              "analytics.candidate_recorded",
+              "analytics.candidate_corrected",
+              "analytics.candidate_withdrawn",
+              "analytics.safe_fact_recorded",
+              "analytics.safe_fact_corrected",
+              "analytics.safe_fact_retracted",
+              "privacy.release_started",
+              "privacy.release_validated",
+              "privacy.release_failed",
+              "privacy.release_signed",
+              "privacy.release_activated",
+              "privacy.release_invalidated",
+              "privacy.release_expired",
+              "privacy.cell_suppressed",
+              "mp.aggregate_query_completed",
+              "mp.aggregate_query_refused",
+              "mp.safe_rollup_returned",
+              "mp.briefing_generation_requested",
+              "mp.briefing_generation_failed",
+              "mp.briefing_export_requested",
+              "mp.briefing_draft_created",
+              "mp.briefing_snapshot_saved",
+              "mp.briefing_exported",
+              "mp.briefing_export_refused"
+            ],
+            "type": "string"
+          },
+          "eventOrdinal": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "eventVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "jurisdictionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "modeDerivationVersion": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "payloadChecksum": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "payloadClassification": {
+            "enum": [
+              "C0",
+              "C1",
+              "C2",
+              "C3",
+              "C4",
+              "P1"
+            ],
+            "type": "string"
+          },
+          "payloadSchemaVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "producerBuild": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "producerService": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "provenanceTypes": {
+            "items": {
+              "enum": [
+                "SENSOR",
+                "FARMER_MANUAL",
+                "RSK_MANUAL",
+                "LABORATORY",
+                "SOIL_HEALTH_CARD",
+                "WEATHER",
+                "SATELLITE",
+                "PUBLIC_MARKET",
+                "DERIVED"
+              ],
+              "type": "string"
+            },
+            "maxItems": 9,
+            "minItems": 1,
+            "type": "array"
+          },
+          "purposeCode": {
+            "enum": [
+              "farmer.self_service",
+              "case.expert_support",
+              "field.visit",
+              "sensor.maintenance",
+              "assisted.service",
+              "alert.delivery",
+              "market.support",
+              "data.rights"
+            ],
+            "type": "string"
+          },
+          "retentionClass": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "roleContextRef": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "serverReceivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "traceId": {
+            "pattern": "^[0-9a-f]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "eventId",
+          "eventName",
+          "eventVersion",
+          "aggregateType",
+          "aggregateId",
+          "aggregateRevision",
+          "eventOrdinal",
+          "occurredAt",
+          "serverReceivedAt",
+          "committedAt",
+          "actorType",
+          "dataMode",
+          "provenanceTypes",
+          "modeDerivationVersion",
+          "correlationId",
+          "producerService",
+          "producerBuild",
+          "payloadClassification",
+          "retentionClass",
+          "payloadSchemaVersion",
+          "payload",
+          "payloadChecksum"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "FarmerBootstrapResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "authorizationVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "case.response.draft",
+                "case.care_plan.issue",
+                "case.severe.resolve",
+                "advisory.review.decide",
+                "alert.draft",
+                "alert.approve",
+                "alert.publish",
+                "alert.delivery.monitor",
+                "alert.delivery.operate",
+                "sensor.agronomic_invalidate",
+                "template.draft",
+                "template.approve",
+                "template.publish",
+                "calendar.review",
+                "market.support",
+                "market.mapping.review",
+                "market.mapping.approve",
+                "assisted_session.operate",
+                "visit.manage",
+                "visit.execute.field",
+                "visit.execute.sensor",
+                "visit.outcome.review",
+                "audit.investigate_sensitive",
+                "rsk.work.read",
+                "rsk.work.operate",
+                "rsk.work.assign",
+                "rsk.protected_search",
+                "rsk.access_grant.issue",
+                "rsk.protected_disclose",
+                "case.read",
+                "case.evidence.request",
+                "case.follow_up.record",
+                "case.resolve.routine",
+                "advisory.review.read",
+                "outreach.operate",
+                "sensor.issue.operate",
+                "sensor.install",
+                "sensor.calibration.record",
+                "sensor.maintenance.execute",
+                "template.read",
+                "alert.read",
+                "identity.role_context.select",
+                "profile.correct",
+                "device_mode.change"
+              ],
+              "type": "string"
+            },
+            "maxItems": 10,
+            "type": "array"
+          },
+          "farmContextState": {
+            "const": "UNAVAILABLE_UNTIL_SETUP",
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "mr",
+              "hi",
+              "en"
+            ],
+            "type": "string"
+          },
+          "onboardingState": {
+            "enum": [
+              "NOT_STARTED",
+              "IN_PROGRESS",
+              "COMPLETE"
+            ],
+            "type": "string"
+          },
+          "subjectId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subjectId",
+          "locale",
+          "onboardingState",
+          "authorizationVersion",
+          "capabilities",
+          "farmContextState"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "HealthPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "service": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "not_ready"
+            ],
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
         "required": [
           "service",
           "status",
           "timestamp"
         ],
+        "type": "object",
+        "x-data-classification": "C0"
+      },
+      "IssueAccessGrantCommand": {
+        "additionalProperties": false,
         "properties": {
-          "service": {
-            "type": "string",
-            "minLength": 1
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "IssueAccessGrant",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "expiresAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "farmerSubjectId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "purposeKey": {
+                "const": "assisted.service",
+                "type": "string"
+              },
+              "targetId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "targetKind": {
+                "const": "ASSISTED_FARMER_CONTEXT",
+                "type": "string"
+              }
+            },
+            "required": [
+              "targetKind",
+              "targetId",
+              "farmerSubjectId",
+              "purposeKey",
+              "consentAccessVersion",
+              "expiresAt"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "accessGrant",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "JsonValue": {},
+      "MilestoneOneEvent": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "const": "identity.role_context_created",
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "authorizationVersion": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "capabilitySetVersion": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "expiresAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "roleContextId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "roleType": {
+                    "enum": [
+                      "FARMER",
+                      "RSK",
+                      "MP"
+                    ],
+                    "type": "string"
+                  },
+                  "subjectId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "roleContextId",
+                  "subjectId",
+                  "roleType",
+                  "authorizationVersion",
+                  "capabilitySetVersion",
+                  "expiresAt"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "const": "C2",
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "const": "identity.role_context_revoked",
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "authorizationVersion": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "reasonCode": {
+                    "enum": [
+                      "USER_SWITCH",
+                      "LOGOUT",
+                      "GRANT_REVOKED",
+                      "SECURITY_VERSION_CHANGED"
+                    ],
+                    "type": "string"
+                  },
+                  "roleContextId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "subjectId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "roleContextId",
+                  "subjectId",
+                  "authorizationVersion",
+                  "reasonCode"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "const": "C2",
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "const": "consent.decision_recorded",
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "accessVersion": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "consentDecisionId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "decision": {
+                    "enum": [
+                      "ALLOW",
+                      "DENY",
+                      "WITHDRAW"
+                    ],
+                    "type": "string"
+                  },
+                  "purposeKey": {
+                    "enum": [
+                      "farmer.self_service",
+                      "case.expert_support",
+                      "field.visit",
+                      "sensor.maintenance",
+                      "assisted.service",
+                      "alert.delivery",
+                      "market.support",
+                      "data.rights"
+                    ],
+                    "type": "string"
+                  },
+                  "scopeKey": {
+                    "enum": [
+                      "location.processing",
+                      "audio.storage",
+                      "case.sharing",
+                      "sensor.collection",
+                      "sensor.maintenance_location",
+                      "visit.access",
+                      "assisted_service.access",
+                      "channel.app_push",
+                      "channel.sms",
+                      "channel.ivr",
+                      "market.private_fields"
+                    ],
+                    "type": "string"
+                  },
+                  "subjectId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "targetId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "targetKind": {
+                    "enum": [
+                      "ACCOUNT",
+                      "ASSISTED_FARMER_CONTEXT"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "consentDecisionId",
+                  "subjectId",
+                  "scopeKey",
+                  "purposeKey",
+                  "targetKind",
+                  "targetId",
+                  "decision",
+                  "accessVersion"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "const": "C2",
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          }
+        ],
+        "x-data-classification": "C2"
+      },
+      "MpQueryContextResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "activeRelease": {
+            "type": "null"
+          },
+          "availableMetricKeys": {
+            "items": {
+              "not": {}
+            },
+            "maxItems": 0,
+            "type": "array"
+          },
+          "code": {
+            "const": "DEPENDENCY_UNAVAILABLE",
+            "type": "string"
+          },
+          "state": {
+            "const": "UNAVAILABLE",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "code",
+          "availableMetricKeys",
+          "activeRelease"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "MpSafeResult": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MpUnavailableResult"
+          },
+          {
+            "$ref": "#/components/schemas/MpSuppressedResult"
+          }
+        ]
+      },
+      "MpSuppressedResult": {
+        "additionalProperties": false,
+        "properties": {
+          "methodologyId": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reasonCode": {
+            "enum": [
+              "COHORT_TOO_SMALL",
+              "COMPLEMENTARY_SUPPRESSION",
+              "STICKY_SUPPRESSION"
+            ],
+            "type": "string"
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "ok",
-              "not_ready"
-            ]
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
+            "const": "SUPPRESSED",
+            "type": "string"
           }
-        }
+        },
+        "required": [
+          "status",
+          "reasonCode",
+          "methodologyId"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "MpUnavailableResult": {
+        "additionalProperties": false,
+        "properties": {
+          "reasonCode": {
+            "enum": [
+              "NO_ACTIVE_RELEASE",
+              "RELEASE_INVALID",
+              "RELEASE_STALE"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "const": "UNAVAILABLE",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reasonCode"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "ProblemDetails": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "AUTHENTICATION_REQUIRED",
+              "AUTHORIZATION_DENIED",
+              "MFA_REQUIRED",
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED",
+              "DEVICE_BINDING_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED",
+              "EXPECTED_REVISION_MISMATCH",
+              "INVALID_STATE_TRANSITION",
+              "TOMBSTONED_ENTITY",
+              "SOURCE_VERSION_EXPIRED",
+              "EVIDENCE_INSUFFICIENT",
+              "SYNC_CURSOR_INVALID",
+              "SYNC_CURSOR_EXPIRED",
+              "SYNC_BOOTSTRAP_REQUIRED",
+              "SYNC_SCHEMA_UNSUPPORTED",
+              "SYNC_BATCH_ID_REUSED",
+              "CAUSAL_DEPENDENCY_UNSATISFIED",
+              "ASSIGNMENT_CHANGED",
+              "CLOCK_UNTRUSTED",
+              "MEDIA_INTEGRITY_MISMATCH",
+              "MEDIA_NOT_VERIFIED",
+              "UPLOAD_INTENT_EXPIRED",
+              "VOICE_PROPOSAL_EXPIRED",
+              "VOICE_PROPOSAL_HASH_MISMATCH",
+              "VISUAL_REVIEW_REQUIRED",
+              "RELEASE_INVALIDATED",
+              "RELEASE_UNAVAILABLE",
+              "DEPENDENCY_UNAVAILABLE",
+              "FILTER_NOT_ALLOWLISTED",
+              "COMPARISON_NOT_RELEASABLE",
+              "BATCH_ID_PAYLOAD_MISMATCH",
+              "RATE_LIMITED"
+            ],
+            "type": "string"
+          },
+          "correlationId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "detail": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "fieldErrors": {
+            "default": [],
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "maxLength": 80,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "field": {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field",
+                "code"
+              ],
+              "type": "object"
+            },
+            "maxItems": 25,
+            "type": "array"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "status": {
+            "maximum": 599,
+            "minimum": 400,
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "correlationId",
+          "retryable",
+          "fieldErrors"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "ProtectedDisclosureRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expectedAccessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "fieldSet": {
+            "const": "CONTACT",
+            "type": "string"
+          },
+          "purposeKey": {
+            "const": "assisted.service",
+            "type": "string"
+          },
+          "targetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "targetKind": {
+            "const": "ASSISTED_FARMER_CONTEXT",
+            "type": "string"
+          }
+        },
+        "required": [
+          "targetKind",
+          "targetId",
+          "purposeKey",
+          "expectedAccessVersion",
+          "fieldSet"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "ProtectedDisclosureResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "auditedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "fields": {
+            "additionalProperties": false,
+            "properties": {
+              "contact": {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              "displayName": {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "displayName",
+              "contact"
+            ],
+            "type": "object"
+          },
+          "targetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "targetId",
+          "accessVersion",
+          "fields",
+          "auditedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "RecordConsentDecisionCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "RecordConsentDecision",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "decision": {
+                "enum": [
+                  "ALLOW",
+                  "DENY",
+                  "WITHDRAW"
+                ],
+                "type": "string"
+              },
+              "expiresAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "policyVersionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "purposeKey": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "scopeKey": {
+                "enum": [
+                  "location.processing",
+                  "audio.storage",
+                  "case.sharing",
+                  "sensor.collection",
+                  "sensor.maintenance_location",
+                  "visit.access",
+                  "assisted_service.access",
+                  "channel.app_push",
+                  "channel.sms",
+                  "channel.ivr",
+                  "market.private_fields"
+                ],
+                "type": "string"
+              },
+              "targetId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "targetKind": {
+                "enum": [
+                  "ACCOUNT",
+                  "ASSISTED_FARMER_CONTEXT"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "decision",
+              "scopeKey",
+              "purposeKey",
+              "targetKind",
+              "targetId",
+              "policyVersionId"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "consentDecision",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "ReturnStateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "routeKey": {
+            "enum": [
+              "FARMER_HOME",
+              "RSK_HOME",
+              "MP_HOME"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "routeKey"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "ReturnStateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "returnStateId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "returnStateId",
+          "expiresAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C4"
+      },
+      "RoleContextResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "issuedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "roleContext": {
+            "$ref": "#/components/schemas/AuthorizationContext"
+          }
+        },
+        "required": [
+          "roleContext",
+          "issuedAt",
+          "expiresAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "RskBootstrapResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "authorizationVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "capabilities": {
+            "items": {
+              "enum": [
+                "case.response.draft",
+                "case.care_plan.issue",
+                "case.severe.resolve",
+                "advisory.review.decide",
+                "alert.draft",
+                "alert.approve",
+                "alert.publish",
+                "alert.delivery.monitor",
+                "alert.delivery.operate",
+                "sensor.agronomic_invalidate",
+                "template.draft",
+                "template.approve",
+                "template.publish",
+                "calendar.review",
+                "market.support",
+                "market.mapping.review",
+                "market.mapping.approve",
+                "assisted_session.operate",
+                "visit.manage",
+                "visit.execute.field",
+                "visit.execute.sensor",
+                "visit.outcome.review",
+                "audit.investigate_sensitive",
+                "rsk.work.read",
+                "rsk.work.operate",
+                "rsk.work.assign",
+                "rsk.protected_search",
+                "rsk.access_grant.issue",
+                "rsk.protected_disclose",
+                "case.read",
+                "case.evidence.request",
+                "case.follow_up.record",
+                "case.resolve.routine",
+                "advisory.review.read",
+                "outreach.operate",
+                "sensor.issue.operate",
+                "sensor.install",
+                "sensor.calibration.record",
+                "sensor.maintenance.execute",
+                "template.read",
+                "alert.read",
+                "identity.role_context.select",
+                "profile.correct",
+                "device_mode.change"
+              ],
+              "type": "string"
+            },
+            "maxItems": 50,
+            "type": "array"
+          },
+          "jurisdictionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "officeId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "subjectId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "workState": {
+            "const": "UNAVAILABLE_UNTIL_WORK_MILESTONE",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subjectId",
+          "officeId",
+          "jurisdictionId",
+          "authorizationVersion",
+          "capabilities",
+          "workState"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "SelectRoleContextCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "SelectRoleContext",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "officeId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "roleGrantId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "roleGrantId"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "roleContext",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "SessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "activeRoleContext": {
+            "$ref": "#/components/schemas/AuthorizationContext"
+          },
+          "authorizationVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "capabilitySetVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "deviceBindingState": {
+            "enum": [
+              "ACTIVE",
+              "REQUIRED",
+              "REVOKED"
+            ],
+            "type": "string"
+          },
+          "environment": {
+            "enum": [
+              "local",
+              "preview",
+              "staging",
+              "demo",
+              "production"
+            ],
+            "type": "string"
+          },
+          "mfaState": {
+            "enum": [
+              "NOT_REQUIRED",
+              "CURRENT",
+              "REQUIRED",
+              "EXPIRED"
+            ],
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "capabilitySetVersion": {
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "type": "integer"
+                },
+                "destination": {
+                  "enum": [
+                    "/farmer/today",
+                    "/rsk/work",
+                    "/mp/overview"
+                  ],
+                  "type": "string"
+                },
+                "jurisdictionId": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "officeId": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "roleGrantId": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "roleType": {
+                  "enum": [
+                    "FARMER",
+                    "RSK",
+                    "MP"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "roleGrantId",
+                "roleType",
+                "destination",
+                "capabilitySetVersion"
+              ],
+              "type": "object"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "subjectId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "subjectType": {
+            "enum": [
+              "FARMER",
+              "STAFF"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "subjectId",
+          "subjectType",
+          "environment",
+          "mfaState",
+          "deviceBindingState",
+          "authorizationVersion",
+          "capabilitySetVersion",
+          "roles"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "SyncBatch": {
+        "additionalProperties": false,
+        "properties": {
+          "batchId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "clientBuild": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "commands": {
+            "items": {
+              "$ref": "#/components/schemas/SyncCommandEnvelope"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "cursor": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "feedLimit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "streamId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "syncBatchVersion": {
+            "const": 1,
+            "type": "number"
+          }
+        },
+        "required": [
+          "syncBatchVersion",
+          "batchId",
+          "streamId",
+          "cursor",
+          "clientBuild",
+          "commands",
+          "feedLimit"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "SyncBatchResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "authorizationVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "batchId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "dispositions": {
+            "items": {
+              "$ref": "#/components/schemas/SyncCommandDisposition"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "feedEvents": {
+            "items": {
+              "$ref": "#/components/schemas/SyncFeedEvent"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "highWaterMark": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "nextCursor": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "serverTime": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "batchId",
+          "dispositions",
+          "feedEvents",
+          "nextCursor",
+          "highWaterMark",
+          "hasMore",
+          "serverTime",
+          "authorizationVersion"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "SyncCommandDisposition": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "acknowledgementId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "authoritativeRevision": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "clientEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "commandId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "disposition": {
+                "const": "ACCEPTED",
+                "type": "string"
+              },
+              "serverEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "type": "array"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "commandId",
+              "clientEventIds",
+              "acknowledgementId",
+              "serverReceivedAt",
+              "disposition",
+              "authoritativeRevision",
+              "serverEventIds"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "acknowledgementId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "authoritativeRevision": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "clientEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "commandId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "disposition": {
+                "const": "ALREADY_ACCEPTED",
+                "type": "string"
+              },
+              "serverEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "minItems": 1,
+                "type": "array"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "commandId",
+              "clientEventIds",
+              "acknowledgementId",
+              "serverReceivedAt",
+              "disposition",
+              "authoritativeRevision",
+              "serverEventIds"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "acknowledgementId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "authoritativeRevision": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "clientEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "commandId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "disposition": {
+                "const": "REJECTED",
+                "type": "string"
+              },
+              "problemCode": {
+                "enum": [
+                  "AUTHENTICATION_REQUIRED",
+                  "AUTHORIZATION_DENIED",
+                  "MFA_REQUIRED",
+                  "AUTHORIZATION_VERSION_CHANGED",
+                  "CONSENT_OR_ACCESS_VERSION_CHANGED",
+                  "DEVICE_BINDING_MISMATCH",
+                  "IDEMPOTENCY_KEY_REUSED",
+                  "EXPECTED_REVISION_MISMATCH",
+                  "INVALID_STATE_TRANSITION",
+                  "TOMBSTONED_ENTITY",
+                  "SOURCE_VERSION_EXPIRED",
+                  "EVIDENCE_INSUFFICIENT",
+                  "SYNC_CURSOR_INVALID",
+                  "SYNC_CURSOR_EXPIRED",
+                  "SYNC_BOOTSTRAP_REQUIRED",
+                  "SYNC_SCHEMA_UNSUPPORTED",
+                  "SYNC_BATCH_ID_REUSED",
+                  "CAUSAL_DEPENDENCY_UNSATISFIED",
+                  "ASSIGNMENT_CHANGED",
+                  "CLOCK_UNTRUSTED",
+                  "MEDIA_INTEGRITY_MISMATCH",
+                  "MEDIA_NOT_VERIFIED",
+                  "UPLOAD_INTENT_EXPIRED",
+                  "VOICE_PROPOSAL_EXPIRED",
+                  "VOICE_PROPOSAL_HASH_MISMATCH",
+                  "VISUAL_REVIEW_REQUIRED",
+                  "RELEASE_INVALIDATED",
+                  "RELEASE_UNAVAILABLE",
+                  "DEPENDENCY_UNAVAILABLE",
+                  "FILTER_NOT_ALLOWLISTED",
+                  "COMPARISON_NOT_RELEASABLE",
+                  "BATCH_ID_PAYLOAD_MISMATCH",
+                  "RATE_LIMITED"
+                ],
+                "type": "string"
+              },
+              "serverEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                  "type": "string"
+                },
+                "maxItems": 0,
+                "type": "array"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "commandId",
+              "clientEventIds",
+              "acknowledgementId",
+              "serverReceivedAt",
+              "disposition",
+              "problemCode",
+              "serverEventIds"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "acknowledgementId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "authoritativeRevision": {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "clientEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              "commandId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "conflictId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "disposition": {
+                "const": "CONFLICT",
+                "type": "string"
+              },
+              "problemCode": {
+                "enum": [
+                  "AUTHENTICATION_REQUIRED",
+                  "AUTHORIZATION_DENIED",
+                  "MFA_REQUIRED",
+                  "AUTHORIZATION_VERSION_CHANGED",
+                  "CONSENT_OR_ACCESS_VERSION_CHANGED",
+                  "DEVICE_BINDING_MISMATCH",
+                  "IDEMPOTENCY_KEY_REUSED",
+                  "EXPECTED_REVISION_MISMATCH",
+                  "INVALID_STATE_TRANSITION",
+                  "TOMBSTONED_ENTITY",
+                  "SOURCE_VERSION_EXPIRED",
+                  "EVIDENCE_INSUFFICIENT",
+                  "SYNC_CURSOR_INVALID",
+                  "SYNC_CURSOR_EXPIRED",
+                  "SYNC_BOOTSTRAP_REQUIRED",
+                  "SYNC_SCHEMA_UNSUPPORTED",
+                  "SYNC_BATCH_ID_REUSED",
+                  "CAUSAL_DEPENDENCY_UNSATISFIED",
+                  "ASSIGNMENT_CHANGED",
+                  "CLOCK_UNTRUSTED",
+                  "MEDIA_INTEGRITY_MISMATCH",
+                  "MEDIA_NOT_VERIFIED",
+                  "UPLOAD_INTENT_EXPIRED",
+                  "VOICE_PROPOSAL_EXPIRED",
+                  "VOICE_PROPOSAL_HASH_MISMATCH",
+                  "VISUAL_REVIEW_REQUIRED",
+                  "RELEASE_INVALIDATED",
+                  "RELEASE_UNAVAILABLE",
+                  "DEPENDENCY_UNAVAILABLE",
+                  "FILTER_NOT_ALLOWLISTED",
+                  "COMPARISON_NOT_RELEASABLE",
+                  "BATCH_ID_PAYLOAD_MISMATCH",
+                  "RATE_LIMITED"
+                ],
+                "type": "string"
+              },
+              "serverEventIds": {
+                "items": {
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                  "type": "string"
+                },
+                "maxItems": 0,
+                "type": "array"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "commandId",
+              "clientEventIds",
+              "acknowledgementId",
+              "serverReceivedAt",
+              "disposition",
+              "problemCode",
+              "conflictId",
+              "authoritativeRevision",
+              "serverEventIds"
+            ],
+            "type": "object"
+          }
+        ],
+        "x-data-classification": "C2"
+      },
+      "SyncCommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "causalCommandIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "clientEventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "localSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "operation": {
+            "const": "RecordConsentDecision",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "decision": {
+                "enum": [
+                  "ALLOW",
+                  "DENY",
+                  "WITHDRAW"
+                ],
+                "type": "string"
+              },
+              "expiresAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "policyVersionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "purposeKey": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "scopeKey": {
+                "enum": [
+                  "location.processing",
+                  "audio.storage",
+                  "case.sharing",
+                  "sensor.collection",
+                  "sensor.maintenance_location",
+                  "visit.access",
+                  "assisted_service.access",
+                  "channel.app_push",
+                  "channel.sms",
+                  "channel.ivr",
+                  "market.private_fields"
+                ],
+                "type": "string"
+              },
+              "targetId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "targetKind": {
+                "enum": [
+                  "ACCOUNT",
+                  "ASSISTED_FARMER_CONTEXT"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "decision",
+              "scopeKey",
+              "purposeKey",
+              "targetKind",
+              "targetId",
+              "policyVersionId"
+            ],
+            "type": "object"
+          },
+          "requestHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "consentDecision",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "clientEventIds",
+          "operation",
+          "commandSchemaVersion",
+          "target",
+          "expectedRevision",
+          "occurredAt",
+          "timezone",
+          "localSequence",
+          "causalCommandIds",
+          "requestHash",
+          "payload"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "SyncFeedEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "feedEventId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+            "type": "string"
+          },
+          "integrationEvent": {
+            "$ref": "#/components/schemas/MilestoneOneEvent"
+          },
+          "projectionDeltas": {
+            "items": {
+              "$ref": "#/components/schemas/SyncProjectionDelta"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "sequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "feedEventId",
+          "sequence",
+          "integrationEvent",
+          "projectionDeltas"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "SyncProjectionDelta": {
+        "additionalProperties": false,
+        "properties": {
+          "authoritativeRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "changeType": {
+            "enum": [
+              "UPSERT",
+              "TOMBSTONE"
+            ],
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "payloadChecksum": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "payloadClassification": {
+            "enum": [
+              "C0",
+              "C1",
+              "C2"
+            ],
+            "type": "string"
+          },
+          "projectionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "projectionSchemaVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "projectionType": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectionType",
+          "projectionId",
+          "projectionSchemaVersion",
+          "authoritativeRevision",
+          "changeType",
+          "dataMode",
+          "payloadClassification",
+          "payload",
+          "payloadChecksum"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "Unavailable": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "const": "DEPENDENCY_UNAVAILABLE",
+            "type": "string"
+          },
+          "correlationId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "state": {
+            "const": "UNAVAILABLE",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "code",
+          "correlationId",
+          "retryable"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "VoiceDelegation": {
+        "additionalProperties": false,
+        "properties": {
+          "consentAccessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "purpose": {
+            "enum": [
+              "farmer.self_service",
+              "case.expert_support",
+              "field.visit",
+              "sensor.maintenance",
+              "assisted.service",
+              "alert.delivery",
+              "market.support",
+              "data.rights"
+            ],
+            "type": "string"
+          },
+          "roleContextId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "roleType": {
+            "enum": [
+              "FARMER",
+              "RSK",
+              "MP"
+            ],
+            "type": "string"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "subjectId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "toolKey": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "subjectId",
+          "roleContextId",
+          "roleType",
+          "purpose",
+          "toolKey",
+          "consentAccessVersion",
+          "sessionId",
+          "expiresAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C4"
+      }
+    },
+    "securitySchemes": {
+      "appCheck": {
+        "in": "header",
+        "name": "X-Firebase-AppCheck",
+        "type": "apiKey"
+      },
+      "bearerAuth": {
+        "bearerFormat": "Firebase ID token",
+        "scheme": "bearer",
+        "type": "http"
       }
     }
-  }
+  },
+  "info": {
+    "description": "Generated Milestone 1 contract. JSON fields use lower camel case.",
+    "title": "Smart Fasal platform API",
+    "version": "1.0.0-m1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health/live": {
+      "get": {
+        "operationId": "getLiveness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthPayload"
+                }
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "security": [],
+        "tags": [
+          "live"
+        ],
+        "x-data-classification": "C0",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "none",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": []
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthPayload"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthPayload"
+                }
+              }
+            },
+            "description": "A required dependency is unavailable"
+          }
+        },
+        "security": [],
+        "tags": [
+          "ready"
+        ],
+        "x-data-classification": "C0",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "none",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "DEPENDENCY_UNAVAILABLE"
+        ]
+      }
+    },
+    "/v1/auth/return-states": {
+      "post": {
+        "operationId": "createReturnState",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnStateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReturnStateResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "RATE_LIMITED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ],
+        "x-data-classification": "C4",
+        "x-retention-class": "ephemeral-ticket",
+        "x-smart-fasal-authorization": {
+          "authentication": "app-check",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "RATE_LIMITED"
+        ]
+      }
+    },
+    "/v1/auth/role-contexts": {
+      "post": {
+        "operationId": "selectRoleContext",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectRoleContextCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED",
+              "MFA_REQUIRED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "command-receipt",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": "identity.role_context.select",
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "MFA_REQUIRED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/auth/role-contexts/{roleContextId}": {
+      "delete": {
+        "operationId": "revokeRoleContext",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "in": "path",
+            "name": "roleContextId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "command-receipt",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": "identity.role_context.select",
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": false,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/auth/roles": {
+      "get": {
+        "operationId": "listRoles",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/optionalRoleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "session",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/auth/session": {
+      "get": {
+        "operationId": "getAuthSession",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/optionalRoleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "session",
+        "x-smart-fasal-authorization": {
+          "authentication": "identity",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/bootstrap": {
+      "get": {
+        "operationId": "getFarmerBootstrap",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerBootstrapResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/consent-decisions": {
+      "post": {
+        "operationId": "recordConsentDecision",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordConsentDecisionCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED",
+              "EXPECTED_REVISION_MISMATCH"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "consent",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "IDEMPOTENCY_KEY_REUSED",
+          "EXPECTED_REVISION_MISMATCH"
+        ]
+      }
+    },
+    "/v1/farmer/consents": {
+      "get": {
+        "operationId": "listFarmerConsents",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentListResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/mp/query-context": {
+      "get": {
+        "operationId": "getMpQueryContext",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MpQueryContextResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED",
+              "MFA_REQUIRED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "mp"
+        ],
+        "x-data-classification": "C1",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "mp",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "MFA_REQUIRED"
+        ]
+      }
+    },
+    "/v1/rsk/access-grants": {
+      "post": {
+        "operationId": "issueRskAccessGrant",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueAccessGrantCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResult"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED",
+              "IDEMPOTENCY_KEY_REUSED",
+              "EXPECTED_REVISION_MISMATCH"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "rsk"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "access-grant",
+        "x-smart-fasal-authorization": {
+          "authentication": "rsk",
+          "capability": "rsk.access_grant.issue",
+          "denyByDefault": true,
+          "purpose": "assisted.service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED",
+          "IDEMPOTENCY_KEY_REUSED",
+          "EXPECTED_REVISION_MISMATCH"
+        ]
+      }
+    },
+    "/v1/rsk/bootstrap": {
+      "get": {
+        "operationId": "getRskBootstrap",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RskBootstrapResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED",
+              "MFA_REQUIRED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "rsk"
+        ],
+        "x-data-classification": "C1",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "rsk",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "MFA_REQUIRED"
+        ]
+      }
+    },
+    "/v1/rsk/protected-disclosures": {
+      "post": {
+        "operationId": "createRskProtectedDisclosure",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectedDisclosureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedDisclosureResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "rsk"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "audit",
+        "x-smart-fasal-authorization": {
+          "authentication": "rsk",
+          "capability": "rsk.protected_disclose",
+          "denyByDefault": true,
+          "purpose": "assisted.service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/system/reachability": {
+      "get": {
+        "operationId": "getReachability",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthPayload"
+                }
+              }
+            },
+            "description": "Successful response"
+          }
+        },
+        "security": [],
+        "tags": [
+          "system"
+        ],
+        "x-data-classification": "C0",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "none",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": []
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://platform.api.smart-fasal.invalid"
+    }
+  ],
+  "tags": [
+    {
+      "name": "system"
+    },
+    {
+      "name": "auth"
+    },
+    {
+      "name": "farmer"
+    },
+    {
+      "name": "rsk"
+    },
+    {
+      "name": "mp"
+    }
+  ],
+  "x-smart-fasal-capability-registry": [
+    "case.response.draft",
+    "case.care_plan.issue",
+    "case.severe.resolve",
+    "advisory.review.decide",
+    "alert.draft",
+    "alert.approve",
+    "alert.publish",
+    "alert.delivery.monitor",
+    "alert.delivery.operate",
+    "sensor.agronomic_invalidate",
+    "template.draft",
+    "template.approve",
+    "template.publish",
+    "calendar.review",
+    "market.support",
+    "market.mapping.review",
+    "market.mapping.approve",
+    "assisted_session.operate",
+    "visit.manage",
+    "visit.execute.field",
+    "visit.execute.sensor",
+    "visit.outcome.review",
+    "audit.investigate_sensitive",
+    "rsk.work.read",
+    "rsk.work.operate",
+    "rsk.work.assign",
+    "rsk.protected_search",
+    "rsk.access_grant.issue",
+    "rsk.protected_disclose",
+    "case.read",
+    "case.evidence.request",
+    "case.follow_up.record",
+    "case.resolve.routine",
+    "advisory.review.read",
+    "outreach.operate",
+    "sensor.issue.operate",
+    "sensor.install",
+    "sensor.calibration.record",
+    "sensor.maintenance.execute",
+    "template.read",
+    "alert.read",
+    "identity.role_context.select",
+    "profile.correct",
+    "device_mode.change"
+  ],
+  "x-smart-fasal-consent-scope-registry": [
+    "location.processing",
+    "audio.storage",
+    "case.sharing",
+    "sensor.collection",
+    "sensor.maintenance_location",
+    "visit.access",
+    "assisted_service.access",
+    "channel.app_push",
+    "channel.sms",
+    "channel.ivr",
+    "market.private_fields"
+  ],
+  "x-smart-fasal-purpose-registry": [
+    "farmer.self_service",
+    "case.expert_support",
+    "field.visit",
+    "sensor.maintenance",
+    "assisted.service",
+    "alert.delivery",
+    "market.support",
+    "data.rights"
+  ]
 }

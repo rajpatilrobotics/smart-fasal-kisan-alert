@@ -18,7 +18,13 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
+    "@smart-fasal/application": "workspace:*",
+    "@smart-fasal/authz": "workspace:*",
+    "@smart-fasal/contracts": "workspace:*",
     "@smart-fasal/config": "workspace:*",
-    "@smart-fasal/service-runtime": "workspace:*"
+    "@smart-fasal/observability": "workspace:*",
+    "fastify": "5.10.0",
+    "json-canonicalize": "2.0.0",
+    "postgres": "3.4.9"
   }
 }

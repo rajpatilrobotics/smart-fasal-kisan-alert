@@ -18,7 +18,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@smart-fasal/browser-auth": "workspace:*",
+    "@smart-fasal/contracts": "workspace:*",
     "@smart-fasal/health": "workspace:*",
+    "@smart-fasal/i18n": "workspace:*",
     "next": "16.2.10",
     "react": "19.2.7",
     "react-dom": "19.2.7"

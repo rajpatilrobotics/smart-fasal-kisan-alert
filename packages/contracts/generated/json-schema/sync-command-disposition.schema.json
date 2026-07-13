@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledgementId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "authoritativeRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "clientEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "type": "array"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "ACCEPTED",
+          "type": "string"
+        },
+        "serverEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "type": "array"
+        },
+        "serverReceivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "clientEventIds",
+        "acknowledgementId",
+        "serverReceivedAt",
+        "disposition",
+        "authoritativeRevision",
+        "serverEventIds"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledgementId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "authoritativeRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "clientEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "type": "array"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "ALREADY_ACCEPTED",
+          "type": "string"
+        },
+        "serverEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "type": "array"
+        },
+        "serverReceivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "clientEventIds",
+        "acknowledgementId",
+        "serverReceivedAt",
+        "disposition",
+        "authoritativeRevision",
+        "serverEventIds"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledgementId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "authoritativeRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "clientEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "type": "array"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "REJECTED",
+          "type": "string"
+        },
+        "problemCode": {
+          "enum": [
+            "AUTHENTICATION_REQUIRED",
+            "AUTHORIZATION_DENIED",
+            "MFA_REQUIRED",
+            "AUTHORIZATION_VERSION_CHANGED",
+            "CONSENT_OR_ACCESS_VERSION_CHANGED",
+            "DEVICE_BINDING_MISMATCH",
+            "IDEMPOTENCY_KEY_REUSED",
+            "EXPECTED_REVISION_MISMATCH",
+            "INVALID_STATE_TRANSITION",
+            "TOMBSTONED_ENTITY",
+            "SOURCE_VERSION_EXPIRED",
+            "EVIDENCE_INSUFFICIENT",
+            "SYNC_CURSOR_INVALID",
+            "SYNC_CURSOR_EXPIRED",
+            "SYNC_BOOTSTRAP_REQUIRED",
+            "SYNC_SCHEMA_UNSUPPORTED",
+            "SYNC_BATCH_ID_REUSED",
+            "CAUSAL_DEPENDENCY_UNSATISFIED",
+            "ASSIGNMENT_CHANGED",
+            "CLOCK_UNTRUSTED",
+            "MEDIA_INTEGRITY_MISMATCH",
+            "MEDIA_NOT_VERIFIED",
+            "UPLOAD_INTENT_EXPIRED",
+            "VOICE_PROPOSAL_EXPIRED",
+            "VOICE_PROPOSAL_HASH_MISMATCH",
+            "VISUAL_REVIEW_REQUIRED",
+            "RELEASE_INVALIDATED",
+            "RELEASE_UNAVAILABLE",
+            "DEPENDENCY_UNAVAILABLE",
+            "FILTER_NOT_ALLOWLISTED",
+            "COMPARISON_NOT_RELEASABLE",
+            "BATCH_ID_PAYLOAD_MISMATCH",
+            "RATE_LIMITED"
+          ],
+          "type": "string"
+        },
+        "serverEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+            "type": "string"
+          },
+          "maxItems": 0,
+          "type": "array"
+        },
+        "serverReceivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "clientEventIds",
+        "acknowledgementId",
+        "serverReceivedAt",
+        "disposition",
+        "problemCode",
+        "serverEventIds"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledgementId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "authoritativeRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "clientEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "type": "array"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "conflictId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "CONFLICT",
+          "type": "string"
+        },
+        "problemCode": {
+          "enum": [
+            "AUTHENTICATION_REQUIRED",
+            "AUTHORIZATION_DENIED",
+            "MFA_REQUIRED",
+            "AUTHORIZATION_VERSION_CHANGED",
+            "CONSENT_OR_ACCESS_VERSION_CHANGED",
+            "DEVICE_BINDING_MISMATCH",
+            "IDEMPOTENCY_KEY_REUSED",
+            "EXPECTED_REVISION_MISMATCH",
+            "INVALID_STATE_TRANSITION",
+            "TOMBSTONED_ENTITY",
+            "SOURCE_VERSION_EXPIRED",
+            "EVIDENCE_INSUFFICIENT",
+            "SYNC_CURSOR_INVALID",
+            "SYNC_CURSOR_EXPIRED",
+            "SYNC_BOOTSTRAP_REQUIRED",
+            "SYNC_SCHEMA_UNSUPPORTED",
+            "SYNC_BATCH_ID_REUSED",
+            "CAUSAL_DEPENDENCY_UNSATISFIED",
+            "ASSIGNMENT_CHANGED",
+            "CLOCK_UNTRUSTED",
+            "MEDIA_INTEGRITY_MISMATCH",
+            "MEDIA_NOT_VERIFIED",
+            "UPLOAD_INTENT_EXPIRED",
+            "VOICE_PROPOSAL_EXPIRED",
+            "VOICE_PROPOSAL_HASH_MISMATCH",
+            "VISUAL_REVIEW_REQUIRED",
+            "RELEASE_INVALIDATED",
+            "RELEASE_UNAVAILABLE",
+            "DEPENDENCY_UNAVAILABLE",
+            "FILTER_NOT_ALLOWLISTED",
+            "COMPARISON_NOT_RELEASABLE",
+            "BATCH_ID_PAYLOAD_MISMATCH",
+            "RATE_LIMITED"
+          ],
+          "type": "string"
+        },
+        "serverEventIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+            "type": "string"
+          },
+          "maxItems": 0,
+          "type": "array"
+        },
+        "serverReceivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "clientEventIds",
+        "acknowledgementId",
+        "serverReceivedAt",
+        "disposition",
+        "problemCode",
+        "conflictId",
+        "authoritativeRevision",
+        "serverEventIds"
+      ],
+      "type": "object"
+    }
+  ],
+  "x-data-classification": "C2"
+}

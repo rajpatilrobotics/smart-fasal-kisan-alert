@@ -9,24 +9,48 @@
       "default": "./generated/javascript/index.js"
     },
     "./typescript": "./generated/typescript/index.ts",
+    "./schemas": {
+      "types": "./src/index.ts",
+      "default": "./generated/runtime/schemas.js"
+    },
+    "./release/mp": {
+      "types": "./src/mp-release.ts",
+      "default": "./generated/runtime/mp-release.js"
+    },
     "./openapi": "./generated/openapi/platform.openapi.json",
+    "./openapi/farmer": "./generated/openapi/farmer.openapi.json",
+    "./openapi/rsk": "./generated/openapi/rsk.openapi.json",
+    "./openapi/mp": "./generated/openapi/mp.openapi.json",
     "./json-schema/health": "./generated/json-schema/health.schema.json",
+    "./json-schema/platform": "./generated/json-schema/platform.schema.json",
+    "./clients/farmer": "./generated/clients/farmer.ts",
+    "./clients/rsk": "./generated/clients/rsk.ts",
+    "./clients/mp": "./generated/clients/mp.ts",
     "./events": "./generated/events/event-catalog.json"
   },
   "files": [
-    "generated"
+    "generated",
+    "src"
   ],
   "scripts": {
-    "build": "node ./scripts/generate.mjs",
-    "contracts:generate": "node ./scripts/generate.mjs",
-    "contracts:check": "node ./scripts/generate.mjs --check",
-    "format:check": "node ./scripts/generate.mjs --check",
-    "lint": "node ./scripts/generate.mjs --check",
-    "typecheck": "node ./scripts/generate.mjs --check",
+    "build": "tsx ./scripts/generate.ts",
+    "contracts:generate": "tsx ./scripts/generate.ts",
+    "contracts:check": "tsx ./scripts/generate.ts --check",
+    "format:check": "tsx ./scripts/generate.ts --check",
+    "lint": "tsx ./scripts/generate.ts --check",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "24.10.0",
+    "esbuild": "0.28.1",
+    "openapi-typescript": "7.13.0",
+    "tsx": "4.23.0",
     "vitest": "4.1.10"
+  },
+  "dependencies": {
+    "openapi-fetch": "0.17.0",
+    "zod": "4.4.3"
   }
 }
