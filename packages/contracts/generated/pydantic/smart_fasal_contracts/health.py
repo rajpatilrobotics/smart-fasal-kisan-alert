@@ -1,6 +1,6 @@
 # Generated compatibility module. Do not edit by hand.
-from .models import HealthPayload, Status2 as HealthStatus
+from .models import HealthPayload, Status3 as HealthStatus
 
-CONTRACT_VERSION = "1.2.0-m3"
+CONTRACT_VERSION = "1.3.0-m4"
 
 __all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]

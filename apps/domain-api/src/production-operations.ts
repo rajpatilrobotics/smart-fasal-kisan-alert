@@ -1713,6 +1713,8 @@ export function createProductionDomainComposition(
         case 'updateFarmerFarm':
         case 'createFarmerPlot':
         case 'getFarmerPlot':
+        case 'getFarmerPlotEvidenceSummary':
+        case 'createFarmerSoilRecord':
         case 'updateFarmerPlot':
         case 'createFarmerPlotGeometryVersion':
         case 'updateFarmerPreferences':

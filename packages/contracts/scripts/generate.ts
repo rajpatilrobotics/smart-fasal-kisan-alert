@@ -32,7 +32,19 @@ import {
   CreateVoiceSessionResponseSchema,
   DeviceModeSchema,
   DeviceModeChangePayloadSchema,
+  DeviceBatchRequestSchema,
   DeviceBatchReceiptSchema,
+  DeviceChallengeRequestSchema,
+  DeviceChallengeResponseSchema,
+  DeviceObservationSchema,
+  DeviceReceiptResponseSchema,
+  CreateSoilRecordRequestSchema,
+  EarthJobExecuteRequestSchema,
+  EarthJobExecuteResponseSchema,
+  EvidenceRecordSchema,
+  EvidenceSourceSchema,
+  EvidenceSummaryCardSchema,
+  EvidenceValueSchema,
   EventEnvelopeSchema,
   FarmerBootstrapResponseSchema,
   FarmerProfileSetupSchema,
@@ -67,12 +79,14 @@ import {
   SaveFarmerSetupDraftCommandSchema,
   SaveFarmerSetupDraftPayloadSchema,
   PlotGeometrySummarySchema,
+  PlotEvidenceSummarySchema,
   SetupVoiceProposalPayloadSchema,
   SetupVoiceReadResponseSchema,
   PlotSetupSchema,
   RaigadLocationSchema,
   SetupConsentsSchema,
   SoilMeasurementSchema,
+  SoilRecordResponseSchema,
   SyncBatchResponseSchema,
   SyncBatchResponseV2Schema,
   SyncBatchSchema,
@@ -121,7 +135,7 @@ const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workspaceRoot = resolve(packageRoot, '../..');
 const generatedRoot = resolve(packageRoot, 'generated');
-const contractVersion = '1.2.0-m3';
+const contractVersion = '1.3.0-m4';
 
 const schemaRegistry = {
   AuthorizationContext: AuthorizationContextSchema,
@@ -144,9 +158,21 @@ const schemaRegistry = {
   CreateMediaUploadIntentResponse: CreateMediaUploadIntentResponseSchema,
   CreateVoiceSessionRequest: CreateVoiceSessionRequestSchema,
   CreateVoiceSessionResponse: CreateVoiceSessionResponseSchema,
+  CreateSoilRecordRequest: CreateSoilRecordRequestSchema,
+  DeviceBatchRequest: DeviceBatchRequestSchema,
   DeviceBatchReceipt: DeviceBatchReceiptSchema,
+  DeviceChallengeRequest: DeviceChallengeRequestSchema,
+  DeviceChallengeResponse: DeviceChallengeResponseSchema,
   DeviceMode: DeviceModeSchema,
   DeviceModeChangePayload: DeviceModeChangePayloadSchema,
+  DeviceObservation: DeviceObservationSchema,
+  DeviceReceiptResponse: DeviceReceiptResponseSchema,
+  EarthJobExecuteRequest: EarthJobExecuteRequestSchema,
+  EarthJobExecuteResponse: EarthJobExecuteResponseSchema,
+  EvidenceRecord: EvidenceRecordSchema,
+  EvidenceSource: EvidenceSourceSchema,
+  EvidenceSummaryCard: EvidenceSummaryCardSchema,
+  EvidenceValue: EvidenceValueSchema,
   EventEnvelope: EventEnvelopeSchema,
   FarmerBootstrapResponse: FarmerBootstrapResponseSchema,
   FarmerProfileSetup: FarmerProfileSetupSchema,
@@ -171,6 +197,7 @@ const schemaRegistry = {
   ProtectedDisclosureRequest: ProtectedDisclosureRequestSchema,
   ProtectedDisclosureResponse: ProtectedDisclosureResponseSchema,
   PlotGeometrySummary: PlotGeometrySummarySchema,
+  PlotEvidenceSummary: PlotEvidenceSummarySchema,
   PlotSetup: PlotSetupSchema,
   RaigadLocation: RaigadLocationSchema,
   RecordConsentDecisionCommand: RecordConsentDecisionCommandSchema,
@@ -187,6 +214,7 @@ const schemaRegistry = {
   SetupVoiceProposalPayload: SetupVoiceProposalPayloadSchema,
   SetupVoiceReadResponse: SetupVoiceReadResponseSchema,
   SoilMeasurement: SoilMeasurementSchema,
+  SoilRecordResponse: SoilRecordResponseSchema,
   SyncBatch: SyncBatchSchema,
   SyncBatchResponse: SyncBatchResponseSchema,
   SyncBatchResponseV2: SyncBatchResponseV2Schema,
@@ -240,7 +268,25 @@ const compatibilitySchemaGroups = {
     'UpdateFarmerPreferencesCommand',
     'UpdateFarmerPreferencesPayload',
   ],
-  device: ['DeviceBatchReceipt'],
+  device: [
+    'DeviceBatchReceipt',
+    'DeviceBatchRequest',
+    'DeviceChallengeRequest',
+    'DeviceChallengeResponse',
+    'DeviceObservation',
+    'DeviceReceiptResponse',
+  ],
+  evidence: [
+    'CreateSoilRecordRequest',
+    'EarthJobExecuteRequest',
+    'EarthJobExecuteResponse',
+    'EvidenceRecord',
+    'EvidenceSource',
+    'EvidenceSummaryCard',
+    'EvidenceValue',
+    'PlotEvidenceSummary',
+    'SoilRecordResponse',
+  ],
   events: ['EventEnvelope', 'MilestoneOneEvent', 'MilestoneTwoEvent', 'MilestoneThreeEvent'],
   media: [
     'AttachOfflineAudioRequest',
@@ -286,6 +332,7 @@ const compatibilitySchemaGroups = {
     'FarmerSetupSummary',
     'FarmSetup',
     'MyFarmResponse',
+    'PlotEvidenceSummary',
     'PlotGeometrySummary',
     'PlotSetup',
     'RaigadLocation',
@@ -695,7 +742,7 @@ function routeVisibleOnSurface(routeSurface: Surface, surface: ContractSurface):
   if (surface === 'platform') return true;
   if (routeSurface === 'common' || routeSurface === 'voice') return true;
   if (routeSurface === 'operational') return surface === 'farmer' || surface === 'rsk';
-  if (routeSurface === 'internal') return false;
+  if (routeSurface === 'internal' || routeSurface === 'device') return false;
   return routeSurface === surface;
 }
 
@@ -704,6 +751,7 @@ function routeTag(route: RouteContract): string {
   if (route.surface === 'operational') {
     return route.path.includes('/voice/') || route.path.includes('/commands/') ? 'voice' : 'media';
   }
+  if (route.surface === 'device') return 'device';
   return route.surface;
 }
 
@@ -896,6 +944,11 @@ const PROBLEM_STATUS = {
   SETUP_INCOMPLETE: 409,
   GPS_PERMISSION_DENIED: 422,
   HARDWARE_SKIPPED: 422,
+  STALE_DATA: 422,
+  PAYLOAD_TOO_LARGE: 413,
+  SIGNATURE_INVALID: 401,
+  REPLAY_DETECTED: 409,
+  CHALLENGE_EXPIRED: 410,
 } as const satisfies Record<(typeof PROBLEM_CODES)[number], number | 'result-union'>;
 
 export function statusForProblem(code: string): number {
@@ -1029,11 +1082,11 @@ function pythonPackageModule(): string {
 }
 
 function pythonHealthModule(pythonModels: string): string {
-  const statusType = /class HealthPayload\(BaseModel\):[\s\S]*?\n    status: (?<statusType>\w+)/u.exec(
-    pythonModels,
-  )?.groups?.['statusType'];
+  const statusType =
+    /class HealthPayload\(BaseModel\):[\s\S]*?\n    status: (?<statusType>\w+)/u.exec(pythonModels)
+      ?.groups?.['statusType'];
   if (!statusType) throw new Error('Generated Pydantic HealthPayload status type was not found');
-  return `# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, ${statusType} as HealthStatus\n\nCONTRACT_VERSION = "1.2.0-m3"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n`;
+  return `# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, ${statusType} as HealthStatus\n\nCONTRACT_VERSION = "${contractVersion}"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n`;
 }
 
 async function generatePydantic(openApi: JsonObject): Promise<string> {

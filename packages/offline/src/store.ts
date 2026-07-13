@@ -26,6 +26,7 @@ import {
   type ProjectionRow,
   type SyncStateRow,
   type TombstoneRow,
+  type EvidenceCacheRow,
 } from './database.js';
 import {
   assertOpaquePartitionKey,
@@ -198,6 +199,12 @@ export interface MediaReservationInput {
   readonly mediaId: string;
   readonly mediaSchemaVersion: number;
   readonly priority: number;
+  readonly payload: Readonly<Record<string, unknown>>;
+}
+
+export interface EvidenceCacheInput {
+  readonly plotId: string;
+  readonly status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
   readonly payload: Readonly<Record<string, unknown>>;
 }
 
@@ -418,6 +425,19 @@ export class FarmerOfflineStore {
     });
   }
 
+  private evidenceCacheAad(
+    row: Pick<
+      EvidenceCacheRow,
+      'cacheKey' | 'projectionSchemaVersion' | 'plotId' | 'status' | 'updatedAt'
+    >,
+  ) {
+    return this.aad('evidenceCache', row.cacheKey, row.projectionSchemaVersion, {
+      plotId: row.plotId,
+      status: row.status,
+      updatedAt: row.updatedAt,
+    });
+  }
+
   private async initialize(): Promise<void> {
     const lock = await this.database.partitionLock.get('current');
     if (lock === undefined) {
@@ -458,6 +478,7 @@ export class FarmerOfflineStore {
       mediaBlobs,
       mediaUploads,
       tombstones,
+      evidenceCache,
     ] = await Promise.all([
       this.database.localEvents.toArray(),
       this.database.projections.toArray(),
@@ -468,6 +489,7 @@ export class FarmerOfflineStore {
       this.database.mediaBlobs.toArray(),
       this.database.mediaUploads.toArray(),
       this.database.tombstones.toArray(),
+      this.database.evidenceCache.toArray(),
     ]);
     await Promise.all([
       ...localEvents.map((row) => decryptJson(this.key, this.localEventAad(row), row.encrypted)),
@@ -483,6 +505,9 @@ export class FarmerOfflineStore {
       ...mediaBlobs.map((row) => decryptJson(this.key, this.mediaBlobAad(row), row.encrypted)),
       ...mediaUploads.map((row) => decryptJson(this.key, this.mediaUploadAad(row), row.encrypted)),
       ...tombstones.map((row) => decryptJson(this.key, this.tombstoneAad(row), row.encrypted)),
+      ...evidenceCache.map((row) =>
+        decryptJson(this.key, this.evidenceCacheAad(row), row.encrypted),
+      ),
     ]);
   }
 
@@ -684,6 +709,31 @@ export class FarmerOfflineStore {
       commandId: input.command.commandId,
       state: 'SAVED_ON_THIS_PHONE',
     };
+  }
+
+  async cacheEvidenceSummary(input: EvidenceCacheInput): Promise<void> {
+    await this.assertAccessible();
+    const updatedAt = Date.now();
+    const row = {
+      cacheKey: `plot:${input.plotId}:evidence-summary`,
+      projectionSchemaVersion: 1,
+      plotId: input.plotId,
+      status: input.status,
+      updatedAt,
+    };
+    await this.database.evidenceCache.put({
+      ...row,
+      encrypted: await encryptJson(this.key, this.evidenceCacheAad(row), input.payload),
+    });
+  }
+
+  async readCachedEvidenceSummary(
+    plotId: string,
+  ): Promise<Readonly<Record<string, unknown>> | undefined> {
+    await this.assertAccessible();
+    const row = await this.database.evidenceCache.get(`plot:${plotId}:evidence-summary`);
+    if (row === undefined) return undefined;
+    return decryptJson(this.key, this.evidenceCacheAad(row), row.encrypted);
   }
 
   async getLocalEvent(eventId: string): Promise<LocalCommitInput['event'] | undefined> {

@@ -16,7 +16,31 @@ export type FarmerShellState =
       readonly authorizationVersion: number;
       readonly onboardingState: string;
       readonly farmContextState: 'UNAVAILABLE_UNTIL_SETUP' | 'AVAILABLE';
+      readonly evidenceSummary?: FarmerEvidenceSummary;
     };
+
+export interface FarmerEvidenceSummary {
+  readonly plotId: string;
+  readonly generatedAt: string;
+  readonly cards: readonly {
+    readonly cardId: string;
+    readonly title: string;
+    readonly status: string;
+    readonly primary?: {
+      readonly metricKey: string;
+      readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+      readonly quality: string;
+      readonly freshness: string;
+      readonly source: { readonly sourceName: string };
+      readonly value: {
+        readonly state: string;
+        readonly normalizedValue?: string;
+        readonly normalizedUnit: string;
+      };
+      readonly limitations: readonly string[];
+    };
+  }[];
+}
 
 interface ApiOptions {
   readonly baseUrl?: string;
@@ -216,6 +240,24 @@ export async function loadFarmerShell(
     }
     const bootstrap = bootstrapResult.data;
     if (bootstrap.authorizationVersion !== context.authorizationVersion) return { kind: 'expired' };
+    const myFarm = bootstrap.myFarm as
+      | {
+          farms?: readonly {
+            plots?: readonly { plotId?: string }[];
+          }[];
+        }
+      | undefined;
+    const firstPlotId = myFarm?.farms?.[0]?.plots?.[0]?.plotId;
+    let evidenceSummary: FarmerEvidenceSummary | undefined;
+    if (firstPlotId !== undefined) {
+      const evidenceResult = await client.GET('/v1/farmer/plots/{plotId}/evidence-summary', {
+        params: { header: headers, path: { plotId: firstPlotId } },
+        signal: options.signal,
+      });
+      if (evidenceResult.data && !evidenceResult.error) {
+        evidenceSummary = evidenceResult.data as unknown as FarmerEvidenceSummary;
+      }
+    }
 
     return {
       kind: 'ready',
@@ -225,6 +267,7 @@ export async function loadFarmerShell(
       authorizationVersion: context.authorizationVersion,
       onboardingState: bootstrap.onboardingState,
       farmContextState: bootstrap.farmContextState,
+      ...(evidenceSummary === undefined ? {} : { evidenceSummary }),
     };
   } catch (error) {
     if (options.signal?.aborted) throw error;

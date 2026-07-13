@@ -4,7 +4,7 @@ import type { DeviceMode } from '@smart-fasal/contracts/schemas';
 
 import type { EncryptedEnvelope } from './crypto.js';
 
-export const LOCAL_DATABASE_SCHEMA_VERSION = 2;
+export const LOCAL_DATABASE_SCHEMA_VERSION = 3;
 
 export interface LocalEventRow {
   eventId: string;
@@ -119,6 +119,15 @@ export interface PurgeReceiptRow {
   encrypted: EncryptedEnvelope;
 }
 
+export interface EvidenceCacheRow {
+  cacheKey: string;
+  projectionSchemaVersion: number;
+  plotId: string;
+  status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
 const VERSION_ONE_STORES = {
   localEvents: '&eventId,commandId,localSequence,eventSchemaVersion',
   projections: '&projectionKey,projectionType,projectionId,authorityState,projectionSchemaVersion',
@@ -147,6 +156,7 @@ export class FarmerOfflineDatabase extends Dexie {
   cacheMetadata!: Table<CacheMetadataRow, string>;
   partitionLock!: Table<PartitionLockRow, string>;
   purgeReceipts!: Table<PurgeReceiptRow, string>;
+  evidenceCache!: Table<EvidenceCacheRow, string>;
 
   constructor(databaseName: string) {
     super(databaseName);
@@ -158,6 +168,7 @@ export class FarmerOfflineDatabase extends Dexie {
           '&projectionKey,projectionType,projectionId,authorityState,projectionSchemaVersion,localCommandId',
         scheduledReminders: '&reminderId,dueAt,state',
         purgeReceipts: '&receiptId,state,createdAt',
+        evidenceCache: '&cacheKey,plotId,status,updatedAt,projectionSchemaVersion',
       })
       .upgrade(async (transaction) => {
         await transaction.table<CacheMetadataRow>('cacheMetadata').put({

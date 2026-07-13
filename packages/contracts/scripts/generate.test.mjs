@@ -98,7 +98,9 @@ const farmerSetupPaths = [
   '/v1/farmer/farms/{farmId}/plots',
   '/v1/farmer/my-farm',
   '/v1/farmer/plots/{plotId}',
+  '/v1/farmer/plots/{plotId}/evidence-summary',
   '/v1/farmer/plots/{plotId}/geometry-versions',
+  '/v1/farmer/plots/{plotId}/soil-records',
   '/v1/farmer/preferences',
   '/v1/farmer/setup-drafts',
   '/v1/farmer/setup:complete',
@@ -149,6 +151,8 @@ const responseStatusesByOperation = {
   updateFarmerFarm: ['200', '400', '401', '403', '409', '428', '503'],
   createFarmerPlot: ['200', '400', '401', '403', '409', '428', '503'],
   getFarmerPlot: ['200', '400', '401', '403', '409', '503'],
+  getFarmerPlotEvidenceSummary: ['200', '400', '401', '403', '409', '422', '503'],
+  createFarmerSoilRecord: ['202', '400', '401', '403', '409', '428', '503'],
   updateFarmerPlot: ['200', '400', '401', '403', '409', '428', '503'],
   createFarmerPlotGeometryVersion: ['200', '400', '401', '403', '409', '422', '428', '503'],
   updateFarmerPreferences: ['200', '400', '401', '403', '409', '428', '503'],
@@ -180,6 +184,10 @@ const responseStatusesByOperation = {
   cancelVoiceProposal: ['200', '400', '401', '403', '409', '410', '428', '503'],
   getVoiceCommandStatus: ['200', '400', '401', '403', '409', '503'],
   attachVoiceOfflineAudio: ['200', '400', '401', '403', '409', '428', '503'],
+  createDeviceIngestChallenge: ['200', '400', '429', '503'],
+  createDeviceIngestBatch: ['202', '400', '401', '409', '410', '413', '429', '503'],
+  getDeviceIngestReceipt: ['200', '400', '403', '503'],
+  executeEarthObservationJob: ['200', '400', '403', '503'],
 };
 
 function roleContextCreatedEvent(overrides = {}) {
@@ -541,6 +549,8 @@ describe('OpenAPI surface policy', () => {
     }).map((route) => route.operationId);
     expect(rateLimitedOperations).toEqual([
       'createReturnState',
+      'createDeviceIngestChallenge',
+      'createDeviceIngestBatch',
       'createMediaUploadIntent',
       'createVoiceSession',
       'openVoiceRealtime',

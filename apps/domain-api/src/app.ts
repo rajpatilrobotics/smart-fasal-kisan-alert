@@ -6,6 +6,7 @@ import {
   CommandResultSchema,
   CompleteFarmerSetupCommandSchema,
   ConsentListResponseSchema,
+  CreateSoilRecordRequestSchema,
   CreateMediaUploadIntentRequestSchema,
   CreateMediaUploadIntentResponseSchema,
   FinalizeMediaUploadIntentRequestSchema,
@@ -23,6 +24,7 @@ import {
   ReturnStateResponseSchema,
   RskBootstrapResponseSchema,
   MyFarmResponseSchema,
+  PlotEvidenceSummarySchema,
   SaveFarmerSetupDraftCommandSchema,
   SelectRoleContextCommandSchema,
   SessionResponseSchema,
@@ -37,6 +39,7 @@ import {
   SyncFeedPageResponseV2Schema,
   SyncStreamOpenRequestSchema,
   SyncStreamOpenResponseSchema,
+  SoilRecordResponseSchema,
   UuidSchema,
   UpdateFarmerPreferencesCommandSchema,
 } from '@smart-fasal/contracts/schemas';
@@ -1007,6 +1010,44 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
     const plotId = parseContract(UuidSchema, request.params.plotId);
     return execute('getFarmerPlot', boundary, FarmSetupSchema, { params: { plotId } });
   });
+
+  app.get<{ Params: { plotId: string } }>(
+    '/v1/farmer/plots/:plotId/evidence-summary',
+    async (request) => {
+      const route = identityRoute('getFarmerPlotEvidenceSummary', {
+        surface: 'farmer',
+        capability: 'farmer.evidence.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const plotId = parseContract(UuidSchema, request.params.plotId);
+      return execute('getFarmerPlotEvidenceSummary', boundary, PlotEvidenceSummarySchema, {
+        params: { plotId },
+      });
+    },
+  );
+
+  app.post<{ Params: { plotId: string } }>(
+    '/v1/farmer/plots/:plotId/soil-records',
+    async (request, reply) => {
+      const route = farmerCommandRoute('createFarmerSoilRecord', 'farmer.soil.write');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(CreateSoilRecordRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const plotId = parseContract(UuidSchema, request.params.plotId);
+      const response = await execute('createFarmerSoilRecord', boundary, SoilRecordResponseSchema, {
+        body,
+        params: { plotId },
+      });
+      reply.code(202);
+      return response;
+    },
+  );
 
   app.patch<{ Params: { plotId: string } }>('/v1/farmer/plots/:plotId', async (request) => {
     const route = farmerCommandRoute('updateFarmerPlot', 'farmer.plot.write');

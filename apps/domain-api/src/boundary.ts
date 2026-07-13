@@ -23,6 +23,8 @@ export const DOMAIN_OPERATION_IDS = [
   'updateFarmerFarm',
   'createFarmerPlot',
   'getFarmerPlot',
+  'getFarmerPlotEvidenceSummary',
+  'createFarmerSoilRecord',
   'updateFarmerPlot',
   'createFarmerPlotGeometryVersion',
   'updateFarmerPreferences',

@@ -1,0 +1,301 @@
+{
+  "$defs": {
+    "EvidenceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "calibrationVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "conversionVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "correctionOfEvidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "decisionEligible": {
+          "type": "boolean"
+        },
+        "evidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "forecastFor": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "DATA_IS_OLD",
+            "NO_RECENT_DATA",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        },
+        "invalidatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "WEATHER_FORECAST",
+            "WEATHER_HISTORY",
+            "EARTH_OBSERVATION",
+            "SOIL_MEASUREMENT",
+            "HARDWARE_TELEMETRY",
+            "DEVICE_HEALTH"
+          ],
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "metricKey": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "observedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "policyVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "quality": {
+          "enum": [
+            "TRUSTED",
+            "USE_WITH_CAUTION",
+            "TREND_ONLY",
+            "DO_NOT_USE",
+            "PENDING"
+          ],
+          "type": "string"
+        },
+        "receivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "value": {
+          "$ref": "#/$defs/EvidenceValue"
+        }
+      },
+      "required": [
+        "evidenceId",
+        "plotId",
+        "kind",
+        "metricKey",
+        "value",
+        "receivedAt",
+        "source",
+        "dataMode",
+        "quality",
+        "freshness",
+        "decisionEligible",
+        "limitations",
+        "policyVersion",
+        "conversionVersion"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "EvidenceSource": {
+      "additionalProperties": false,
+      "properties": {
+        "provenanceType": {
+          "enum": [
+            "SENSOR",
+            "FARMER_REPORTED",
+            "FARMER_MANUAL",
+            "RSK_MANUAL",
+            "LABORATORY",
+            "SOIL_HEALTH_CARD",
+            "WEATHER",
+            "SATELLITE",
+            "PUBLIC_MARKET",
+            "DERIVED"
+          ],
+          "type": "string"
+        },
+        "rightsLabel": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceId": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceName": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceId",
+        "sourceName",
+        "provenanceType",
+        "rightsLabel",
+        "sourceVersion"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "EvidenceValue": {
+      "additionalProperties": false,
+      "properties": {
+        "normalizedUnit": {
+          "enum": [
+            "CELSIUS",
+            "PERCENT",
+            "MILLIMETRE",
+            "PH",
+            "MG_PER_KG",
+            "KG_PER_HECTARE",
+            "MICROSIEMENS_PER_CM",
+            "INDEX",
+            "HEALTH_STATE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "normalizedValue": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "originalUnit": {
+          "enum": [
+            "CELSIUS",
+            "PERCENT",
+            "MILLIMETRE",
+            "PH",
+            "MG_PER_KG",
+            "KG_PER_HECTARE",
+            "MICROSIEMENS_PER_CM",
+            "INDEX",
+            "HEALTH_STATE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "originalValue": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN",
+            "MISSING",
+            "PROXY",
+            "CONFLICTING",
+            "NOT_APPLICABLE",
+            "WITHHELD",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "normalizedUnit"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/EvidenceRecord"
+      },
+      "maxItems": 24,
+      "type": "array"
+    },
+    "generatedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "jobId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 12,
+      "type": "array"
+    },
+    "snapshotChecksum": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "PROPOSED",
+        "UNAVAILABLE",
+        "RETRYABLE_FAILURE"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "jobId",
+    "state",
+    "evidence",
+    "limitations",
+    "generatedAt"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

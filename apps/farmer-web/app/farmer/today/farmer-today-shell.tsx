@@ -218,6 +218,58 @@ export function FarmerTodayShell({
               <p>{copy.farmerContextUnavailable}</p>
               <p className="technical-state">{viewState.farmContextState}</p>
             </section>
+            {viewState.evidenceSummary ? (
+              <section className="evidence-panel" aria-labelledby="evidence-title">
+                <div className="section-heading-row">
+                  <div>
+                    <p className="eyebrow">Milestone 4</p>
+                    <h2 id="evidence-title">{copy.evidenceTitle}</h2>
+                  </div>
+                  <span className="source-pill">{copy.evidenceReadOnly}</span>
+                </div>
+                <div className="evidence-grid">
+                  {viewState.evidenceSummary.cards.map((card) => (
+                    <article className="evidence-card" key={card.cardId}>
+                      <div className="evidence-card-header">
+                        <h3>{card.title}</h3>
+                        <span className={`state-chip state-chip-${card.status.toLowerCase()}`}>
+                          {card.status}
+                        </span>
+                      </div>
+                      {card.primary ? (
+                        <>
+                          <p className="evidence-value">
+                            {card.primary.value.normalizedValue ?? card.primary.value.state}{' '}
+                            <span>{card.primary.value.normalizedUnit}</span>
+                          </p>
+                          <dl className="evidence-meta">
+                            <div>
+                              <dt>{copy.evidenceMode}</dt>
+                              <dd>{card.primary.dataMode}</dd>
+                            </div>
+                            <div>
+                              <dt>{copy.evidenceFreshness}</dt>
+                              <dd>{card.primary.freshness}</dd>
+                            </div>
+                            <div>
+                              <dt>{copy.evidenceQuality}</dt>
+                              <dd>{card.primary.quality}</dd>
+                            </div>
+                            <div>
+                              <dt>{copy.evidenceSource}</dt>
+                              <dd>{card.primary.source.sourceName}</dd>
+                            </div>
+                          </dl>
+                          <p className="evidence-note">{card.primary.limitations[0]}</p>
+                        </>
+                      ) : (
+                        <p className="evidence-note">{copy.evidenceEmpty}</p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : viewState.kind === 'loading' ? (
           <section className="status-card" aria-live="polite">

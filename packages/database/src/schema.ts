@@ -13,6 +13,8 @@ export const platform = pgSchema('platform');
 export const media = pgSchema('media');
 export const voice = pgSchema('voice');
 export const farm = pgSchema('farm');
+export const evidence = pgSchema('evidence');
+export const device = pgSchema('device');
 
 export const seedRuns = platform.table(
   'seed_runs',
@@ -171,4 +173,62 @@ export const plotGeometryVersions = farm.table(
     recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull(),
   },
   (table) => [index('plot_geometry_owner_idx').on(table.environment, table.plotId)],
+);
+
+export const evidenceRecords = evidence.table(
+  'record',
+  {
+    environment: text('environment').notNull(),
+    evidenceId: uuid('evidence_id').primaryKey(),
+    farmerSubjectId: uuid('farmer_subject_id').notNull(),
+    farmId: uuid('farm_id').notNull(),
+    plotId: uuid('plot_id').notNull(),
+    kind: text('kind').notNull(),
+    metricKey: text('metric_key').notNull(),
+    valueState: text('value_state').notNull(),
+    originalValue: text('original_value'),
+    originalUnit: text('original_unit'),
+    normalizedValue: text('normalized_value'),
+    normalizedUnit: text('normalized_unit').notNull(),
+    observedAt: timestamp('observed_at', { withTimezone: true }),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+    forecastFor: timestamp('forecast_for', { withTimezone: true }),
+    sourceKey: text('source_key').notNull(),
+    sourceRef: text('source_ref').notNull(),
+    sourceVersion: text('source_version').notNull(),
+    rightsLabel: text('rights_label').notNull(),
+    dataMode: text('data_mode').notNull(),
+    quality: text('quality').notNull(),
+    freshness: text('freshness').notNull(),
+    decisionEligible: integer('decision_eligible').notNull(),
+    limitations: text('limitations').array().notNull(),
+    policyVersion: text('policy_version').notNull(),
+    conversionVersion: text('conversion_version').notNull(),
+    calibrationVersion: text('calibration_version'),
+    correctionOfEvidenceId: uuid('correction_of_evidence_id'),
+    invalidatedAt: timestamp('invalidated_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index('evidence_record_plot_received_idx').on(
+      table.environment,
+      table.plotId,
+      table.receivedAt,
+    ),
+  ],
+);
+
+export const deviceRawTelemetryReceipts = device.table(
+  'raw_telemetry_receipt',
+  {
+    environment: text('environment').notNull(),
+    receiptId: uuid('receipt_id').primaryKey(),
+    batchId: uuid('batch_id').notNull(),
+    channelId: uuid('channel_id').notNull(),
+    payloadDigest: text('payload_digest').notNull(),
+    trustState: text('trust_state').notNull(),
+    state: text('state').notNull(),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('device_receipt_batch_idx').on(table.environment, table.batchId)],
 );
