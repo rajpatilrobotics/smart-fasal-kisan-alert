@@ -1,9 +1,33 @@
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-const configuredDatabaseUrl = process.env['DATABASE_URL'];
+const configuredDatabaseUrl = resolveDatabaseUrl(process.env);
 const databaseUrl = configuredDatabaseUrl ?? 'postgres://localhost:1/smart_fasal_unconfigured';
 const describeDatabase = configuredDatabaseUrl ? describe : describe.skip;
+
+function resolveDatabaseUrl(environment: NodeJS.ProcessEnv): string | undefined {
+  const explicitDatabaseUrl = environment['DATABASE_URL'];
+  if (explicitDatabaseUrl) return explicitDatabaseUrl;
+
+  const runId = environment['GITHUB_RUN_ID'];
+  const runAttempt = environment['GITHUB_RUN_ATTEMPT'];
+  if (
+    environment['GITHUB_ACTIONS'] !== 'true' ||
+    environment['GITHUB_WORKFLOW'] !== 'CI' ||
+    environment['GITHUB_JOB'] !== 'quality' ||
+    !runId ||
+    !runAttempt ||
+    !/^\d+$/.test(runId) ||
+    !/^\d+$/.test(runAttempt)
+  ) {
+    return undefined;
+  }
+
+  // The CI quality job's PostGIS service uses this deterministic, run-scoped
+  // password. GitHub's default variables survive Turbo strict mode even when
+  // DATABASE_URL does not.
+  return `postgresql://smart_fasal:${runId}-${runAttempt}@127.0.0.1:5432/smart_fasal`;
+}
 
 const ids = {
   retention: '00000000-0000-4000-8000-000000000101',
@@ -27,6 +51,9 @@ const ids = {
   policy: '00000000-0000-4000-8000-000000000601',
   decision: '00000000-0000-4000-8000-000000000611',
   accessGrant: '00000000-0000-4000-8000-000000000621',
+  rowLockProbeGrant: '00000000-0000-4000-8000-000000000622',
+  staleConsentGrant: '00000000-0000-4000-8000-000000000623',
+  crossOfficeGrant: '00000000-0000-4000-8000-000000000624',
   correlation: '00000000-0000-4000-8000-000000000631',
   eventA: '00000000-0000-7000-8000-000000000641',
   eventB: '00000000-0000-7000-8000-000000000642',
@@ -52,6 +79,7 @@ describeDatabase('Milestone 1 PostgreSQL security spine', () => {
     expect(migrations.map(({ name }) => name)).toEqual([
       '0001_platform_foundation.sql',
       '0002_milestone_1_security_spine.sql',
+      '0003_assisted_context_row_lock_permission.sql',
     ]);
   });
 
@@ -261,7 +289,7 @@ describeDatabase('Milestone 1 PostgreSQL security spine', () => {
     });
   });
 
-  it('issues context-bound grants only through the capability-checked operation', async () => {
+  it('issues context-bound grants with least-privilege row locking and preserves isolation', async () => {
     await rollbackAfter(sql, async (transaction) => {
       await seedAuthority(transaction);
       const privileges = await transaction<{ direct_insert: boolean; event_insert: boolean }[]>`
@@ -270,6 +298,42 @@ describeDatabase('Milestone 1 PostgreSQL security spine', () => {
           has_table_privilege('sf_rsk_api', 'consent.access_grant_event', 'INSERT') as event_insert
       `;
       expect(privileges).toEqual([{ direct_insert: false, event_insert: false }]);
+
+      const rowLockPrivileges = await transaction<
+        {
+          broad_update: boolean;
+          definer_column_update: boolean;
+          runtime_column_update: boolean;
+          update_columns: string[];
+        }[]
+      >`
+        select
+          has_table_privilege(
+            'sf_migrator', 'identity.assisted_context', 'UPDATE'
+          ) as broad_update,
+          has_any_column_privilege(
+            'sf_migrator', 'identity.assisted_context', 'UPDATE'
+          ) as definer_column_update,
+          has_any_column_privilege(
+            'sf_rsk_api', 'identity.assisted_context', 'UPDATE'
+          ) as runtime_column_update,
+          coalesce((
+            select array_agg(column_name order by column_name)
+            from information_schema.column_privileges
+            where grantee = 'sf_migrator'
+              and table_schema = 'identity'
+              and table_name = 'assisted_context'
+              and privilege_type = 'UPDATE'
+          ), array[]::text[]) as update_columns
+      `;
+      expect(rowLockPrivileges).toEqual([
+        {
+          broad_update: false,
+          definer_column_update: true,
+          runtime_column_update: false,
+          update_columns: ['updated_at'],
+        },
+      ]);
 
       // A null consent expiry is an ongoing consent, not an already-expired consent.
       await transaction`
@@ -298,12 +362,86 @@ describeDatabase('Milestone 1 PostgreSQL security spine', () => {
       expect(ownGrant).toEqual([{ role_context_id: ids.rskContextA }]);
 
       await transaction.unsafe('reset role');
+      await transaction.unsafe(
+        'revoke update (updated_at) on identity.assisted_context from sf_migrator',
+      );
+      await transaction.unsafe('set local role sf_rsk_api');
+      await setRskContext(transaction, ids.rskA, ids.rskContextA, ids.officeA, ids.jurisdictionA);
+      await expect(
+        transaction.savepoint(
+          (savepoint) => savepoint`
+            select consent.issue_access_grant(
+              ${ids.rowLockProbeGrant}::uuid,
+              ${ids.farmerA}::uuid,
+              ${ids.target}::uuid,
+              1,
+              now() + interval '10 minutes',
+              ${ids.correlation}::uuid
+            )
+          `,
+        ),
+      ).rejects.toMatchObject({
+        code: '42501',
+        message: 'permission denied for table assisted_context',
+      });
+
+      await transaction.unsafe('reset role');
+      await transaction.unsafe(
+        'grant update (updated_at) on identity.assisted_context to sf_migrator',
+      );
+      await transaction.unsafe('set local role sf_rsk_api');
+      await setRskContext(transaction, ids.rskA, ids.rskContextA, ids.officeA, ids.jurisdictionA);
+      await expect(
+        transaction.savepoint(
+          (savepoint) => savepoint`
+            select consent.issue_access_grant(
+              ${ids.staleConsentGrant}::uuid,
+              ${ids.farmerA}::uuid,
+              ${ids.target}::uuid,
+              2,
+              now() + interval '10 minutes',
+              ${ids.correlation}::uuid
+            )
+          `,
+        ),
+      ).rejects.toMatchObject({ code: '42501', message: 'access grant denied' });
+
+      await transaction.unsafe('reset role');
       await transaction.unsafe('set local role sf_rsk_api');
       await setRskContext(transaction, ids.rskB, ids.rskContextB, ids.officeB, ids.jurisdictionB);
-      const crossOffice = await transaction<{ count: number }[]>`
-        select count(*)::int as count from consent.access_grant
+      await expect(
+        transaction.savepoint(
+          (savepoint) => savepoint`
+            select consent.issue_access_grant(
+              ${ids.crossOfficeGrant}::uuid,
+              ${ids.farmerA}::uuid,
+              ${ids.target}::uuid,
+              1,
+              now() + interval '10 minutes',
+              ${ids.correlation}::uuid
+            )
+          `,
+        ),
+      ).rejects.toMatchObject({ code: '42501', message: 'access grant denied' });
+
+      const crossOffice = await transaction<{ contexts: number; grants: number }[]>`
+        select
+          (select count(*)::int from identity.assisted_context) as contexts,
+          (select count(*)::int from consent.access_grant) as grants
       `;
-      expect(crossOffice[0]?.count).toBe(0);
+      expect(crossOffice).toEqual([{ contexts: 0, grants: 0 }]);
+
+      await transaction.unsafe('reset role');
+      const deniedSideEffects = await transaction<{ count: number }[]>`
+        select count(*)::int as count
+        from consent.access_grant
+        where access_grant_id in (
+          ${ids.rowLockProbeGrant}::uuid,
+          ${ids.staleConsentGrant}::uuid,
+          ${ids.crossOfficeGrant}::uuid
+        )
+      `;
+      expect(deniedSideEffects).toEqual([{ count: 0 }]);
     });
   });
 
