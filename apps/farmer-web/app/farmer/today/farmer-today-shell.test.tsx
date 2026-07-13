@@ -38,6 +38,49 @@ describe('Farmer Today authenticated shell', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
   });
 
+  it('renders evidence cards with source mode, freshness and quality labels when provided', async () => {
+    renderState({
+      authorizationVersion: 4,
+      environment: 'demo',
+      evidenceSummary: {
+        cards: [
+          {
+            cardId: 'weather',
+            primary: {
+              dataMode: 'SIMULATED',
+              freshness: 'CURRENT',
+              limitations: ['Demo-safe simulated forecast; not a live provider response.'],
+              metricKey: 'forecast_rainfall_24h',
+              quality: 'USE_WITH_CAUTION',
+              source: { sourceName: 'Raigad demo fixture' },
+              value: {
+                normalizedUnit: 'MILLIMETRE',
+                normalizedValue: '18.4',
+                state: 'KNOWN',
+              },
+            },
+            status: 'CURRENT',
+            title: 'Weather status',
+          },
+        ],
+        generatedAt: '2026-07-13T08:00:00.000Z',
+        plotId: '00000000-0000-4000-8000-000000000401',
+      },
+      farmContextState: 'AVAILABLE',
+      kind: 'ready',
+      onboardingState: 'COMPLETE',
+      role: 'FARMER',
+      subjectId: '00000000-0000-4000-8000-123456789abc',
+    });
+
+    expect(await screen.findByRole('heading', { name: 'प्लॉट पुरावा' })).toBeInTheDocument();
+    expect(screen.getByText('SIMULATED')).toBeInTheDocument();
+    expect(screen.getAllByText('CURRENT').length).toBeGreaterThan(0);
+    expect(screen.getByText('USE_WITH_CAUTION')).toBeInTheDocument();
+    expect(screen.getByText('Raigad demo fixture')).toBeInTheDocument();
+    expect(screen.queryByText(/recommendation|advisory|irrigation/i)).not.toBeInTheDocument();
+  });
+
   it.each([
     ['denied', 'प्रवेश उपलब्ध नाही'],
     ['expired', 'सत्र किंवा भूमिका संदर्भाची मुदत संपली'],

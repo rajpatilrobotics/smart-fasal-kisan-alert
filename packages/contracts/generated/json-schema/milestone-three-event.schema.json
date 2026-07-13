@@ -182,6 +182,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -425,6 +426,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -712,6 +714,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -972,6 +975,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -1226,6 +1230,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -1492,6 +1497,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -1763,6 +1769,7 @@
           "items": {
             "enum": [
               "SENSOR",
+              "FARMER_REPORTED",
               "FARMER_MANUAL",
               "RSK_MANUAL",
               "LABORATORY",

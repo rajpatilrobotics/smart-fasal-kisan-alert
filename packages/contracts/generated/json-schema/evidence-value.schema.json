@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "normalizedUnit": {
+      "enum": [
+        "CELSIUS",
+        "PERCENT",
+        "MILLIMETRE",
+        "PH",
+        "MG_PER_KG",
+        "KG_PER_HECTARE",
+        "MICROSIEMENS_PER_CM",
+        "INDEX",
+        "HEALTH_STATE",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "normalizedValue": {
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "type": "string"
+    },
+    "originalUnit": {
+      "enum": [
+        "CELSIUS",
+        "PERCENT",
+        "MILLIMETRE",
+        "PH",
+        "MG_PER_KG",
+        "KG_PER_HECTARE",
+        "MICROSIEMENS_PER_CM",
+        "INDEX",
+        "HEALTH_STATE",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "originalValue": {
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "KNOWN",
+        "UNKNOWN",
+        "MISSING",
+        "PROXY",
+        "CONFLICTING",
+        "NOT_APPLICABLE",
+        "WITHHELD",
+        "UNAVAILABLE"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "state",
+    "normalizedUnit"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

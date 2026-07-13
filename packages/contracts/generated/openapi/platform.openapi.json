@@ -226,11 +226,13 @@
                 "farmer.setup.complete",
                 "farmer.farm.write",
                 "farmer.plot.write",
+                "farmer.evidence.read",
+                "farmer.soil.write",
                 "farmer.voice.setup"
               ],
               "type": "string"
             },
-            "maxItems": 49,
+            "maxItems": 51,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -1052,6 +1054,128 @@
         "type": "object",
         "x-data-classification": "C4"
       },
+      "CreateSoilRecordRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "measurement": {
+            "additionalProperties": false,
+            "properties": {
+              "nitrogen": {
+                "maximum": 9999,
+                "minimum": 0,
+                "type": "number"
+              },
+              "observedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "ph": {
+                "maximum": 14,
+                "minimum": 0,
+                "type": "number"
+              },
+              "phosphorus": {
+                "maximum": 9999,
+                "minimum": 0,
+                "type": "number"
+              },
+              "potassium": {
+                "maximum": 9999,
+                "minimum": 0,
+                "type": "number"
+              },
+              "source": {
+                "enum": [
+                  "SOIL_HEALTH_CARD",
+                  "LABORATORY",
+                  "FARMER_MANUAL",
+                  "SENSOR",
+                  "UNKNOWN"
+                ],
+                "type": "string"
+              },
+              "sourceReference": {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              "sourceRightsLabel": {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              },
+              "sourceVersion": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "unit": {
+                "enum": [
+                  "MG_PER_KG",
+                  "KG_PER_HECTARE",
+                  "UNKNOWN"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "unit",
+              "source",
+              "sourceReference",
+              "sourceRightsLabel",
+              "sourceVersion"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandId",
+          "expectedRevision",
+          "measurement",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "CreateVoiceSessionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1275,6 +1399,117 @@
         "type": "object",
         "x-data-classification": "C1"
       },
+      "DeviceBatchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "batchId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "challengeId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "channelId": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "deviceId": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/DeviceObservation"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "type": "array"
+          },
+          "payloadDigest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "signature": {
+            "pattern": "^sha256=[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "batchId",
+          "deviceId",
+          "channelId",
+          "challengeId",
+          "payloadDigest",
+          "signature",
+          "observations"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "DeviceChallengeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "channelId": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "clientNonce": {
+            "maxLength": 128,
+            "minLength": 16,
+            "type": "string"
+          },
+          "deviceId": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "deviceId",
+          "channelId",
+          "clientNonce"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "DeviceChallengeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "const": "SFKA-HMAC-SHA256-v1",
+            "type": "string"
+          },
+          "challengeId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "serverNonce": {
+            "maxLength": 128,
+            "minLength": 16,
+            "type": "string"
+          }
+        },
+        "required": [
+          "challengeId",
+          "serverNonce",
+          "expiresAt",
+          "algorithm"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
       "DeviceMode": {
         "enum": [
           "PERSONAL",
@@ -1310,6 +1545,237 @@
         ],
         "type": "object",
         "x-data-classification": "C2"
+      },
+      "DeviceObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "observationId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "observedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "signal": {
+            "enum": [
+              "SOIL_MOISTURE",
+              "AIR_TEMPERATURE",
+              "AIR_HUMIDITY",
+              "SOIL_PH",
+              "SOIL_EC",
+              "NITROGEN",
+              "PHOSPHORUS",
+              "POTASSIUM",
+              "BATTERY",
+              "RADIO",
+              "CLOCK_HEALTH"
+            ],
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "CELSIUS",
+              "PERCENT",
+              "MILLIMETRE",
+              "PH",
+              "MG_PER_KG",
+              "KG_PER_HECTARE",
+              "MICROSIEMENS_PER_CM",
+              "INDEX",
+              "HEALTH_STATE",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "observationId",
+          "observedAt",
+          "signal",
+          "value",
+          "unit"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "DeviceReceiptResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "batchId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "explicitlyNotAgronomicTrust": {
+            "const": true,
+            "type": "boolean"
+          },
+          "receiptId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "receivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "PENDING",
+              "DURABLY_ACCEPTED",
+              "ALREADY_ACCEPTED",
+              "REJECTED"
+            ],
+            "type": "string"
+          },
+          "trustState": {
+            "const": "PENDING",
+            "type": "string"
+          }
+        },
+        "required": [
+          "receiptId",
+          "batchId",
+          "state",
+          "trustState",
+          "explicitlyNotAgronomicTrust",
+          "receivedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C1"
+      },
+      "EarthJobExecuteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset": {
+            "enum": [
+              "CHIRPS",
+              "SENTINEL_2",
+              "SENTINEL_1",
+              "ERA5_LAND",
+              "ELEVATION",
+              "LAND_COVER"
+            ],
+            "type": "string"
+          },
+          "geometryVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "jobId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "reducer": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "scaleMetres": {
+            "exclusiveMinimum": 0,
+            "maximum": 10000,
+            "type": "integer"
+          },
+          "windowEnd": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "windowStart": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "jobId",
+          "plotId",
+          "geometryVersion",
+          "dataset",
+          "windowStart",
+          "windowEnd",
+          "reducer",
+          "scaleMetres",
+          "mode"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "EarthJobExecuteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRecord"
+            },
+            "maxItems": 24,
+            "type": "array"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "jobId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "snapshotChecksum": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "PROPOSED",
+              "UNAVAILABLE",
+              "RETRYABLE_FAILURE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "jobId",
+          "state",
+          "evidence",
+          "limitations",
+          "generatedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
       },
       "EventEnvelope": {
         "additionalProperties": false,
@@ -1818,6 +2284,7 @@
             "items": {
               "enum": [
                 "SENSOR",
+                "FARMER_REPORTED",
                 "FARMER_MANUAL",
                 "RSK_MANUAL",
                 "LABORATORY",
@@ -1893,6 +2360,297 @@
         "type": "object",
         "x-data-classification": "C2"
       },
+      "EvidenceRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "calibrationVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "conversionVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "correctionOfEvidenceId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "decisionEligible": {
+            "type": "boolean"
+          },
+          "evidenceId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "forecastFor": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "freshness": {
+            "enum": [
+              "CURRENT",
+              "DATA_IS_OLD",
+              "NO_RECENT_DATA",
+              "UNAVAILABLE"
+            ],
+            "type": "string"
+          },
+          "invalidatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "WEATHER_FORECAST",
+              "WEATHER_HISTORY",
+              "EARTH_OBSERVATION",
+              "SOIL_MEASUREMENT",
+              "HARDWARE_TELEMETRY",
+              "DEVICE_HEALTH"
+            ],
+            "type": "string"
+          },
+          "limitations": {
+            "default": [],
+            "items": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "metricKey": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "observedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "policyVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "quality": {
+            "enum": [
+              "TRUSTED",
+              "USE_WITH_CAUTION",
+              "TREND_ONLY",
+              "DO_NOT_USE",
+              "PENDING"
+            ],
+            "type": "string"
+          },
+          "receivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/EvidenceSource"
+          },
+          "value": {
+            "$ref": "#/components/schemas/EvidenceValue"
+          }
+        },
+        "required": [
+          "evidenceId",
+          "plotId",
+          "kind",
+          "metricKey",
+          "value",
+          "receivedAt",
+          "source",
+          "dataMode",
+          "quality",
+          "freshness",
+          "decisionEligible",
+          "limitations",
+          "policyVersion",
+          "conversionVersion"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "EvidenceSource": {
+        "additionalProperties": false,
+        "properties": {
+          "provenanceType": {
+            "enum": [
+              "SENSOR",
+              "FARMER_REPORTED",
+              "FARMER_MANUAL",
+              "RSK_MANUAL",
+              "LABORATORY",
+              "SOIL_HEALTH_CARD",
+              "WEATHER",
+              "SATELLITE",
+              "PUBLIC_MARKET",
+              "DERIVED"
+            ],
+            "type": "string"
+          },
+          "rightsLabel": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceId": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceName": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceId",
+          "sourceName",
+          "provenanceType",
+          "rightsLabel",
+          "sourceVersion"
+        ],
+        "type": "object",
+        "x-data-classification": "C2"
+      },
+      "EvidenceSummaryCard": {
+        "additionalProperties": false,
+        "properties": {
+          "cardId": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "primary": {
+            "$ref": "#/components/schemas/EvidenceRecord"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRecord"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "CURRENT",
+              "STALE",
+              "EMPTY",
+              "OFFLINE",
+              "DENIED",
+              "CONFLICTING",
+              "UNAVAILABLE"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "cardId",
+          "title",
+          "status",
+          "records"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "EvidenceValue": {
+        "additionalProperties": false,
+        "properties": {
+          "normalizedUnit": {
+            "enum": [
+              "CELSIUS",
+              "PERCENT",
+              "MILLIMETRE",
+              "PH",
+              "MG_PER_KG",
+              "KG_PER_HECTARE",
+              "MICROSIEMENS_PER_CM",
+              "INDEX",
+              "HEALTH_STATE",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "normalizedValue": {
+            "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+            "type": "string"
+          },
+          "originalUnit": {
+            "enum": [
+              "CELSIUS",
+              "PERCENT",
+              "MILLIMETRE",
+              "PH",
+              "MG_PER_KG",
+              "KG_PER_HECTARE",
+              "MICROSIEMENS_PER_CM",
+              "INDEX",
+              "HEALTH_STATE",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "originalValue": {
+            "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "KNOWN",
+              "UNKNOWN",
+              "MISSING",
+              "PROXY",
+              "CONFLICTING",
+              "NOT_APPLICABLE",
+              "WITHHELD",
+              "UNAVAILABLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "normalizedUnit"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "FarmerBootstrapResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1952,6 +2710,8 @@
                 "farmer.setup.complete",
                 "farmer.farm.write",
                 "farmer.plot.write",
+                "farmer.evidence.read",
+                "farmer.soil.write",
                 "farmer.voice.setup"
               ],
               "type": "string"
@@ -2773,6 +3533,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -3016,6 +3777,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -3303,6 +4065,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -3573,6 +4336,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -3833,6 +4597,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -4087,6 +4852,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -4353,6 +5119,7 @@
                 "items": {
                   "enum": [
                     "SENSOR",
+                    "FARMER_REPORTED",
                     "FARMER_MANUAL",
                     "RSK_MANUAL",
                     "LABORATORY",
@@ -4588,6 +5355,41 @@
         "type": "object",
         "x-data-classification": "C3"
       },
+      "PlotEvidenceSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceSummaryCard"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "summaryVersion": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "plotId",
+          "generatedAt",
+          "summaryVersion",
+          "cards"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "PlotGeometrySummary": {
         "additionalProperties": false,
         "properties": {
@@ -4757,7 +5559,12 @@
               "RATE_LIMITED",
               "SETUP_INCOMPLETE",
               "GPS_PERMISSION_DENIED",
-              "HARDWARE_SKIPPED"
+              "HARDWARE_SKIPPED",
+              "STALE_DATA",
+              "PAYLOAD_TOO_LARGE",
+              "SIGNATURE_INVALID",
+              "REPLAY_DETECTED",
+              "CHALLENGE_EXPIRED"
             ],
             "type": "string"
           },
@@ -5213,6 +6020,8 @@
                 "farmer.setup.complete",
                 "farmer.farm.write",
                 "farmer.plot.write",
+                "farmer.evidence.read",
+                "farmer.soil.write",
                 "farmer.voice.setup"
               ],
               "type": "string"
@@ -5859,6 +6668,58 @@
         "type": "object",
         "x-data-classification": "C3"
       },
+      "SoilRecordResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "ACCEPTED",
+              "ALREADY_ACCEPTED"
+            ],
+            "type": "string"
+          },
+          "evidenceIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "serverReceivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "soilRecordId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "disposition",
+          "soilRecordId",
+          "evidenceIds",
+          "revision",
+          "serverReceivedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "SyncBatch": {
         "additionalProperties": false,
         "properties": {
@@ -6465,7 +7326,12 @@
                   "RATE_LIMITED",
                   "SETUP_INCOMPLETE",
                   "GPS_PERMISSION_DENIED",
-                  "HARDWARE_SKIPPED"
+                  "HARDWARE_SKIPPED",
+                  "STALE_DATA",
+                  "PAYLOAD_TOO_LARGE",
+                  "SIGNATURE_INVALID",
+                  "REPLAY_DETECTED",
+                  "CHALLENGE_EXPIRED"
                 ],
                 "type": "string"
               },
@@ -6569,7 +7435,12 @@
                   "RATE_LIMITED",
                   "SETUP_INCOMPLETE",
                   "GPS_PERMISSION_DENIED",
-                  "HARDWARE_SKIPPED"
+                  "HARDWARE_SKIPPED",
+                  "STALE_DATA",
+                  "PAYLOAD_TOO_LARGE",
+                  "SIGNATURE_INVALID",
+                  "REPLAY_DETECTED",
+                  "CHALLENGE_EXPIRED"
                 ],
                 "type": "string"
               },
@@ -8595,7 +9466,7 @@
   "info": {
     "description": "Generated Milestone 3 contract. JSON fields use lower camel case.",
     "title": "Smart Fasal platform API",
-    "version": "1.2.0-m3"
+    "version": "1.3.0-m4"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -8669,6 +9540,414 @@
           "purpose": null
         },
         "x-smart-fasal-problem-codes": [
+          "DEPENDENCY_UNAVAILABLE"
+        ]
+      }
+    },
+    "/ingest/v1/batches": {
+      "post": {
+        "operationId": "createDeviceIngestBatch",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceReceiptResponse"
+                }
+              }
+            },
+            "description": "Telemetry batch durably accepted"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "SIGNATURE_INVALID"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "REPLAY_DETECTED"
+            ]
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "CHALLENGE_EXPIRED"
+            ]
+          },
+          "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "PAYLOAD_TOO_LARGE"
+            ]
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "RATE_LIMITED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [],
+        "tags": [
+          "device"
+        ],
+        "x-data-classification": "C2",
+        "x-retention-class": "device-ingest",
+        "x-smart-fasal-authorization": {
+          "authentication": "none",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "RATE_LIMITED",
+          "PAYLOAD_TOO_LARGE",
+          "SIGNATURE_INVALID",
+          "REPLAY_DETECTED",
+          "CHALLENGE_EXPIRED",
+          "DEPENDENCY_UNAVAILABLE"
+        ]
+      }
+    },
+    "/ingest/v1/challenges": {
+      "post": {
+        "operationId": "createDeviceIngestChallenge",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceChallengeResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body"
+            ]
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "RATE_LIMITED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [],
+        "tags": [
+          "device"
+        ],
+        "x-data-classification": "C1",
+        "x-retention-class": "device-ingest",
+        "x-smart-fasal-authorization": {
+          "authentication": "none",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "RATE_LIMITED",
+          "DEPENDENCY_UNAVAILABLE"
+        ]
+      }
+    },
+    "/ingest/v1/receipts/{receiptId}": {
+      "get": {
+        "operationId": "getDeviceIngestReceipt",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "receiptId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceReceiptResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [],
+        "tags": [
+          "device"
+        ],
+        "x-data-classification": "C1",
+        "x-retention-class": "device-ingest",
+        "x-smart-fasal-authorization": {
+          "authentication": "none",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE"
+        ]
+      }
+    },
+    "/internal/v1/intelligence/earth-jobs/{jobId}:execute": {
+      "post": {
+        "operationId": "executeEarthObservationJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "jobId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EarthJobExecuteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthJobExecuteResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "internalIdentity": []
+          }
+        ],
+        "tags": [
+          "internal"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "earth-observation",
+        "x-smart-fasal-authorization": {
+          "authentication": "internal",
+          "capability": null,
+          "denyByDefault": true,
+          "purpose": null
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHORIZATION_DENIED",
           "DEPENDENCY_UNAVAILABLE"
         ]
       }
@@ -11335,6 +12614,150 @@
         ]
       }
     },
+    "/v1/farmer/plots/{plotId}/evidence-summary": {
+      "get": {
+        "operationId": "getFarmerPlotEvidenceSummary",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "plotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlotEvidenceSummary"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "STALE_DATA"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.evidence.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "STALE_DATA"
+        ]
+      }
+    },
     "/v1/farmer/plots/{plotId}/geometry-versions": {
       "post": {
         "operationId": "createFarmerPlotGeometryVersion",
@@ -11517,6 +12940,177 @@
           "GPS_PERMISSION_DENIED",
           "IDEMPOTENCY_KEY_REUSED",
           "EXPECTED_REVISION_MISMATCH"
+        ]
+      }
+    },
+    "/v1/farmer/plots/{plotId}/soil-records": {
+      "post": {
+        "operationId": "createFarmerSoilRecord",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          },
+          {
+            "in": "path",
+            "name": "plotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSoilRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoilRecordResponse"
+                }
+              }
+            },
+            "description": "Soil evidence record accepted"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "EXPECTED_REVISION_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "farmer-evidence",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.soil.write",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "EXPECTED_REVISION_MISMATCH",
+          "IDEMPOTENCY_KEY_REUSED"
         ]
       }
     },
@@ -15959,6 +17553,8 @@
     "farmer.setup.complete",
     "farmer.farm.write",
     "farmer.plot.write",
+    "farmer.evidence.read",
+    "farmer.soil.write",
     "farmer.voice.setup"
   ],
   "x-smart-fasal-consent-scope-registry": [

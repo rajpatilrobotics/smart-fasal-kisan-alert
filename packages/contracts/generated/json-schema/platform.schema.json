@@ -142,11 +142,13 @@
               "farmer.setup.complete",
               "farmer.farm.write",
               "farmer.plot.write",
+              "farmer.evidence.read",
+              "farmer.soil.write",
               "farmer.voice.setup"
             ],
             "type": "string"
           },
-          "maxItems": 49,
+          "maxItems": 51,
           "type": "array"
         },
         "capabilitySetVersion": {
@@ -3815,6 +3817,129 @@
       "type": "object",
       "x-data-classification": "C4"
     },
+    "CreateSoilRecordRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "clientContext": {
+          "additionalProperties": false,
+          "properties": {
+            "clientRecordedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "dataModeClaim": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "timezone": {
+              "const": "Asia/Kolkata",
+              "type": "string"
+            }
+          },
+          "required": [
+            "clientRecordedAt",
+            "timezone",
+            "dataModeClaim"
+          ],
+          "type": "object"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "expectedRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "measurement": {
+          "additionalProperties": false,
+          "properties": {
+            "nitrogen": {
+              "maximum": 9999,
+              "minimum": 0,
+              "type": "number"
+            },
+            "observedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "ph": {
+              "maximum": 14,
+              "minimum": 0,
+              "type": "number"
+            },
+            "phosphorus": {
+              "maximum": 9999,
+              "minimum": 0,
+              "type": "number"
+            },
+            "potassium": {
+              "maximum": 9999,
+              "minimum": 0,
+              "type": "number"
+            },
+            "source": {
+              "enum": [
+                "SOIL_HEALTH_CARD",
+                "LABORATORY",
+                "FARMER_MANUAL",
+                "SENSOR",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "sourceReference": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceRightsLabel": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "unit": {
+              "enum": [
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "unit",
+            "source",
+            "sourceReference",
+            "sourceRightsLabel",
+            "sourceVersion"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "commandId",
+        "expectedRevision",
+        "measurement",
+        "clientContext"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
     "CreateVoiceSessionRequest": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -4043,6 +4168,182 @@
       "type": "object",
       "x-data-classification": "C1"
     },
+    "DeviceBatchRequest": {
+      "$defs": {
+        "DeviceObservation": {
+          "additionalProperties": false,
+          "properties": {
+            "observationId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "observedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "signal": {
+              "enum": [
+                "SOIL_MOISTURE",
+                "AIR_TEMPERATURE",
+                "AIR_HUMIDITY",
+                "SOIL_PH",
+                "SOIL_EC",
+                "NITROGEN",
+                "PHOSPHORUS",
+                "POTASSIUM",
+                "BATTERY",
+                "RADIO",
+                "CLOCK_HEALTH"
+              ],
+              "type": "string"
+            },
+            "unit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "observationId",
+            "observedAt",
+            "signal",
+            "value",
+            "unit"
+          ],
+          "type": "object",
+          "x-data-classification": "C2"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "batchId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "challengeId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "channelId": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "deviceId": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/DeviceObservation"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "type": "array"
+        },
+        "payloadDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "signature": {
+          "pattern": "^sha256=[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "batchId",
+        "deviceId",
+        "channelId",
+        "challengeId",
+        "payloadDigest",
+        "signature",
+        "observations"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "DeviceChallengeRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "channelId": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "clientNonce": {
+          "maxLength": 128,
+          "minLength": 16,
+          "type": "string"
+        },
+        "deviceId": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviceId",
+        "channelId",
+        "clientNonce"
+      ],
+      "type": "object",
+      "x-data-classification": "C1"
+    },
+    "DeviceChallengeResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "SFKA-HMAC-SHA256-v1",
+          "type": "string"
+        },
+        "challengeId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "serverNonce": {
+          "maxLength": 128,
+          "minLength": 16,
+          "type": "string"
+        }
+      },
+      "required": [
+        "challengeId",
+        "serverNonce",
+        "expiresAt",
+        "algorithm"
+      ],
+      "type": "object",
+      "x-data-classification": "C1"
+    },
     "DeviceMode": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "enum": [
@@ -4080,6 +4381,489 @@
       ],
       "type": "object",
       "x-data-classification": "C2"
+    },
+    "DeviceObservation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "observationId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "observedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "signal": {
+          "enum": [
+            "SOIL_MOISTURE",
+            "AIR_TEMPERATURE",
+            "AIR_HUMIDITY",
+            "SOIL_PH",
+            "SOIL_EC",
+            "NITROGEN",
+            "PHOSPHORUS",
+            "POTASSIUM",
+            "BATTERY",
+            "RADIO",
+            "CLOCK_HEALTH"
+          ],
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "CELSIUS",
+            "PERCENT",
+            "MILLIMETRE",
+            "PH",
+            "MG_PER_KG",
+            "KG_PER_HECTARE",
+            "MICROSIEMENS_PER_CM",
+            "INDEX",
+            "HEALTH_STATE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "observationId",
+        "observedAt",
+        "signal",
+        "value",
+        "unit"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "DeviceReceiptResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "batchId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "explicitlyNotAgronomicTrust": {
+          "const": true,
+          "type": "boolean"
+        },
+        "receiptId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "receivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "PENDING",
+            "DURABLY_ACCEPTED",
+            "ALREADY_ACCEPTED",
+            "REJECTED"
+          ],
+          "type": "string"
+        },
+        "trustState": {
+          "const": "PENDING",
+          "type": "string"
+        }
+      },
+      "required": [
+        "receiptId",
+        "batchId",
+        "state",
+        "trustState",
+        "explicitlyNotAgronomicTrust",
+        "receivedAt"
+      ],
+      "type": "object",
+      "x-data-classification": "C1"
+    },
+    "EarthJobExecuteRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "dataset": {
+          "enum": [
+            "CHIRPS",
+            "SENTINEL_2",
+            "SENTINEL_1",
+            "ERA5_LAND",
+            "ELEVATION",
+            "LAND_COVER"
+          ],
+          "type": "string"
+        },
+        "geometryVersion": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "jobId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "reducer": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "scaleMetres": {
+          "exclusiveMinimum": 0,
+          "maximum": 10000,
+          "type": "integer"
+        },
+        "windowEnd": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "windowStart": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "jobId",
+        "plotId",
+        "geometryVersion",
+        "dataset",
+        "windowStart",
+        "windowEnd",
+        "reducer",
+        "scaleMetres",
+        "mode"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "EarthJobExecuteResponse": {
+      "$defs": {
+        "EvidenceRecord": {
+          "additionalProperties": false,
+          "properties": {
+            "calibrationVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "conversionVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "correctionOfEvidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "dataMode": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "decisionEligible": {
+              "type": "boolean"
+            },
+            "evidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "forecastFor": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "freshness": {
+              "enum": [
+                "CURRENT",
+                "DATA_IS_OLD",
+                "NO_RECENT_DATA",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            },
+            "invalidatedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "WEATHER_FORECAST",
+                "WEATHER_HISTORY",
+                "EARTH_OBSERVATION",
+                "SOIL_MEASUREMENT",
+                "HARDWARE_TELEMETRY",
+                "DEVICE_HEALTH"
+              ],
+              "type": "string"
+            },
+            "limitations": {
+              "default": [],
+              "items": {
+                "maxLength": 220,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 12,
+              "type": "array"
+            },
+            "metricKey": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "observedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "plotId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "policyVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "quality": {
+              "enum": [
+                "TRUSTED",
+                "USE_WITH_CAUTION",
+                "TREND_ONLY",
+                "DO_NOT_USE",
+                "PENDING"
+              ],
+              "type": "string"
+            },
+            "receivedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/EvidenceSource"
+            },
+            "value": {
+              "$ref": "#/$defs/EvidenceValue"
+            }
+          },
+          "required": [
+            "evidenceId",
+            "plotId",
+            "kind",
+            "metricKey",
+            "value",
+            "receivedAt",
+            "source",
+            "dataMode",
+            "quality",
+            "freshness",
+            "decisionEligible",
+            "limitations",
+            "policyVersion",
+            "conversionVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        },
+        "EvidenceSource": {
+          "additionalProperties": false,
+          "properties": {
+            "provenanceType": {
+              "enum": [
+                "SENSOR",
+                "FARMER_REPORTED",
+                "FARMER_MANUAL",
+                "RSK_MANUAL",
+                "LABORATORY",
+                "SOIL_HEALTH_CARD",
+                "WEATHER",
+                "SATELLITE",
+                "PUBLIC_MARKET",
+                "DERIVED"
+              ],
+              "type": "string"
+            },
+            "rightsLabel": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceId": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceName": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sourceId",
+            "sourceName",
+            "provenanceType",
+            "rightsLabel",
+            "sourceVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C2"
+        },
+        "EvidenceValue": {
+          "additionalProperties": false,
+          "properties": {
+            "normalizedUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "normalizedValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "originalUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "originalValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "KNOWN",
+                "UNKNOWN",
+                "MISSING",
+                "PROXY",
+                "CONFLICTING",
+                "NOT_APPLICABLE",
+                "WITHHELD",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "normalizedUnit"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRecord"
+          },
+          "maxItems": 24,
+          "type": "array"
+        },
+        "generatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "jobId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "snapshotChecksum": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "PROPOSED",
+            "UNAVAILABLE",
+            "RETRYABLE_FAILURE"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "jobId",
+        "state",
+        "evidence",
+        "limitations",
+        "generatedAt"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
     },
     "EventEnvelope": {
       "$defs": {
@@ -4592,6 +5376,7 @@
           "items": {
             "enum": [
               "SENSOR",
+              "FARMER_REPORTED",
               "FARMER_MANUAL",
               "RSK_MANUAL",
               "LABORATORY",
@@ -4666,6 +5451,662 @@
       ],
       "type": "object",
       "x-data-classification": "C2"
+    },
+    "EvidenceRecord": {
+      "$defs": {
+        "EvidenceSource": {
+          "additionalProperties": false,
+          "properties": {
+            "provenanceType": {
+              "enum": [
+                "SENSOR",
+                "FARMER_REPORTED",
+                "FARMER_MANUAL",
+                "RSK_MANUAL",
+                "LABORATORY",
+                "SOIL_HEALTH_CARD",
+                "WEATHER",
+                "SATELLITE",
+                "PUBLIC_MARKET",
+                "DERIVED"
+              ],
+              "type": "string"
+            },
+            "rightsLabel": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceId": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceName": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sourceId",
+            "sourceName",
+            "provenanceType",
+            "rightsLabel",
+            "sourceVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C2"
+        },
+        "EvidenceValue": {
+          "additionalProperties": false,
+          "properties": {
+            "normalizedUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "normalizedValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "originalUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "originalValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "KNOWN",
+                "UNKNOWN",
+                "MISSING",
+                "PROXY",
+                "CONFLICTING",
+                "NOT_APPLICABLE",
+                "WITHHELD",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "normalizedUnit"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "calibrationVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "conversionVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "correctionOfEvidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "decisionEligible": {
+          "type": "boolean"
+        },
+        "evidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "forecastFor": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "DATA_IS_OLD",
+            "NO_RECENT_DATA",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        },
+        "invalidatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "WEATHER_FORECAST",
+            "WEATHER_HISTORY",
+            "EARTH_OBSERVATION",
+            "SOIL_MEASUREMENT",
+            "HARDWARE_TELEMETRY",
+            "DEVICE_HEALTH"
+          ],
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "metricKey": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "observedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "policyVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "quality": {
+          "enum": [
+            "TRUSTED",
+            "USE_WITH_CAUTION",
+            "TREND_ONLY",
+            "DO_NOT_USE",
+            "PENDING"
+          ],
+          "type": "string"
+        },
+        "receivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "value": {
+          "$ref": "#/$defs/EvidenceValue"
+        }
+      },
+      "required": [
+        "evidenceId",
+        "plotId",
+        "kind",
+        "metricKey",
+        "value",
+        "receivedAt",
+        "source",
+        "dataMode",
+        "quality",
+        "freshness",
+        "decisionEligible",
+        "limitations",
+        "policyVersion",
+        "conversionVersion"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "EvidenceSource": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "provenanceType": {
+          "enum": [
+            "SENSOR",
+            "FARMER_REPORTED",
+            "FARMER_MANUAL",
+            "RSK_MANUAL",
+            "LABORATORY",
+            "SOIL_HEALTH_CARD",
+            "WEATHER",
+            "SATELLITE",
+            "PUBLIC_MARKET",
+            "DERIVED"
+          ],
+          "type": "string"
+        },
+        "rightsLabel": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceId": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceName": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        },
+        "sourceVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceId",
+        "sourceName",
+        "provenanceType",
+        "rightsLabel",
+        "sourceVersion"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "EvidenceSummaryCard": {
+      "$defs": {
+        "EvidenceRecord": {
+          "additionalProperties": false,
+          "properties": {
+            "calibrationVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "conversionVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "correctionOfEvidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "dataMode": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "decisionEligible": {
+              "type": "boolean"
+            },
+            "evidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "forecastFor": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "freshness": {
+              "enum": [
+                "CURRENT",
+                "DATA_IS_OLD",
+                "NO_RECENT_DATA",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            },
+            "invalidatedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "WEATHER_FORECAST",
+                "WEATHER_HISTORY",
+                "EARTH_OBSERVATION",
+                "SOIL_MEASUREMENT",
+                "HARDWARE_TELEMETRY",
+                "DEVICE_HEALTH"
+              ],
+              "type": "string"
+            },
+            "limitations": {
+              "default": [],
+              "items": {
+                "maxLength": 220,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 12,
+              "type": "array"
+            },
+            "metricKey": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "observedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "plotId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "policyVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "quality": {
+              "enum": [
+                "TRUSTED",
+                "USE_WITH_CAUTION",
+                "TREND_ONLY",
+                "DO_NOT_USE",
+                "PENDING"
+              ],
+              "type": "string"
+            },
+            "receivedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/EvidenceSource"
+            },
+            "value": {
+              "$ref": "#/$defs/EvidenceValue"
+            }
+          },
+          "required": [
+            "evidenceId",
+            "plotId",
+            "kind",
+            "metricKey",
+            "value",
+            "receivedAt",
+            "source",
+            "dataMode",
+            "quality",
+            "freshness",
+            "decisionEligible",
+            "limitations",
+            "policyVersion",
+            "conversionVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        },
+        "EvidenceSource": {
+          "additionalProperties": false,
+          "properties": {
+            "provenanceType": {
+              "enum": [
+                "SENSOR",
+                "FARMER_REPORTED",
+                "FARMER_MANUAL",
+                "RSK_MANUAL",
+                "LABORATORY",
+                "SOIL_HEALTH_CARD",
+                "WEATHER",
+                "SATELLITE",
+                "PUBLIC_MARKET",
+                "DERIVED"
+              ],
+              "type": "string"
+            },
+            "rightsLabel": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceId": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceName": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sourceId",
+            "sourceName",
+            "provenanceType",
+            "rightsLabel",
+            "sourceVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C2"
+        },
+        "EvidenceValue": {
+          "additionalProperties": false,
+          "properties": {
+            "normalizedUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "normalizedValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "originalUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "originalValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "KNOWN",
+                "UNKNOWN",
+                "MISSING",
+                "PROXY",
+                "CONFLICTING",
+                "NOT_APPLICABLE",
+                "WITHHELD",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "normalizedUnit"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "cardId": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "primary": {
+          "$ref": "#/$defs/EvidenceRecord"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRecord"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "CURRENT",
+            "STALE",
+            "EMPTY",
+            "OFFLINE",
+            "DENIED",
+            "CONFLICTING",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "cardId",
+        "title",
+        "status",
+        "records"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "EvidenceValue": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "normalizedUnit": {
+          "enum": [
+            "CELSIUS",
+            "PERCENT",
+            "MILLIMETRE",
+            "PH",
+            "MG_PER_KG",
+            "KG_PER_HECTARE",
+            "MICROSIEMENS_PER_CM",
+            "INDEX",
+            "HEALTH_STATE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "normalizedValue": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "originalUnit": {
+          "enum": [
+            "CELSIUS",
+            "PERCENT",
+            "MILLIMETRE",
+            "PH",
+            "MG_PER_KG",
+            "KG_PER_HECTARE",
+            "MICROSIEMENS_PER_CM",
+            "INDEX",
+            "HEALTH_STATE",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "originalValue": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "KNOWN",
+            "UNKNOWN",
+            "MISSING",
+            "PROXY",
+            "CONFLICTING",
+            "NOT_APPLICABLE",
+            "WITHHELD",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "state",
+        "normalizedUnit"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
     },
     "FarmerBootstrapResponse": {
       "$defs": {
@@ -5482,6 +6923,8 @@
               "farmer.setup.complete",
               "farmer.farm.write",
               "farmer.plot.write",
+              "farmer.evidence.read",
+              "farmer.soil.write",
               "farmer.voice.setup"
             ],
             "type": "string"
@@ -7623,6 +9066,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -7866,6 +9310,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -8153,6 +9598,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -8414,6 +9860,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -8657,6 +10104,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -8944,6 +10392,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -9204,6 +10653,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -9458,6 +10908,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -9724,6 +11175,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -9995,6 +11447,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -10256,6 +11709,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -10499,6 +11953,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -10786,6 +12241,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -11047,6 +12503,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -11301,6 +12758,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -11567,6 +13025,7 @@
               "items": {
                 "enum": [
                   "SENSOR",
+                  "FARMER_REPORTED",
                   "FARMER_MANUAL",
                   "RSK_MANUAL",
                   "LABORATORY",
@@ -12551,6 +14010,335 @@
       "type": "object",
       "x-data-classification": "C3"
     },
+    "PlotEvidenceSummary": {
+      "$defs": {
+        "EvidenceRecord": {
+          "additionalProperties": false,
+          "properties": {
+            "calibrationVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "conversionVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "correctionOfEvidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "dataMode": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "decisionEligible": {
+              "type": "boolean"
+            },
+            "evidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "forecastFor": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "freshness": {
+              "enum": [
+                "CURRENT",
+                "DATA_IS_OLD",
+                "NO_RECENT_DATA",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            },
+            "invalidatedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "WEATHER_FORECAST",
+                "WEATHER_HISTORY",
+                "EARTH_OBSERVATION",
+                "SOIL_MEASUREMENT",
+                "HARDWARE_TELEMETRY",
+                "DEVICE_HEALTH"
+              ],
+              "type": "string"
+            },
+            "limitations": {
+              "default": [],
+              "items": {
+                "maxLength": 220,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 12,
+              "type": "array"
+            },
+            "metricKey": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "observedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "plotId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "policyVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "quality": {
+              "enum": [
+                "TRUSTED",
+                "USE_WITH_CAUTION",
+                "TREND_ONLY",
+                "DO_NOT_USE",
+                "PENDING"
+              ],
+              "type": "string"
+            },
+            "receivedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/EvidenceSource"
+            },
+            "value": {
+              "$ref": "#/$defs/EvidenceValue"
+            }
+          },
+          "required": [
+            "evidenceId",
+            "plotId",
+            "kind",
+            "metricKey",
+            "value",
+            "receivedAt",
+            "source",
+            "dataMode",
+            "quality",
+            "freshness",
+            "decisionEligible",
+            "limitations",
+            "policyVersion",
+            "conversionVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        },
+        "EvidenceSource": {
+          "additionalProperties": false,
+          "properties": {
+            "provenanceType": {
+              "enum": [
+                "SENSOR",
+                "FARMER_REPORTED",
+                "FARMER_MANUAL",
+                "RSK_MANUAL",
+                "LABORATORY",
+                "SOIL_HEALTH_CARD",
+                "WEATHER",
+                "SATELLITE",
+                "PUBLIC_MARKET",
+                "DERIVED"
+              ],
+              "type": "string"
+            },
+            "rightsLabel": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceId": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceName": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sourceVersion": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sourceId",
+            "sourceName",
+            "provenanceType",
+            "rightsLabel",
+            "sourceVersion"
+          ],
+          "type": "object",
+          "x-data-classification": "C2"
+        },
+        "EvidenceSummaryCard": {
+          "additionalProperties": false,
+          "properties": {
+            "cardId": {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            "primary": {
+              "$ref": "#/$defs/EvidenceRecord"
+            },
+            "records": {
+              "items": {
+                "$ref": "#/$defs/EvidenceRecord"
+              },
+              "maxItems": 12,
+              "type": "array"
+            },
+            "status": {
+              "enum": [
+                "CURRENT",
+                "STALE",
+                "EMPTY",
+                "OFFLINE",
+                "DENIED",
+                "CONFLICTING",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "cardId",
+            "title",
+            "status",
+            "records"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        },
+        "EvidenceValue": {
+          "additionalProperties": false,
+          "properties": {
+            "normalizedUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "normalizedValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "originalUnit": {
+              "enum": [
+                "CELSIUS",
+                "PERCENT",
+                "MILLIMETRE",
+                "PH",
+                "MG_PER_KG",
+                "KG_PER_HECTARE",
+                "MICROSIEMENS_PER_CM",
+                "INDEX",
+                "HEALTH_STATE",
+                "UNKNOWN"
+              ],
+              "type": "string"
+            },
+            "originalValue": {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "KNOWN",
+                "UNKNOWN",
+                "MISSING",
+                "PROXY",
+                "CONFLICTING",
+                "NOT_APPLICABLE",
+                "WITHHELD",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "normalizedUnit"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "cards": {
+          "items": {
+            "$ref": "#/$defs/EvidenceSummaryCard"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "generatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "summaryVersion": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "plotId",
+        "generatedAt",
+        "summaryVersion",
+        "cards"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
     "PlotGeometrySummary": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -12780,7 +14568,12 @@
             "RATE_LIMITED",
             "SETUP_INCOMPLETE",
             "GPS_PERMISSION_DENIED",
-            "HARDWARE_SKIPPED"
+            "HARDWARE_SKIPPED",
+            "STALE_DATA",
+            "PAYLOAD_TOO_LARGE",
+            "SIGNATURE_INVALID",
+            "REPLAY_DETECTED",
+            "CHALLENGE_EXPIRED"
           ],
           "type": "string"
         },
@@ -13219,11 +15012,13 @@
                   "farmer.setup.complete",
                   "farmer.farm.write",
                   "farmer.plot.write",
+                  "farmer.evidence.read",
+                  "farmer.soil.write",
                   "farmer.voice.setup"
                 ],
                 "type": "string"
               },
-              "maxItems": 49,
+              "maxItems": 51,
               "type": "array"
             },
             "capabilitySetVersion": {
@@ -13382,6 +15177,8 @@
               "farmer.setup.complete",
               "farmer.farm.write",
               "farmer.plot.write",
+              "farmer.evidence.read",
+              "farmer.soil.write",
               "farmer.voice.setup"
             ],
             "type": "string"
@@ -14938,11 +16735,13 @@
                   "farmer.setup.complete",
                   "farmer.farm.write",
                   "farmer.plot.write",
+                  "farmer.evidence.read",
+                  "farmer.soil.write",
                   "farmer.voice.setup"
                 ],
                 "type": "string"
               },
-              "maxItems": 49,
+              "maxItems": 51,
               "type": "array"
             },
             "capabilitySetVersion": {
@@ -16055,6 +17854,59 @@
       "required": [
         "unit",
         "source"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "SoilRecordResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "ACCEPTED",
+            "ALREADY_ACCEPTED"
+          ],
+          "type": "string"
+        },
+        "evidenceIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "type": "array"
+        },
+        "revision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "serverReceivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "soilRecordId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "disposition",
+        "soilRecordId",
+        "evidenceIds",
+        "revision",
+        "serverReceivedAt"
       ],
       "type": "object",
       "x-data-classification": "C3"
@@ -17586,6 +19438,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -17829,6 +19682,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -18116,6 +19970,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -18382,7 +20237,12 @@
                     "RATE_LIMITED",
                     "SETUP_INCOMPLETE",
                     "GPS_PERMISSION_DENIED",
-                    "HARDWARE_SKIPPED"
+                    "HARDWARE_SKIPPED",
+                    "STALE_DATA",
+                    "PAYLOAD_TOO_LARGE",
+                    "SIGNATURE_INVALID",
+                    "REPLAY_DETECTED",
+                    "CHALLENGE_EXPIRED"
                   ],
                   "type": "string"
                 },
@@ -18486,7 +20346,12 @@
                     "RATE_LIMITED",
                     "SETUP_INCOMPLETE",
                     "GPS_PERMISSION_DENIED",
-                    "HARDWARE_SKIPPED"
+                    "HARDWARE_SKIPPED",
+                    "STALE_DATA",
+                    "PAYLOAD_TOO_LARGE",
+                    "SIGNATURE_INVALID",
+                    "REPLAY_DETECTED",
+                    "CHALLENGE_EXPIRED"
                   ],
                   "type": "string"
                 },
@@ -18874,6 +20739,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -19117,6 +20983,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -19404,6 +21271,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -19664,6 +21532,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -19918,6 +21787,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -20184,6 +22054,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -20450,7 +22321,12 @@
                     "RATE_LIMITED",
                     "SETUP_INCOMPLETE",
                     "GPS_PERMISSION_DENIED",
-                    "HARDWARE_SKIPPED"
+                    "HARDWARE_SKIPPED",
+                    "STALE_DATA",
+                    "PAYLOAD_TOO_LARGE",
+                    "SIGNATURE_INVALID",
+                    "REPLAY_DETECTED",
+                    "CHALLENGE_EXPIRED"
                   ],
                   "type": "string"
                 },
@@ -20554,7 +22430,12 @@
                     "RATE_LIMITED",
                     "SETUP_INCOMPLETE",
                     "GPS_PERMISSION_DENIED",
-                    "HARDWARE_SKIPPED"
+                    "HARDWARE_SKIPPED",
+                    "STALE_DATA",
+                    "PAYLOAD_TOO_LARGE",
+                    "SIGNATURE_INVALID",
+                    "REPLAY_DETECTED",
+                    "CHALLENGE_EXPIRED"
                   ],
                   "type": "string"
                 },
@@ -21304,7 +23185,12 @@
                 "RATE_LIMITED",
                 "SETUP_INCOMPLETE",
                 "GPS_PERMISSION_DENIED",
-                "HARDWARE_SKIPPED"
+                "HARDWARE_SKIPPED",
+                "STALE_DATA",
+                "PAYLOAD_TOO_LARGE",
+                "SIGNATURE_INVALID",
+                "REPLAY_DETECTED",
+                "CHALLENGE_EXPIRED"
               ],
               "type": "string"
             },
@@ -21408,7 +23294,12 @@
                 "RATE_LIMITED",
                 "SETUP_INCOMPLETE",
                 "GPS_PERMISSION_DENIED",
-                "HARDWARE_SKIPPED"
+                "HARDWARE_SKIPPED",
+                "STALE_DATA",
+                "PAYLOAD_TOO_LARGE",
+                "SIGNATURE_INVALID",
+                "REPLAY_DETECTED",
+                "CHALLENGE_EXPIRED"
               ],
               "type": "string"
             },
@@ -23094,7 +24985,12 @@
                     "RATE_LIMITED",
                     "SETUP_INCOMPLETE",
                     "GPS_PERMISSION_DENIED",
-                    "HARDWARE_SKIPPED"
+                    "HARDWARE_SKIPPED",
+                    "STALE_DATA",
+                    "PAYLOAD_TOO_LARGE",
+                    "SIGNATURE_INVALID",
+                    "REPLAY_DETECTED",
+                    "CHALLENGE_EXPIRED"
                   ],
                   "type": "string"
                 },
@@ -23198,7 +25094,12 @@
                     "RATE_LIMITED",
                     "SETUP_INCOMPLETE",
                     "GPS_PERMISSION_DENIED",
-                    "HARDWARE_SKIPPED"
+                    "HARDWARE_SKIPPED",
+                    "STALE_DATA",
+                    "PAYLOAD_TOO_LARGE",
+                    "SIGNATURE_INVALID",
+                    "REPLAY_DETECTED",
+                    "CHALLENGE_EXPIRED"
                   ],
                   "type": "string"
                 },
@@ -24064,6 +25965,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -24307,6 +26209,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -24594,6 +26497,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -24965,6 +26869,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -25208,6 +27113,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -25495,6 +27401,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -25755,6 +27662,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -26009,6 +27917,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -26275,6 +28184,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -26646,6 +28556,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -26889,6 +28800,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -27176,6 +29088,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -27592,6 +29505,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -27835,6 +29749,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -28122,6 +30037,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -28382,6 +30298,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -28636,6 +30553,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",
@@ -28902,6 +30820,7 @@
                   "items": {
                     "enum": [
                       "SENSOR",
+                      "FARMER_REPORTED",
                       "FARMER_MANUAL",
                       "RSK_MANUAL",
                       "LABORATORY",

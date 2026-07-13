@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { HealthPayloadSchema } from '../../src/http/common.js';
 
 export * from '../../src/index.js';
-export const contractVersion = '1.2.0-m3' as const;
+export const contractVersion = '1.3.0-m4' as const;
 export const serviceHealth = { statuses: ['ok', 'not_ready'] } as const;
 export type HealthPayload = z.infer<typeof HealthPayloadSchema>;
 export type HealthStatus = HealthPayload['status'];

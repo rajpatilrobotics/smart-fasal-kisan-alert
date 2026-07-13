@@ -146,11 +146,13 @@
                 "farmer.setup.complete",
                 "farmer.farm.write",
                 "farmer.plot.write",
+                "farmer.evidence.read",
+                "farmer.soil.write",
                 "farmer.voice.setup"
               ],
               "type": "string"
             },
-            "maxItems": 49,
+            "maxItems": 51,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -517,7 +519,12 @@
               "RATE_LIMITED",
               "SETUP_INCOMPLETE",
               "GPS_PERMISSION_DENIED",
-              "HARDWARE_SKIPPED"
+              "HARDWARE_SKIPPED",
+              "STALE_DATA",
+              "PAYLOAD_TOO_LARGE",
+              "SIGNATURE_INVALID",
+              "REPLAY_DETECTED",
+              "CHALLENGE_EXPIRED"
             ],
             "type": "string"
           },
@@ -1011,7 +1018,7 @@
   "info": {
     "description": "Generated Milestone 3 contract. JSON fields use lower camel case.",
     "title": "Smart Fasal mp API",
-    "version": "1.2.0-m3"
+    "version": "1.3.0-m4"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2446,6 +2453,8 @@
     "farmer.setup.complete",
     "farmer.farm.write",
     "farmer.plot.write",
+    "farmer.evidence.read",
+    "farmer.soil.write",
     "farmer.voice.setup"
   ],
   "x-smart-fasal-consent-scope-registry": [

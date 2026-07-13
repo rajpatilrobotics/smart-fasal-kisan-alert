@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "provenanceType": {
+      "enum": [
+        "SENSOR",
+        "FARMER_REPORTED",
+        "FARMER_MANUAL",
+        "RSK_MANUAL",
+        "LABORATORY",
+        "SOIL_HEALTH_CARD",
+        "WEATHER",
+        "SATELLITE",
+        "PUBLIC_MARKET",
+        "DERIVED"
+      ],
+      "type": "string"
+    },
+    "rightsLabel": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "sourceId": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "sourceName": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "sourceVersion": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "sourceId",
+    "sourceName",
+    "provenanceType",
+    "rightsLabel",
+    "sourceVersion"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

@@ -10,7 +10,7 @@ from intelligence_service.main import SERVICE_NAME, create_app
 
 
 def test_generated_contract_is_available_to_python() -> None:
-    assert CONTRACT_VERSION == "1.2.0-m3"
+    assert CONTRACT_VERSION == "1.3.0-m4"
     with pytest.raises(ValidationError):
         HealthPayload.model_validate(
             {
@@ -58,6 +58,33 @@ def test_readiness_hides_probe_failures() -> None:
         assert response.status_code == 503
         assert response.json().keys() == {"service", "status", "timestamp"}
         assert "sensitive dependency detail" not in response.text
+
+
+def test_earth_job_live_without_credentials_returns_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("GOOGLE_EARTH_ENGINE_PROJECT", raising=False)
+    with TestClient(create_app()) as client:
+        response = client.post(
+            "/internal/v1/intelligence/earth-jobs/00000000-0000-4000-8000-000000000601:execute",
+            json={
+                "jobId": "00000000-0000-4000-8000-000000000601",
+                "plotId": "00000000-0000-4000-8000-000000000401",
+                "geometryVersion": 1,
+                "dataset": "SENTINEL_2",
+                "windowStart": "2026-07-01T00:00:00Z",
+                "windowEnd": "2026-07-13T00:00:00Z",
+                "reducer": "mean",
+                "scaleMetres": 10,
+                "mode": "LIVE",
+            },
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["state"] == "UNAVAILABLE"
+    assert payload["evidence"] == []
+    assert "credentials are not configured" in payload["limitations"][0]
 
 
 def test_runtime_port_validation(monkeypatch: pytest.MonkeyPatch) -> None:

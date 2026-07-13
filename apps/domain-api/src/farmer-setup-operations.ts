@@ -1,13 +1,17 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  EvidenceService,
   FarmerSetupService,
+  InMemoryEvidenceRepository,
+  type EvidenceRepository,
   type FarmerSetupOwner,
   type FarmerSetupRepository,
 } from '@smart-fasal/application';
 import {
   ChangeDeviceModeCommandSchema,
   CompleteFarmerSetupCommandSchema,
+  CreateSoilRecordRequestSchema,
   SaveFarmerSetupDraftCommandSchema,
   UpdateFarmerPreferencesCommandSchema,
 } from '@smart-fasal/contracts/schemas';
@@ -69,12 +73,15 @@ function conflict(code: 'EXPECTED_REVISION_MISMATCH' | 'SETUP_INCOMPLETE'): neve
 
 export class FarmerSetupOperations implements DomainOperationAdapter {
   readonly #service: FarmerSetupService;
+  readonly #evidence: EvidenceService;
 
   constructor(
     repository: FarmerSetupRepository = new MemoryFarmerSetupRepository(),
+    evidenceRepository: EvidenceRepository = new InMemoryEvidenceRepository(),
     now?: () => Date,
   ) {
     this.#service = new FarmerSetupService(repository, now);
+    this.#evidence = new EvidenceService(evidenceRepository, repository, now);
   }
 
   async execute(request: DomainOperationRequest): Promise<unknown> {
@@ -87,6 +94,10 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
       case 'getFarmerFarm':
       case 'getFarmerPlot':
         return this.#farmResource(request);
+      case 'getFarmerPlotEvidenceSummary':
+        return this.#evidenceSummary(request);
+      case 'createFarmerSoilRecord':
+        return this.#soilRecord(request);
       case 'saveFarmerSetupDraft':
       case 'createFarmerFarm':
       case 'updateFarmerFarm':
@@ -119,6 +130,8 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
         'farmer.setup.complete',
         'farmer.farm.write',
         'farmer.plot.write',
+        'farmer.evidence.read',
+        'farmer.soil.write',
         'farmer.voice.setup',
       ],
       farmContextState:
@@ -164,6 +177,41 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
       });
     }
     return farm;
+  }
+
+  async #evidenceSummary(request: DomainOperationRequest) {
+    const plotId = request.params?.['plotId'];
+    if (plotId === undefined) throw dependencyUnavailable();
+    try {
+      return await this.#evidence.summarize(ownerFor(request.boundary), plotId);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'AUTHORIZATION_DENIED') {
+        throw new ApiBoundaryProblem({
+          code: 'AUTHORIZATION_DENIED',
+          status: 404,
+          title: 'The requested Plot evidence is not available to this Farmer.',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async #soilRecord(request: DomainOperationRequest) {
+    const plotId = request.params?.['plotId'];
+    if (plotId === undefined) throw dependencyUnavailable();
+    const body = CreateSoilRecordRequestSchema.parse(request.body);
+    try {
+      return await this.#evidence.recordSoil(ownerFor(request.boundary), plotId, body);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'AUTHORIZATION_DENIED') {
+        throw new ApiBoundaryProblem({
+          code: 'AUTHORIZATION_DENIED',
+          status: 404,
+          title: 'The requested Plot is not available to this Farmer.',
+        });
+      }
+      throw error;
+    }
   }
 
   async #complete(request: DomainOperationRequest) {

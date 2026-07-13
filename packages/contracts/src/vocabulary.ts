@@ -4,6 +4,7 @@ export const DATA_MODES = ['LIVE', 'RECORDED', 'SIMULATED'] as const;
 
 export const PROVENANCE_TYPES = [
   'SENSOR',
+  'FARMER_REPORTED',
   'FARMER_MANUAL',
   'RSK_MANUAL',
   'LABORATORY',
@@ -101,6 +102,8 @@ export const CAPABILITY_KEYS = [
   'farmer.setup.complete',
   'farmer.farm.write',
   'farmer.plot.write',
+  'farmer.evidence.read',
+  'farmer.soil.write',
   'farmer.voice.setup',
 ] as const;
 
@@ -141,6 +144,11 @@ export const PROBLEM_CODES = [
   'SETUP_INCOMPLETE',
   'GPS_PERMISSION_DENIED',
   'HARDWARE_SKIPPED',
+  'STALE_DATA',
+  'PAYLOAD_TOO_LARGE',
+  'SIGNATURE_INVALID',
+  'REPLAY_DETECTED',
+  'CHALLENGE_EXPIRED',
 ] as const;
 
 export const CONSENT_STATES = ['MISSING', 'ALLOWED', 'DENIED', 'EXPIRED', 'WITHDRAWN'] as const;

@@ -813,6 +813,8 @@
           "farmer.setup.complete",
           "farmer.farm.write",
           "farmer.plot.write",
+          "farmer.evidence.read",
+          "farmer.soil.write",
           "farmer.voice.setup"
         ],
         "type": "string"

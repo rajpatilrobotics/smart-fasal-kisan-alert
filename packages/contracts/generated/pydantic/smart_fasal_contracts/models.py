@@ -88,6 +88,8 @@ class Capability(StrEnum):
     farmer_setup_complete = 'farmer.setup.complete'
     farmer_farm_write = 'farmer.farm.write'
     farmer_plot_write = 'farmer.plot.write'
+    farmer_evidence_read = 'farmer.evidence.read'
+    farmer_soil_write = 'farmer.soil.write'
     farmer_voice_setup = 'farmer.voice.setup'
 
 
@@ -121,7 +123,7 @@ class AuthorizationContext(BaseModel):
         extra='forbid',
     )
     authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
-    capabilities: Annotated[list[Capability], Field(max_length=49)]
+    capabilities: Annotated[list[Capability], Field(max_length=51)]
     capabilitySetVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     environment: Environment
     jurisdictionId: UUID | None = None
@@ -392,6 +394,55 @@ class CreateMediaUploadIntentResponse(BaseModel):
     state: Literal['INTENT_ISSUED']
 
 
+class ClientContext2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    dataModeClaim: DataModeClaim
+    timezone: Literal['Asia/Kolkata']
+
+
+class Source(StrEnum):
+    SOIL_HEALTH_CARD = 'SOIL_HEALTH_CARD'
+    LABORATORY = 'LABORATORY'
+    FARMER_MANUAL = 'FARMER_MANUAL'
+    SENSOR = 'SENSOR'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Unit(StrEnum):
+    MG_PER_KG = 'MG_PER_KG'
+    KG_PER_HECTARE = 'KG_PER_HECTARE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Measurement(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    nitrogen: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
+    observedAt: AwareDatetime | None = None
+    ph: Annotated[float | None, Field(ge=0.0, le=14.0)] = None
+    phosphorus: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
+    potassium: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
+    source: Source
+    sourceReference: Annotated[str, Field(max_length=200, min_length=1)]
+    sourceRightsLabel: Annotated[str, Field(max_length=160, min_length=1)]
+    sourceVersion: Annotated[str, Field(max_length=120, min_length=1)]
+    unit: Unit
+
+
+class CreateSoilRecordRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientContext: ClientContext2
+    commandId: UUID
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    measurement: Measurement
+
+
 class AudioCapabilities(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -479,6 +530,25 @@ class DeviceBatchReceipt(BaseModel):
     state: State1
 
 
+class DeviceChallengeRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    channelId: Annotated[str, Field(max_length=160, min_length=1)]
+    clientNonce: Annotated[str, Field(max_length=128, min_length=16)]
+    deviceId: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class DeviceChallengeResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    algorithm: Literal['SFKA-HMAC-SHA256-v1']
+    challengeId: UUID
+    expiresAt: AwareDatetime
+    serverNonce: Annotated[str, Field(max_length=128, min_length=16)]
+
+
 class DeviceMode(StrEnum):
     PERSONAL = 'PERSONAL'
     TRUSTED_FAMILY = 'TRUSTED_FAMILY'
@@ -503,6 +573,103 @@ class DeviceModeChangePayload(BaseModel):
     )
     localPrivateWorkState: LocalPrivateWorkState
     nextDeviceMode: NextDeviceMode
+
+
+class Signal(StrEnum):
+    SOIL_MOISTURE = 'SOIL_MOISTURE'
+    AIR_TEMPERATURE = 'AIR_TEMPERATURE'
+    AIR_HUMIDITY = 'AIR_HUMIDITY'
+    SOIL_PH = 'SOIL_PH'
+    SOIL_EC = 'SOIL_EC'
+    NITROGEN = 'NITROGEN'
+    PHOSPHORUS = 'PHOSPHORUS'
+    POTASSIUM = 'POTASSIUM'
+    BATTERY = 'BATTERY'
+    RADIO = 'RADIO'
+    CLOCK_HEALTH = 'CLOCK_HEALTH'
+
+
+class Unit1(StrEnum):
+    CELSIUS = 'CELSIUS'
+    PERCENT = 'PERCENT'
+    MILLIMETRE = 'MILLIMETRE'
+    PH = 'PH'
+    MG_PER_KG = 'MG_PER_KG'
+    KG_PER_HECTARE = 'KG_PER_HECTARE'
+    MICROSIEMENS_PER_CM = 'MICROSIEMENS_PER_CM'
+    INDEX = 'INDEX'
+    HEALTH_STATE = 'HEALTH_STATE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class DeviceObservation(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    observationId: UUID
+    observedAt: AwareDatetime
+    signal: Signal
+    unit: Unit1
+    value: Annotated[str, Field(max_length=80, min_length=1)]
+
+
+class State2(StrEnum):
+    PENDING = 'PENDING'
+    DURABLY_ACCEPTED = 'DURABLY_ACCEPTED'
+    ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
+    REJECTED = 'REJECTED'
+
+
+class DeviceReceiptResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    batchId: UUID
+    explicitlyNotAgronomicTrust: Literal[True]
+    receiptId: UUID
+    receivedAt: AwareDatetime
+    state: State2
+    trustState: Literal['PENDING']
+
+
+class Dataset(StrEnum):
+    CHIRPS = 'CHIRPS'
+    SENTINEL_2 = 'SENTINEL_2'
+    SENTINEL_1 = 'SENTINEL_1'
+    ERA5_LAND = 'ERA5_LAND'
+    ELEVATION = 'ELEVATION'
+    LAND_COVER = 'LAND_COVER'
+
+
+class Mode(StrEnum):
+    LIVE = 'LIVE'
+    RECORDED = 'RECORDED'
+    SIMULATED = 'SIMULATED'
+
+
+class EarthJobExecuteRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    dataset: Dataset
+    geometryVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    jobId: UUID
+    mode: Mode
+    plotId: UUID
+    reducer: Annotated[str, Field(max_length=80, min_length=1)]
+    scaleMetres: Annotated[int, Field(gt=0, le=10000)]
+    windowEnd: AwareDatetime
+    windowStart: AwareDatetime
+
+
+class Limitation(RootModel[str]):
+    root: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class State3(StrEnum):
+    PROPOSED = 'PROPOSED'
+    UNAVAILABLE = 'UNAVAILABLE'
+    RETRYABLE_FAILURE = 'RETRYABLE_FAILURE'
 
 
 class ActorType(StrEnum):
@@ -895,6 +1062,7 @@ class PayloadClassification(StrEnum):
 
 class ProvenanceType(StrEnum):
     SENSOR = 'SENSOR'
+    FARMER_REPORTED = 'FARMER_REPORTED'
     FARMER_MANUAL = 'FARMER_MANUAL'
     RSK_MANUAL = 'RSK_MANUAL'
     LABORATORY = 'LABORATORY'
@@ -903,6 +1071,103 @@ class ProvenanceType(StrEnum):
     SATELLITE = 'SATELLITE'
     PUBLIC_MARKET = 'PUBLIC_MARKET'
     DERIVED = 'DERIVED'
+
+
+class Freshness(StrEnum):
+    CURRENT = 'CURRENT'
+    DATA_IS_OLD = 'DATA_IS_OLD'
+    NO_RECENT_DATA = 'NO_RECENT_DATA'
+    UNAVAILABLE = 'UNAVAILABLE'
+
+
+class Kind(StrEnum):
+    WEATHER_FORECAST = 'WEATHER_FORECAST'
+    WEATHER_HISTORY = 'WEATHER_HISTORY'
+    EARTH_OBSERVATION = 'EARTH_OBSERVATION'
+    SOIL_MEASUREMENT = 'SOIL_MEASUREMENT'
+    HARDWARE_TELEMETRY = 'HARDWARE_TELEMETRY'
+    DEVICE_HEALTH = 'DEVICE_HEALTH'
+
+
+class Quality(StrEnum):
+    TRUSTED = 'TRUSTED'
+    USE_WITH_CAUTION = 'USE_WITH_CAUTION'
+    TREND_ONLY = 'TREND_ONLY'
+    DO_NOT_USE = 'DO_NOT_USE'
+    PENDING = 'PENDING'
+
+
+class EvidenceSource(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    provenanceType: ProvenanceType
+    rightsLabel: Annotated[str, Field(max_length=160, min_length=1)]
+    sourceId: Annotated[str, Field(max_length=160, min_length=1)]
+    sourceName: Annotated[str, Field(max_length=160, min_length=1)]
+    sourceVersion: Annotated[str, Field(max_length=120, min_length=1)]
+
+
+class Status(StrEnum):
+    CURRENT = 'CURRENT'
+    STALE = 'STALE'
+    EMPTY = 'EMPTY'
+    OFFLINE = 'OFFLINE'
+    DENIED = 'DENIED'
+    CONFLICTING = 'CONFLICTING'
+    UNAVAILABLE = 'UNAVAILABLE'
+
+
+class NormalizedUnit(StrEnum):
+    CELSIUS = 'CELSIUS'
+    PERCENT = 'PERCENT'
+    MILLIMETRE = 'MILLIMETRE'
+    PH = 'PH'
+    MG_PER_KG = 'MG_PER_KG'
+    KG_PER_HECTARE = 'KG_PER_HECTARE'
+    MICROSIEMENS_PER_CM = 'MICROSIEMENS_PER_CM'
+    INDEX = 'INDEX'
+    HEALTH_STATE = 'HEALTH_STATE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class OriginalUnit(StrEnum):
+    CELSIUS = 'CELSIUS'
+    PERCENT = 'PERCENT'
+    MILLIMETRE = 'MILLIMETRE'
+    PH = 'PH'
+    MG_PER_KG = 'MG_PER_KG'
+    KG_PER_HECTARE = 'KG_PER_HECTARE'
+    MICROSIEMENS_PER_CM = 'MICROSIEMENS_PER_CM'
+    INDEX = 'INDEX'
+    HEALTH_STATE = 'HEALTH_STATE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class State4(StrEnum):
+    KNOWN = 'KNOWN'
+    UNKNOWN = 'UNKNOWN'
+    MISSING = 'MISSING'
+    PROXY = 'PROXY'
+    CONFLICTING = 'CONFLICTING'
+    NOT_APPLICABLE = 'NOT_APPLICABLE'
+    WITHHELD = 'WITHHELD'
+    UNAVAILABLE = 'UNAVAILABLE'
+
+
+class EvidenceValue(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    normalizedUnit: NormalizedUnit
+    normalizedValue: Annotated[
+        str | None, Field(pattern='^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$')
+    ] = None
+    originalUnit: OriginalUnit | None = None
+    originalValue: Annotated[
+        str | None, Field(pattern='^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$')
+    ] = None
+    state: State4
 
 
 class FarmContextState(StrEnum):
@@ -955,7 +1220,7 @@ class HardwareStatus(StrEnum):
     RSK_SETUP_REQUIRED = 'RSK_SETUP_REQUIRED'
 
 
-class Status(StrEnum):
+class Status1(StrEnum):
     NOT_STARTED = 'NOT_STARTED'
     IN_PROGRESS = 'IN_PROGRESS'
     READY_FOR_REVIEW = 'READY_FOR_REVIEW'
@@ -988,7 +1253,7 @@ class FinalizeMediaUploadIntentRequest(BaseModel):
     sha256: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
 
 
-class Status2(StrEnum):
+class Status3(StrEnum):
     ok = 'ok'
     not_ready = 'not_ready'
 
@@ -998,11 +1263,11 @@ class HealthPayload(BaseModel):
         extra='forbid',
     )
     service: Annotated[str, Field(max_length=80, min_length=1)]
-    status: Status2
+    status: Status3
     timestamp: AwareDatetime
 
 
-class ClientContext2(BaseModel):
+class ClientContext3(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1035,7 +1300,7 @@ class IssueAccessGrantCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext2
+    clientContext: ClientContext3
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['IssueAccessGrant']
@@ -1061,7 +1326,7 @@ class FailureCode(StrEnum):
     CONSENT_OR_ACCESS_VERSION_CHANGED = 'CONSENT_OR_ACCESS_VERSION_CHANGED'
 
 
-class State2(StrEnum):
+class State5(StrEnum):
     INTENT_ISSUED = 'INTENT_ISSUED'
     UPLOADED_UNVERIFIED = 'UPLOADED_UNVERIFIED'
     SCANNING = 'SCANNING'
@@ -1084,7 +1349,7 @@ class MediaAssetStatusResponse(BaseModel):
     failureCode: FailureCode | None = None
     purpose: Purpose
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
-    state: State2
+    state: State5
     updatedAt: AwareDatetime
     verifiedMimeType: Annotated[str | None, Field(max_length=120, min_length=1)] = None
     verifiedSizeBytes: Annotated[int | None, Field(gt=0, le=9007199254740991)] = None
@@ -1597,7 +1862,7 @@ class GpsPermission(StrEnum):
     UNKNOWN = 'UNKNOWN'
 
 
-class Kind(StrEnum):
+class Kind1(StrEnum):
     NONE = 'NONE'
     POINT = 'POINT'
     POLYGON = 'POLYGON'
@@ -1612,7 +1877,7 @@ class PlotGeometrySummary(BaseModel):
     geometryVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     gpsPermission: GpsPermission
     hasExactServerGeometry: bool
-    kind: Kind
+    kind: Kind1
     recordedAt: AwareDatetime
 
 
@@ -1683,6 +1948,11 @@ class Code(StrEnum):
     SETUP_INCOMPLETE = 'SETUP_INCOMPLETE'
     GPS_PERMISSION_DENIED = 'GPS_PERMISSION_DENIED'
     HARDWARE_SKIPPED = 'HARDWARE_SKIPPED'
+    STALE_DATA = 'STALE_DATA'
+    PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE'
+    SIGNATURE_INVALID = 'SIGNATURE_INVALID'
+    REPLAY_DETECTED = 'REPLAY_DETECTED'
+    CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED'
 
 
 class FieldError(BaseModel):
@@ -1746,7 +2016,7 @@ class RaigadLocation(BaseModel):
     village: Annotated[str, Field(max_length=160, min_length=1)]
 
 
-class ClientContext3(BaseModel):
+class ClientContext4(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1780,7 +2050,7 @@ class RecordConsentDecisionCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext3
+    clientContext: ClientContext4
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['RecordConsentDecision']
@@ -1830,7 +2100,7 @@ class RskBootstrapResponse(BaseModel):
     workState: Literal['UNAVAILABLE_UNTIL_WORK_MILESTONE']
 
 
-class ClientContext4(BaseModel):
+class ClientContext5(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1847,7 +2117,7 @@ class Target4(BaseModel):
     type: Literal['farmerSetupDraft']
 
 
-class Status3(StrEnum):
+class Status4(StrEnum):
     NOT_STARTED = 'NOT_STARTED'
     IN_PROGRESS = 'IN_PROGRESS'
     READY_FOR_REVIEW = 'READY_FOR_REVIEW'
@@ -1864,7 +2134,7 @@ class ScanMediaAssetRequest(BaseModel):
     storageEventId: UUID
 
 
-class ClientContext5(BaseModel):
+class ClientContext6(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1894,7 +2164,7 @@ class SelectRoleContextCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext5
+    clientContext: ClientContext6
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['SelectRoleContext']
@@ -1989,21 +2259,7 @@ class SetupVoiceProposalPayload(BaseModel):
     targetPath: Annotated[str, Field(max_length=160, min_length=1)]
 
 
-class Mode(StrEnum):
-    LIVE = 'LIVE'
-    RECORDED = 'RECORDED'
-    SIMULATED = 'SIMULATED'
-
-
-class Source(StrEnum):
-    SOIL_HEALTH_CARD = 'SOIL_HEALTH_CARD'
-    LABORATORY = 'LABORATORY'
-    FARMER_MANUAL = 'FARMER_MANUAL'
-    SENSOR = 'SENSOR'
-    UNKNOWN = 'UNKNOWN'
-
-
-class Unit(StrEnum):
+class Unit2(StrEnum):
     MG_PER_KG = 'MG_PER_KG'
     KG_PER_HECTARE = 'KG_PER_HECTARE'
     UNKNOWN = 'UNKNOWN'
@@ -2019,7 +2275,24 @@ class SoilMeasurement(BaseModel):
     phosphorus: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
     potassium: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
     source: Source
-    unit: Unit
+    unit: Unit2
+
+
+class Disposition2(StrEnum):
+    ACCEPTED = 'ACCEPTED'
+    ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
+
+
+class SoilRecordResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID
+    disposition: Disposition2
+    evidenceIds: Annotated[list[UUID], Field(max_length=8, min_length=1)]
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    serverReceivedAt: AwareDatetime
+    soilRecordId: UUID
 
 
 class SupportedProjectionVersions(BaseModel):
@@ -2139,6 +2412,11 @@ class ProblemCode(StrEnum):
     SETUP_INCOMPLETE = 'SETUP_INCOMPLETE'
     GPS_PERMISSION_DENIED = 'GPS_PERMISSION_DENIED'
     HARDWARE_SKIPPED = 'HARDWARE_SKIPPED'
+    STALE_DATA = 'STALE_DATA'
+    PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE'
+    SIGNATURE_INVALID = 'SIGNATURE_INVALID'
+    REPLAY_DETECTED = 'REPLAY_DETECTED'
+    CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED'
 
 
 class SyncCommandDisposition3(BaseModel):
@@ -2300,7 +2578,7 @@ class ConflictType(StrEnum):
     SCHEMA_REQUIRES_MIGRATION = 'SCHEMA_REQUIRES_MIGRATION'
 
 
-class State3(StrEnum):
+class State6(StrEnum):
     OPEN = 'OPEN'
     RESOLUTION_PENDING = 'RESOLUTION_PENDING'
     RESOLVED = 'RESOLVED'
@@ -2322,7 +2600,7 @@ class SyncConflict(BaseModel):
     localRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     localSummary: dict[str, JsonValue]
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
-    state: State3
+    state: State6
     targetId: UUID
     targetType: Annotated[str, Field(max_length=80, min_length=1)]
 
@@ -2547,7 +2825,7 @@ class Unavailable(BaseModel):
     state: Literal['UNAVAILABLE']
 
 
-class ClientContext6(BaseModel):
+class ClientContext7(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2565,7 +2843,7 @@ class UpdateFarmerPreferencesPayload(BaseModel):
     voicePrompts: bool
 
 
-class State4(StrEnum):
+class State7(StrEnum):
     UNKNOWN = 'UNKNOWN'
     IN_PROGRESS = 'IN_PROGRESS'
     ACCEPTED = 'ACCEPTED'
@@ -2578,7 +2856,7 @@ class VoiceCommandStatusResponse(BaseModel):
     )
     commandId: UUID
     receiptReference: UUID | None = None
-    state: State4
+    state: State7
 
 
 class Type1(StrEnum):
@@ -2646,7 +2924,7 @@ class VoiceDelegation(BaseModel):
     toolKey: Annotated[str, Field(max_length=120, min_length=1)]
 
 
-class State5(StrEnum):
+class State8(StrEnum):
     PENDING = 'PENDING'
     CONFIRMED = 'CONFIRMED'
     CANCELLED = 'CANCELLED'
@@ -2668,7 +2946,7 @@ class VoiceProposalResponse(BaseModel):
     readBack: dict[str, JsonValue]
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
     sessionId: UUID
-    state: State5
+    state: State8
     toolKey: Annotated[str, Field(max_length=120, min_length=1)]
 
 
@@ -2705,7 +2983,7 @@ class VoiceTurnRequest(BaseModel):
     turnId: UUID
 
 
-class State6(StrEnum):
+class State9(StrEnum):
     HELP = 'HELP'
     UNAVAILABLE = 'UNAVAILABLE'
     NEEDS_CLARIFICATION = 'NEEDS_CLARIFICATION'
@@ -2721,7 +2999,7 @@ class VoiceTurnResponse(BaseModel):
     proposalId: UUID | None = None
     serverSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     sessionId: UUID
-    state: State6
+    state: State9
     turnId: UUID
 
 
@@ -2740,7 +3018,7 @@ class Reliability(StrEnum):
     UNKNOWN = 'UNKNOWN'
 
 
-class Source1(StrEnum):
+class Source2(StrEnum):
     RAIN_FED = 'RAIN_FED'
     WELL = 'WELL'
     BOREWELL = 'BOREWELL'
@@ -2766,7 +3044,7 @@ class WaterContext(BaseModel):
     availability: Availability
     rainfed: bool
     reliability: Reliability
-    sources: Annotated[list[Source1], Field(max_length=8, min_length=1)]
+    sources: Annotated[list[Source2], Field(max_length=8, min_length=1)]
     storage: Storage
 
 
@@ -2802,6 +3080,21 @@ class CorrectVoiceProposalRequest(BaseModel):
     correction: dict[str, JsonValue]
     expectedProposalRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     proposalId: UUID
+
+
+class DeviceBatchRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    batchId: UUID
+    challengeId: UUID
+    channelId: Annotated[str, Field(max_length=160, min_length=1)]
+    deviceId: Annotated[str, Field(max_length=160, min_length=1)]
+    observations: Annotated[
+        list[DeviceObservation], Field(max_length=500, min_length=1)
+    ]
+    payloadDigest: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    signature: Annotated[str, Field(pattern='^sha256=[0-9a-f]{64}$')]
 
 
 class EventEnvelope(BaseModel):
@@ -2841,6 +3134,44 @@ class EventEnvelope(BaseModel):
     traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
 
 
+class EvidenceRecord(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    calibrationVersion: Annotated[str | None, Field(max_length=120, min_length=1)] = (
+        None
+    )
+    conversionVersion: Annotated[str, Field(max_length=120, min_length=1)]
+    correctionOfEvidenceId: UUID | None = None
+    dataMode: DataMode
+    decisionEligible: bool
+    evidenceId: UUID
+    forecastFor: AwareDatetime | None = None
+    freshness: Freshness
+    invalidatedAt: AwareDatetime | None = None
+    kind: Kind
+    limitations: Annotated[list[Limitation], Field(max_length=12)]
+    metricKey: Annotated[str, Field(max_length=120, min_length=1)]
+    observedAt: AwareDatetime | None = None
+    plotId: UUID
+    policyVersion: Annotated[str, Field(max_length=120, min_length=1)]
+    quality: Quality
+    receivedAt: AwareDatetime
+    source: EvidenceSource
+    value: EvidenceValue
+
+
+class EvidenceSummaryCard(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cardId: Annotated[str, Field(max_length=80, min_length=1)]
+    primary: EvidenceRecord | None = None
+    records: Annotated[list[EvidenceRecord], Field(max_length=12)]
+    status: Status
+    title: Annotated[str, Field(max_length=120, min_length=1)]
+
+
 class FarmSetup(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -2861,6 +3192,16 @@ class MpSafeResult(RootModel[MpUnavailableResult | MpSuppressedResult]):
     root: MpUnavailableResult | MpSuppressedResult
 
 
+class PlotEvidenceSummary(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cards: Annotated[list[EvidenceSummaryCard], Field(max_length=12)]
+    generatedAt: AwareDatetime
+    plotId: UUID
+    summaryVersion: Annotated[int, Field(ge=0, le=9007199254740991)]
+
+
 class Draft(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -2874,7 +3215,7 @@ class Draft(BaseModel):
     hardwareStatus: HardwareStatus
     profile: FarmerProfileSetup
     soilByPlot: dict[str, SoilMeasurement]
-    status: Status3
+    status: Status4
     waterByPlot: dict[str, WaterContext]
 
 
@@ -2985,12 +3326,26 @@ class UpdateFarmerPreferencesCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext6
+    clientContext: ClientContext7
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['UpdateFarmerPreferences']
     payload: UpdateFarmerPreferencesPayload
     target: Target11
+
+
+class EarthJobExecuteResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    evidence: Annotated[list[EvidenceRecord], Field(max_length=24)]
+    generatedAt: AwareDatetime
+    jobId: UUID
+    limitations: Annotated[list[Limitation], Field(max_length=12)]
+    snapshotChecksum: Annotated[str | None, Field(pattern='^sha256:[0-9a-f]{64}$')] = (
+        None
+    )
+    state: State3
 
 
 class FarmerSetupDraft(BaseModel):
@@ -3008,7 +3363,7 @@ class FarmerSetupDraft(BaseModel):
     profile: FarmerProfileSetup
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
     soilByPlot: dict[str, SoilMeasurement]
-    status: Status
+    status: Status1
     syncStatus: SyncStatus
     updatedAt: AwareDatetime
     waterByPlot: dict[str, WaterContext]
@@ -3021,7 +3376,7 @@ class FarmerSetupSummary(BaseModel):
     activeDraft: FarmerSetupDraft | None = None
     completedAt: AwareDatetime | None = None
     conflictCount: Annotated[int, Field(ge=0, le=9007199254740991)]
-    status: Status
+    status: Status1
     syncStatus: SyncStatus
 
 
@@ -3040,7 +3395,7 @@ class SaveFarmerSetupDraftCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext4
+    clientContext: ClientContext5
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['SaveFarmerSetupDraft']

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import { canonicalize } from 'json-canonicalize';
 
@@ -513,6 +513,388 @@ export function myFarmFromRecord(record: FarmerSetupRecord, generatedAt: string)
     generatedAt,
   };
   return myFarm;
+}
+
+export type EvidenceDataMode = 'LIVE' | 'RECORDED' | 'SIMULATED';
+export type EvidenceQuality =
+  'TRUSTED' | 'USE_WITH_CAUTION' | 'TREND_ONLY' | 'DO_NOT_USE' | 'PENDING';
+export type EvidenceFreshness = 'CURRENT' | 'DATA_IS_OLD' | 'NO_RECENT_DATA' | 'UNAVAILABLE';
+export type EvidenceValueState =
+  | 'KNOWN'
+  | 'UNKNOWN'
+  | 'MISSING'
+  | 'PROXY'
+  | 'CONFLICTING'
+  | 'NOT_APPLICABLE'
+  | 'WITHHELD'
+  | 'UNAVAILABLE';
+
+export interface EvidenceSource {
+  sourceId: string;
+  sourceName: string;
+  provenanceType:
+    | 'SENSOR'
+    | 'FARMER_REPORTED'
+    | 'FARMER_MANUAL'
+    | 'RSK_MANUAL'
+    | 'LABORATORY'
+    | 'SOIL_HEALTH_CARD'
+    | 'WEATHER'
+    | 'SATELLITE'
+    | 'PUBLIC_MARKET'
+    | 'DERIVED';
+  rightsLabel: string;
+  sourceVersion: string;
+}
+
+export interface EvidenceRecord {
+  evidenceId: string;
+  plotId: string;
+  kind:
+    | 'WEATHER_FORECAST'
+    | 'WEATHER_HISTORY'
+    | 'EARTH_OBSERVATION'
+    | 'SOIL_MEASUREMENT'
+    | 'HARDWARE_TELEMETRY'
+    | 'DEVICE_HEALTH';
+  metricKey: string;
+  value: {
+    state: EvidenceValueState;
+    originalValue?: string;
+    originalUnit?: string;
+    normalizedValue?: string;
+    normalizedUnit: string;
+  };
+  observedAt?: string;
+  receivedAt: string;
+  forecastFor?: string;
+  source: EvidenceSource;
+  dataMode: EvidenceDataMode;
+  quality: EvidenceQuality;
+  freshness: EvidenceFreshness;
+  decisionEligible: boolean;
+  limitations: readonly string[];
+  correctionOfEvidenceId?: string;
+  invalidatedAt?: string;
+  policyVersion: string;
+  conversionVersion: string;
+  calibrationVersion?: string;
+}
+
+export interface PlotEvidenceSummary {
+  plotId: string;
+  generatedAt: string;
+  summaryVersion: number;
+  cards: readonly {
+    cardId: string;
+    title: string;
+    status: 'CURRENT' | 'STALE' | 'EMPTY' | 'OFFLINE' | 'DENIED' | 'CONFLICTING' | 'UNAVAILABLE';
+    primary?: EvidenceRecord;
+    records: readonly EvidenceRecord[];
+  }[];
+}
+
+export interface SoilRecordInput {
+  commandId: string;
+  expectedRevision: number;
+  measurement: {
+    ph?: number | undefined;
+    nitrogen?: number | undefined;
+    phosphorus?: number | undefined;
+    potassium?: number | undefined;
+    unit: 'MG_PER_KG' | 'KG_PER_HECTARE' | 'UNKNOWN';
+    source: 'SOIL_HEALTH_CARD' | 'LABORATORY' | 'FARMER_MANUAL' | 'SENSOR' | 'UNKNOWN';
+    observedAt?: string | undefined;
+    sourceReference: string;
+    sourceRightsLabel: string;
+    sourceVersion: string;
+  };
+  clientContext: {
+    clientRecordedAt: string;
+    timezone: 'Asia/Kolkata';
+    dataModeClaim: EvidenceDataMode;
+  };
+}
+
+export interface SoilRecordResult {
+  commandId: string;
+  disposition: 'ACCEPTED' | 'ALREADY_ACCEPTED';
+  soilRecordId: string;
+  evidenceIds: readonly string[];
+  revision: number;
+  serverReceivedAt: string;
+}
+
+export interface EvidenceRepository {
+  listByPlot(owner: FarmerSetupOwner, plotId: string): Promise<readonly EvidenceRecord[]>;
+  appendSoilRecord(
+    owner: FarmerSetupOwner,
+    plotId: string,
+    input: SoilRecordInput,
+    records: readonly EvidenceRecord[],
+    soilRecordId: string,
+  ): Promise<SoilRecordResult>;
+}
+
+export class InMemoryEvidenceRepository implements EvidenceRepository {
+  readonly #records = new Map<string, EvidenceRecord[]>();
+  readonly #receipts = new Map<string, SoilRecordResult>();
+
+  async listByPlot(owner: FarmerSetupOwner, plotId: string): Promise<readonly EvidenceRecord[]> {
+    await Promise.resolve();
+    return structuredClone(this.#records.get(evidenceKey(owner, plotId)) ?? []);
+  }
+
+  async appendSoilRecord(
+    owner: FarmerSetupOwner,
+    plotId: string,
+    input: SoilRecordInput,
+    records: readonly EvidenceRecord[],
+    soilRecordId: string,
+  ): Promise<SoilRecordResult> {
+    await Promise.resolve();
+    const receiptKey = `${evidenceKey(owner, plotId)}:${input.commandId}`;
+    const existing = this.#receipts.get(receiptKey);
+    if (existing !== undefined) return { ...existing, disposition: 'ALREADY_ACCEPTED' };
+    const key = evidenceKey(owner, plotId);
+    this.#records.set(key, [...(this.#records.get(key) ?? []), ...structuredClone(records)]);
+    const result: SoilRecordResult = {
+      commandId: input.commandId,
+      disposition: 'ACCEPTED',
+      soilRecordId,
+      evidenceIds: records.map((record) => record.evidenceId),
+      revision: input.expectedRevision + 1,
+      serverReceivedAt: records[0]?.receivedAt ?? new Date().toISOString(),
+    };
+    this.#receipts.set(receiptKey, result);
+    return result;
+  }
+}
+
+export class EvidenceService {
+  constructor(
+    private readonly repository: EvidenceRepository,
+    private readonly setupRepository: FarmerSetupRepository,
+    private readonly now: () => Date = () => new Date(),
+    private readonly id: () => string = randomUUID,
+  ) {}
+
+  async summarize(owner: FarmerSetupOwner, plotId: string): Promise<PlotEvidenceSummary> {
+    await this.assertPlotOwned(owner, plotId);
+    const generatedAt = this.now().toISOString();
+    const records = await this.repository.listByPlot(owner, plotId);
+    const seeded =
+      records.length === 0 ? this.simulatedRaigadEvidence(plotId, generatedAt) : records;
+    return {
+      plotId,
+      generatedAt,
+      summaryVersion: 1,
+      cards: [
+        this.card('weather', 'Weather status', seeded, ['WEATHER_FORECAST', 'WEATHER_HISTORY']),
+        this.card('earth', 'Earth observation', seeded, ['EARTH_OBSERVATION']),
+        this.card('soil', 'Soil status', seeded, ['SOIL_MEASUREMENT', 'HARDWARE_TELEMETRY']),
+      ],
+    };
+  }
+
+  async recordSoil(
+    owner: FarmerSetupOwner,
+    plotId: string,
+    input: SoilRecordInput,
+  ): Promise<SoilRecordResult> {
+    await this.assertPlotOwned(owner, plotId);
+    const receivedAt = this.now().toISOString();
+    const soilRecordId = this.id();
+    const source = sourceForSoil(input);
+    const records = soilEvidenceFromMeasurement({
+      input,
+      plotId,
+      receivedAt,
+      source,
+      id: this.id,
+    });
+    return this.repository.appendSoilRecord(owner, plotId, input, records, soilRecordId);
+  }
+
+  private async assertPlotOwned(owner: FarmerSetupOwner, plotId: string): Promise<void> {
+    const setup = await this.setupRepository.load(owner);
+    const owned = setup?.draft?.farms.some((farm) =>
+      farm.plots.some((plot) => plot.plotId === plotId),
+    );
+    if (!owned) throw new Error('AUTHORIZATION_DENIED');
+  }
+
+  private card(
+    cardId: string,
+    title: string,
+    records: readonly EvidenceRecord[],
+    kinds: readonly EvidenceRecord['kind'][],
+  ): PlotEvidenceSummary['cards'][number] {
+    const selected = records.filter((record) => kinds.includes(record.kind));
+    const hasConflict = selected.some((record) => record.value.state === 'CONFLICTING');
+    const hasUnavailable = selected.some((record) => record.freshness === 'UNAVAILABLE');
+    const hasStale = selected.some((record) => record.freshness === 'DATA_IS_OLD');
+    return {
+      cardId,
+      title,
+      status:
+        selected.length === 0
+          ? 'EMPTY'
+          : hasConflict
+            ? 'CONFLICTING'
+            : hasUnavailable
+              ? 'UNAVAILABLE'
+              : hasStale
+                ? 'STALE'
+                : 'CURRENT',
+      ...(selected[0] === undefined ? {} : { primary: selected[0] }),
+      records: selected,
+    };
+  }
+
+  private simulatedRaigadEvidence(plotId: string, receivedAt: string): readonly EvidenceRecord[] {
+    const source = {
+      sourceId: 'raigad-demo-fixture-2026-m4',
+      sourceName: 'Raigad demo fixture',
+      provenanceType: 'WEATHER' as const,
+      rightsLabel: 'Synthetic demo data',
+      sourceVersion: 'fixture-v1',
+    };
+    return [
+      knownEvidence({
+        evidenceId: this.id(),
+        plotId,
+        kind: 'WEATHER_FORECAST',
+        metricKey: 'forecast_rainfall_24h',
+        normalizedValue: '18.4',
+        normalizedUnit: 'MILLIMETRE',
+        receivedAt,
+        forecastFor: receivedAt,
+        source,
+        dataMode: 'SIMULATED',
+        quality: 'USE_WITH_CAUTION',
+        freshness: 'CURRENT',
+        decisionEligible: false,
+        limitations: ['Demo-safe simulated forecast; not a live provider response.'],
+      }),
+      knownEvidence({
+        evidenceId: this.id(),
+        plotId,
+        kind: 'EARTH_OBSERVATION',
+        metricKey: 'sentinel2_ndvi_proxy',
+        normalizedValue: '0.61',
+        normalizedUnit: 'INDEX',
+        receivedAt,
+        observedAt: receivedAt,
+        source: {
+          ...source,
+          provenanceType: 'SATELLITE',
+          sourceName: 'Simulated Sentinel-2 fixture',
+        },
+        dataMode: 'SIMULATED',
+        quality: 'USE_WITH_CAUTION',
+        freshness: 'CURRENT',
+        decisionEligible: false,
+        limitations: [
+          'Fixture-backed Earth observation proposal; no Earth Engine credential used.',
+        ],
+      }),
+    ];
+  }
+}
+
+function evidenceKey(owner: FarmerSetupOwner, plotId: string): string {
+  return `${owner.environment}:${owner.subjectId}:${plotId}`;
+}
+
+function sourceForSoil(input: SoilRecordInput): EvidenceSource {
+  const provenanceType =
+    input.measurement.source === 'UNKNOWN' ? 'FARMER_MANUAL' : input.measurement.source;
+  return {
+    sourceId: input.measurement.sourceReference,
+    sourceName: input.measurement.source,
+    provenanceType,
+    rightsLabel: input.measurement.sourceRightsLabel,
+    sourceVersion: input.measurement.sourceVersion,
+  };
+}
+
+function knownEvidence(
+  input: Omit<EvidenceRecord, 'value' | 'policyVersion' | 'conversionVersion'> & {
+    normalizedValue: string;
+    normalizedUnit: string;
+  },
+): EvidenceRecord {
+  return {
+    ...input,
+    value: {
+      state: 'KNOWN',
+      originalValue: input.normalizedValue,
+      originalUnit: input.normalizedUnit,
+      normalizedValue: input.normalizedValue,
+      normalizedUnit: input.normalizedUnit,
+    },
+    policyVersion: 'evidence-m4-v1',
+    conversionVersion: 'unit-conversion-m4-v1',
+  };
+}
+
+function soilEvidenceFromMeasurement(input: {
+  input: SoilRecordInput;
+  plotId: string;
+  receivedAt: string;
+  source: EvidenceSource;
+  id: () => string;
+}): readonly EvidenceRecord[] {
+  const measurement = input.input.measurement;
+  const dataMode = input.input.clientContext.dataModeClaim;
+  const quality: EvidenceQuality =
+    measurement.source === 'SENSOR'
+      ? 'PENDING'
+      : measurement.observedAt
+        ? 'USE_WITH_CAUTION'
+        : 'DO_NOT_USE';
+  const observedAt = measurement.observedAt ?? input.input.clientContext.clientRecordedAt;
+  const entries = [
+    ['soil_ph', measurement.ph, 'PH'],
+    ['nitrogen', measurement.nitrogen, measurement.unit],
+    ['phosphorus', measurement.phosphorus, measurement.unit],
+    ['potassium', measurement.potassium, measurement.unit],
+  ] as const;
+  return entries.flatMap(([metricKey, value, unit]) => {
+    if (value === undefined) return [];
+    return [
+      {
+        evidenceId: input.id(),
+        plotId: input.plotId,
+        kind: 'SOIL_MEASUREMENT',
+        metricKey,
+        value: {
+          state: 'KNOWN',
+          originalValue: String(value),
+          originalUnit: unit,
+          normalizedValue: String(value),
+          normalizedUnit: unit,
+        },
+        observedAt,
+        receivedAt: input.receivedAt,
+        source: input.source,
+        dataMode,
+        quality:
+          metricKey === 'nitrogen' || metricKey === 'phosphorus' || metricKey === 'potassium'
+            ? 'TREND_ONLY'
+            : quality,
+        freshness: measurement.observedAt ? 'CURRENT' : 'DATA_IS_OLD',
+        decisionEligible: false,
+        limitations: [
+          'Milestone 4 evidence only; crop recommendation and advisory decisions are out of scope.',
+        ],
+        policyVersion: 'evidence-m4-v1',
+        conversionVersion: 'unit-conversion-m4-v1',
+        ...(measurement.source === 'SENSOR' ? { calibrationVersion: 'pending-m8-validation' } : {}),
+      },
+    ];
+  });
 }
 
 function normalizeArea(area: number, unit: 'SQUARE_METRE' | 'HECTARE' | 'ACRE' | 'GUNTHA'): number {

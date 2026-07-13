@@ -39,7 +39,12 @@
         "RATE_LIMITED",
         "SETUP_INCOMPLETE",
         "GPS_PERMISSION_DENIED",
-        "HARDWARE_SKIPPED"
+        "HARDWARE_SKIPPED",
+        "STALE_DATA",
+        "PAYLOAD_TOO_LARGE",
+        "SIGNATURE_INVALID",
+        "REPLAY_DETECTED",
+        "CHALLENGE_EXPIRED"
       ],
       "type": "string"
     },

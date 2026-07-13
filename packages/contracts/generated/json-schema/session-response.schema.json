@@ -59,11 +59,13 @@
               "farmer.setup.complete",
               "farmer.farm.write",
               "farmer.plot.write",
+              "farmer.evidence.read",
+              "farmer.soil.write",
               "farmer.voice.setup"
             ],
             "type": "string"
           },
-          "maxItems": 49,
+          "maxItems": 51,
           "type": "array"
         },
         "capabilitySetVersion": {

@@ -5,6 +5,7 @@ export {
   LockedRecoveryRequiredError,
   openFarmerOfflinePartition,
   type CompatibilityResult,
+  type EvidenceCacheInput,
   type FarmerOfflinePartitionOptions,
   type LocalCommitInput,
   type LocalCommitReceipt,
