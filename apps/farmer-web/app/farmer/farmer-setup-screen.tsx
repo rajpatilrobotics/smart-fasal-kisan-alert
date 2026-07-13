@@ -1,10 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
-  defaultFarmerSetupState,
   loadFarmerSetupState,
   saveFarmerSetupState,
   switchDemoAccount,
@@ -48,12 +47,8 @@ const stepLinks = [
 ] as const;
 
 export function FarmerSetupScreen({ kind }: { readonly kind: SetupScreenKind }) {
-  const [state, setState] = useState<FarmerSetupDemoState>(() => defaultFarmerSetupState());
+  const [state, setState] = useState<FarmerSetupDemoState>(() => loadFarmerSetupState());
   const [message, setMessage] = useState('सुरक्षित ड्राफ्ट तयार आहे.');
-
-  useEffect(() => {
-    setState(loadFarmerSetupState());
-  }, []);
 
   const totalArea = useMemo(
     () =>
