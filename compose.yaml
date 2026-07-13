@@ -1,0 +1,23 @@
+name: smart-fasal-local
+
+services:
+  postgres:
+    image: postgis/postgis@sha256:ec091d607c1cc2263e0811a0b1d25113ebbcb4e7e1390f84fe0394f9f7c12f68 # 17-3.5-alpine
+    # The official PostGIS Alpine image is amd64-only; Apple Silicon runs it via Docker emulation.
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: smart_fasal
+      POSTGRES_PASSWORD: local_smart_fasal
+      POSTGRES_USER: smart_fasal
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U smart_fasal -d smart_fasal']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - smart-fasal-postgres:/var/lib/postgresql/data
+
+volumes:
+  smart-fasal-postgres:

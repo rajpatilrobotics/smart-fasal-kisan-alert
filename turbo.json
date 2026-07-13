@@ -1,0 +1,89 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "build/**", "dist/**"]
+    },
+    "@smart-fasal/application#build": { "outputs": [] },
+    "@smart-fasal/authz#build": { "outputs": [] },
+    "@smart-fasal/config#build": { "outputs": [] },
+    "@smart-fasal/contracts#build": { "outputs": ["generated/**"] },
+    "@smart-fasal/database#build": { "outputs": [] },
+    "@smart-fasal/design-tokens#build": { "outputs": [] },
+    "@smart-fasal/domain#build": { "outputs": [] },
+    "@smart-fasal/events#build": { "outputs": [] },
+    "@smart-fasal/health#build": { "outputs": [] },
+    "@smart-fasal/i18n#build": { "outputs": [] },
+    "@smart-fasal/intelligence-service#build": { "outputs": [] },
+    "@smart-fasal/maps#build": { "outputs": [] },
+    "@smart-fasal/observability#build": { "outputs": [] },
+    "@smart-fasal/offline#build": { "outputs": [] },
+    "@smart-fasal/persistence#build": { "outputs": [] },
+    "@smart-fasal/provider-sinks#build": { "outputs": [] },
+    "@smart-fasal/service-runtime#build": { "outputs": [] },
+    "@smart-fasal/test-kit#build": { "outputs": [] },
+    "@smart-fasal/ui#build": { "outputs": [] },
+    "@smart-fasal/voice#build": { "outputs": [] },
+    "format": {
+      "cache": false
+    },
+    "format:check": {
+      "dependsOn": ["^format:check"],
+      "outputs": []
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": []
+    },
+    "test:unit": {
+      "dependsOn": ["^test:unit"],
+      "outputs": []
+    },
+    "test:coverage": {
+      "outputs": ["coverage.xml"]
+    },
+    "test:integration": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "test:a11y": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "contracts:generate": {
+      "cache": false,
+      "outputs": ["generated/**"]
+    },
+    "contracts:check": {
+      "dependsOn": ["^contracts:check"],
+      "outputs": []
+    },
+    "db:migrate": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
+    "db:seed:synthetic": {
+      "dependsOn": ["db:migrate"],
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    }
+  }
+}

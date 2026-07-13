@@ -1,0 +1,29 @@
+{
+  "name": "@smart-fasal/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./generated/typescript/index.ts",
+      "default": "./generated/javascript/index.js"
+    },
+    "./typescript": "./generated/typescript/index.ts",
+    "./openapi": "./generated/openapi/platform.openapi.json",
+    "./json-schema/health": "./generated/json-schema/health.schema.json",
+    "./events": "./generated/events/event-catalog.json"
+  },
+  "files": [
+    "generated"
+  ],
+  "scripts": {
+    "build": "node ./scripts/generate.mjs",
+    "contracts:generate": "node ./scripts/generate.mjs",
+    "contracts:check": "node ./scripts/generate.mjs --check",
+    "format:check": "node ./scripts/generate.mjs --check",
+    "lint": "node ./scripts/generate.mjs --check",
+    "typecheck": "node ./scripts/generate.mjs --check",
+    "test": "node ./scripts/generate.mjs --check",
+    "test:unit": "node ./scripts/generate.mjs --check"
+  }
+}

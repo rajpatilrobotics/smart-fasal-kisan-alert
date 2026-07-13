@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'rebuild/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgis/postgis@sha256:ec091d607c1cc2263e0811a0b1d25113ebbcb4e7e1390f84fe0394f9f7c12f68 # 17-3.5-alpine
+        env:
+          POSTGRES_DB: smart_fasal
+          POSTGRES_PASSWORD: ${{ github.run_id }}-${{ github.run_attempt }}
+          POSTGRES_USER: smart_fasal
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smart_fasal -d smart_fasal"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: true
+      DATABASE_URL: postgresql://smart_fasal:${{ github.run_id }}-${{ github.run_attempt }}@127.0.0.1:5432/smart_fasal
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version-file: .python-version
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: 0.11.28
+          working-directory: apps/intelligence-service
+          activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: apps/intelligence-service/uv.lock
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --locked --extra dev --no-install-project --project apps/intelligence-service
+      - run: pnpm contracts:check
+      - run: pnpm db:migrate
+      - run: pnpm db:seed:synthetic
+      - run: pnpm quality
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - run: pnpm test:a11y
+
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      - run: terraform fmt -check -recursive infra/terraform
+      - run: terraform -chdir=infra/terraform/environments/dev init -backend=false
+      - run: terraform -chdir=infra/terraform/environments/dev validate
+        env:
+          TF_VAR_gcp_project_id: smart-fasal-ci

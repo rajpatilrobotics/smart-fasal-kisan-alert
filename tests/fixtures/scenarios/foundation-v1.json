@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "foundation-v1",
+  "description": "Synthetic, no-personal-data Milestone 0 environment verification",
+  "frozenTime": "2026-07-13T00:00:00.000Z",
+  "locale": "mr-IN",
+  "environment": "local",
+  "dataMode": "simulated",
+  "adapters": {
+    "hardware": "unavailable",
+    "provider": "sink"
+  },
+  "allowedDestinations": [],
+  "expectedEvents": [],
+  "fixtures": {}
+}

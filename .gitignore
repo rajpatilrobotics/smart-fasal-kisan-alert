@@ -1,5 +1,49 @@
-.DS_Store
-node_modules
-.vercel
+# Dependencies and package-manager state
+node_modules/
+.pnpm-store/
+
+# Framework, build and test output
+.next/
+.turbo/
+.vercel/
+build/
+coverage/
+coverage.xml
+dist/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.lighthouseci/
+
+# Environment and local secrets
 .env
-.env.local
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.coverage
+.hypothesis/
+.mypy_cache/
+.pytest_cache/
+.pyright/
+.ruff_cache/
+.venv/
+*.egg-info/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Logs and local tooling
+*.log
+.DS_Store
+.idea/
+.vscode/

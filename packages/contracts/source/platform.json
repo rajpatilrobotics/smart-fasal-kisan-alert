@@ -1,0 +1,9 @@
+{
+  "contractVersion": "0.1.0",
+  "serviceHealth": {
+    "livePath": "/health/live",
+    "readyPath": "/health/ready",
+    "statuses": ["ok", "not_ready"]
+  },
+  "events": []
+}
