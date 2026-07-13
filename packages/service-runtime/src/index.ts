@@ -1,4 +1,4 @@
-import Fastify, { LogController, type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify';
 import { createHealthPayload, type HealthStatus } from '@smart-fasal/health';
 
 export type { HealthPayload, HealthStatus } from '@smart-fasal/health';
@@ -19,10 +19,9 @@ export function buildService({
   readiness = () => true,
   serviceName,
 }: ServiceOptions): FastifyInstance {
-  const app = Fastify({
-    logger: process.env['NODE_ENV'] !== 'test',
-    logController: new LogController({ disableRequestLogging: true }),
-  });
+  // Generic framework logging can serialize raw URLs and exception details. Each service attaches
+  // the bounded allowlisted observability adapter explicitly when it has safe operation metadata.
+  const app = Fastify({ logger: false });
 
   app.get('/health/live', (_request, reply) => {
     reply.header('Cache-Control', 'no-store');

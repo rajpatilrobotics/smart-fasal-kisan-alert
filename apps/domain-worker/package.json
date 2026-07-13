@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@smart-fasal/config": "workspace:*",
-    "@smart-fasal/service-runtime": "workspace:*"
+    "@smart-fasal/events": "workspace:*",
+    "@smart-fasal/service-runtime": "workspace:*",
+    "postgres": "3.4.9"
   }
 }

@@ -1,0 +1,2147 @@
+{
+  "contractVersion": "1.0.0",
+  "events": [
+    {
+      "name": "farmer.setup_saved_local",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "farmer.setup_saved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "farmer.preferences_changed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "farmer.setup_completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "identity.role_context_created",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "executable"
+    },
+    {
+      "name": "identity.role_context_revoked",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "executable"
+    },
+    {
+      "name": "identity.device_mode_changed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "consent.decision_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "executable"
+    },
+    {
+      "name": "farm.created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "farm.updated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "plot.created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "plot.updated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "soil_record.added",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "water_context.updated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "farm.crop_history_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "profile.snapshot_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "season.created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "season.start_confirmed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "season.activated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "harvest.window_confirmed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "harvest.readiness_updated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "harvest.actual_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "today.briefing_generated",
+      "eventClass": "PRODUCT_TELEMETRY",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "today.briefing_played",
+      "eventClass": "PRODUCT_TELEMETRY",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "today.primary_action_selected",
+      "eventClass": "PRODUCT_TELEMETRY",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "today.card_opened",
+      "eventClass": "PRODUCT_TELEMETRY",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "evidence.validated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "evidence.snapshot_created",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "evidence.snapshot_finalized",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "evidence.snapshot_invalidated",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "evidence.freshness_changed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.input_rejected",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.generated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.no_safe_result",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.review_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.accepted",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "recommendation.superseded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "decision.impact_review_requested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "decision.impact_review_completed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "dry_spell.evaluated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.evaluated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.no_action",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.review_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.review_claimed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.consent_checked",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.evidence_accessed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.review_decided",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.issued",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.publication_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.publication_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.publication_retried",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.publication_blocked",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.published",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.recalculated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.replaced",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.disputed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "farmer.response_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "constraint.recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.version_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.submitted",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.reviewed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.approved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.changes_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.activation_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.activation_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.published",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.retired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "template.rolled_back",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.instantiated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_changed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_replaced",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_partially_completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_blocked",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.task_cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.reminder_scheduled_local",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.reminder_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.review_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.review_claimed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.review_evidence_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.review_decided",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.change_application_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.change_application_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "calendar.change_applied",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "diary.entry_saved_local",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "diary.activity_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "diary.observation_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "diary.entry_corrected",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "diary.entry_voided",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sync.batch_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sync.event_accepted",
+      "eventClass": "COMMAND_RECEIPT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sync.event_already_accepted",
+      "eventClass": "COMMAND_RECEIPT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sync.event_rejected",
+      "eventClass": "COMMAND_RECEIPT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sync.conflict_detected",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sync.conflict_resolved",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "media.upload_verified",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "diary.media_attached",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "health_media.attached",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.media_attached",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_retrieved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_preparation_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_ready",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_expired",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.export_artifact_deleted",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.deletion_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.deletion_completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.deletion_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.deletion_item_completed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.deletion_item_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.deletion_ledger_committed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.restore_ledger_verified",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "data.tombstone_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "health_report.saved",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "health_media.queued",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "health_report.synced",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "health_report.triage_ready",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "triage.completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "triage.escalated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "triage.escalation_sharing_declined",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.contact_access_authorized",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.evidence_accessed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.evidence_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.care_plan_issued",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.visit_scheduled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.follow_up_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.closed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "case.reopened",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_assigned",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_claimed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_resumed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_waiting",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_scheduled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_reopened",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "rsk.work_marked_duplicate",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.assigned",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.claimed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.contact_access_checked",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.contact_revealed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.attempted",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.response_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.follow_up_scheduled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "outreach.resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "contact.correction_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_incident_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_incident_triaged",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_mitigation_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_incident_resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_incident_reopened",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_exception_resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.retry_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.alternate_channel_selected",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.provider_noncritical_pause_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.search_attempted",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.protected_data_accessed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.farmer_verified",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.consent_checked",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.session_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.session_revoked",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.mutation_confirmed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.receipt_issued",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.client_data_purged",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "assisted.recovery_locked",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.approved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.scheduled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.assigned",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.accepted",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.consent_checked",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.location_accessed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.pack_issued",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.observation_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.farmer_response_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.saved_offline",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.synced",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.outcome_reviewed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.closed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.access_revoked",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "visit.client_data_purged",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.consent_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.consent_withdrawn",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.collection_stopped",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.location_access_revoked",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.deassigned",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.removal_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.installed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.activated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.device_registered",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.calibration_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.batch_rejected",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.batch_durably_accepted",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.observation_received",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.observation_normalized",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.trust_interval_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.interval_flagged",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.issue_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.issue_triaged",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.issue_mitigation_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.issue_resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.issue_reopened",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.location_accessed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.interval_invalidated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.advice_impact_reviewed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_saved_offline",
+      "eventClass": "CLIENT_LOCAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_observation_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_validation_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_closed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.returned_to_service",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.maintenance_media_attached",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "sensor.credential_revoked",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_submitted",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_approved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.changes_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_rejected",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.publication_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.publication_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.draft_published",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.version_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.cohort_frozen",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.attempt_queued",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.provider_accepted",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivered",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_failed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.delivery_unknown",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.attempt_expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.recipient_reached",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.opened_or_heard",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.acknowledged",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.response_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.replaced",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.corrected",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.push_registration_created",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.push_registration_rotated",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "alert.push_registration_revoked",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.raw_record_archived",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_claimed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_decided",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_approved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_rejected",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_superseded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_rollback_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.mapping_rolled_back",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.reprocessing_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.reprocessing_completed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.reprocessing_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.comparison_replaced",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_updated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_paused",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_resumed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_completed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_cancelled",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_triggered",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_cooldown_started",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.watch_rearmed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_claimed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_information_requested",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_response_issued",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_follow_up_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_resolved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.support_closed",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "market.sale_recorded",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.session_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.session_ended",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.intent_recognized",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.clarification_requested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.proposal_created",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.proposal_cancelled",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.proposal_confirmed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.proposal_corrected",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.proposal_expired",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.proposal_superseded",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.provider_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.offline_audio_attached",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.offline_audio_transcription_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.offline_audio_needs_confirmation",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.offline_audio_declined",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "voice.offline_audio_deleted",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.invocation_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.invocation_completed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.invocation_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.output_validation_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.extraction_accepted",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.extraction_rejected",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "ai.explanation_published",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "model.kill_switch_activated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "model.alias_rolled_back",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "external.import_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "external.import_completed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "external.import_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "external.raw_artifact_deleted",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "weather.forecast_edition_ingested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "weather.forecast_edition_expired",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "weather.freshness_changed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "weather.warning_version_ingested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "weather.warning_corrected",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "weather.warning_cancelled",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.job_requested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.job_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.job_completed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.job_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.job_cancelled",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.snapshot_created",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.snapshot_expired",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.snapshot_invalidated",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "earth.location_consent_blocked",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "analytics.candidate_recorded",
+      "eventClass": "ANALYTICS_CANDIDATE",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "analytics.candidate_corrected",
+      "eventClass": "ANALYTICS_CANDIDATE",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "analytics.candidate_withdrawn",
+      "eventClass": "ANALYTICS_CANDIDATE",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "analytics.safe_fact_recorded",
+      "eventClass": "ANALYTICS_SAFE",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "analytics.safe_fact_corrected",
+      "eventClass": "ANALYTICS_SAFE",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "analytics.safe_fact_retracted",
+      "eventClass": "ANALYTICS_SAFE",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_started",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_validated",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_signed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_activated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_invalidated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.release_expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "privacy.cell_suppressed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.aggregate_query_completed",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.aggregate_query_refused",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.safe_rollup_returned",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_generation_requested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_generation_failed",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_export_requested",
+      "eventClass": "TECHNICAL",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_draft_created",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_snapshot_saved",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_exported",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "mp.briefing_export_refused",
+      "eventClass": "AUDIT",
+      "version": 1,
+      "status": "reserved"
+    }
+  ]
+}

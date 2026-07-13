@@ -18,7 +18,8 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
-    "@smart-fasal/config": "workspace:*",
-    "@smart-fasal/service-runtime": "workspace:*"
+    "@smart-fasal/contracts": "workspace:*",
+    "@smart-fasal/observability": "workspace:*",
+    "fastify": "5.10.0"
   }
 }

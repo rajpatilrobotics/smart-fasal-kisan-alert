@@ -4,7 +4,11 @@ packages:
 overrides:
   postcss: 8.5.18
 allowBuilds:
+  # Firebase Admin does not use the web SDK's network-capable config postinstall.
+  '@firebase/util': false
   esbuild: true
+  # This postinstall only checks dependency version prefixes and is not required at runtime.
+  protobufjs: false
   sharp: true
   unrs-resolver: true
 minimumReleaseAgeExclude:

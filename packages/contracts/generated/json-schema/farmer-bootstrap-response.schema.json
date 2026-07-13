@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authorizationVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "capabilities": {
+      "items": {
+        "enum": [
+          "case.response.draft",
+          "case.care_plan.issue",
+          "case.severe.resolve",
+          "advisory.review.decide",
+          "alert.draft",
+          "alert.approve",
+          "alert.publish",
+          "alert.delivery.monitor",
+          "alert.delivery.operate",
+          "sensor.agronomic_invalidate",
+          "template.draft",
+          "template.approve",
+          "template.publish",
+          "calendar.review",
+          "market.support",
+          "market.mapping.review",
+          "market.mapping.approve",
+          "assisted_session.operate",
+          "visit.manage",
+          "visit.execute.field",
+          "visit.execute.sensor",
+          "visit.outcome.review",
+          "audit.investigate_sensitive",
+          "rsk.work.read",
+          "rsk.work.operate",
+          "rsk.work.assign",
+          "rsk.protected_search",
+          "rsk.access_grant.issue",
+          "rsk.protected_disclose",
+          "case.read",
+          "case.evidence.request",
+          "case.follow_up.record",
+          "case.resolve.routine",
+          "advisory.review.read",
+          "outreach.operate",
+          "sensor.issue.operate",
+          "sensor.install",
+          "sensor.calibration.record",
+          "sensor.maintenance.execute",
+          "template.read",
+          "alert.read",
+          "identity.role_context.select",
+          "profile.correct",
+          "device_mode.change"
+        ],
+        "type": "string"
+      },
+      "maxItems": 10,
+      "type": "array"
+    },
+    "farmContextState": {
+      "const": "UNAVAILABLE_UNTIL_SETUP",
+      "type": "string"
+    },
+    "locale": {
+      "enum": [
+        "mr",
+        "hi",
+        "en"
+      ],
+      "type": "string"
+    },
+    "onboardingState": {
+      "enum": [
+        "NOT_STARTED",
+        "IN_PROGRESS",
+        "COMPLETE"
+      ],
+      "type": "string"
+    },
+    "subjectId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "subjectId",
+    "locale",
+    "onboardingState",
+    "authorizationVersion",
+    "capabilities",
+    "farmContextState"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

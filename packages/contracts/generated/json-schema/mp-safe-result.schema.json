@@ -1,0 +1,65 @@
+{
+  "$defs": {
+    "MpSuppressedResult": {
+      "additionalProperties": false,
+      "properties": {
+        "methodologyId": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "reasonCode": {
+          "enum": [
+            "COHORT_TOO_SMALL",
+            "COMPLEMENTARY_SUPPRESSION",
+            "STICKY_SUPPRESSION"
+          ],
+          "type": "string"
+        },
+        "status": {
+          "const": "SUPPRESSED",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "reasonCode",
+        "methodologyId"
+      ],
+      "type": "object",
+      "x-data-classification": "C1"
+    },
+    "MpUnavailableResult": {
+      "additionalProperties": false,
+      "properties": {
+        "reasonCode": {
+          "enum": [
+            "NO_ACTIVE_RELEASE",
+            "RELEASE_INVALID",
+            "RELEASE_STALE"
+          ],
+          "type": "string"
+        },
+        "status": {
+          "const": "UNAVAILABLE",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "reasonCode"
+      ],
+      "type": "object",
+      "x-data-classification": "C1"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/MpUnavailableResult"
+    },
+    {
+      "$ref": "#/$defs/MpSuppressedResult"
+    }
+  ]
+}

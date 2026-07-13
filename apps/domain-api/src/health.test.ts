@@ -1,9 +1,41 @@
-import { buildService, type HealthPayload } from '@smart-fasal/service-runtime';
+import type { HealthPayload } from '@smart-fasal/contracts/schemas';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { buildDomainApi } from './app.js';
 import { SERVICE_NAME } from './config.js';
 
-const openApps: ReturnType<typeof buildService>[] = [];
+const openApps: ReturnType<typeof buildDomainApi>[] = [];
+
+function buildTestApp(readiness: () => boolean = () => true) {
+  return buildDomainApi({
+    environment: 'local',
+    origins: {
+      farmer: ['http://farmer.test'],
+      rsk: ['http://rsk.test'],
+      mp: ['http://mp.test'],
+    },
+    appIds: { farmer: [], rsk: [], mp: [] },
+    identityVerifier: {
+      mode: 'synthetic-test',
+      verifyIdToken: () => Promise.reject(new Error('not used by health tests')),
+    },
+    appCheckVerifier: {
+      mode: 'synthetic-test',
+      verifyAppCheckToken: () => Promise.reject(new Error('not used by health tests')),
+    },
+    authorizer: {
+      authorize: () => Promise.resolve({ allowed: false, code: 'AUTHORIZATION_DENIED' }),
+    },
+    operations: {
+      execute: () => Promise.reject(new Error('not used by health tests')),
+    },
+    protectedDisclosure: {
+      disclose: () => Promise.resolve({ allowed: false, code: 'AUTHORIZATION_DENIED' }),
+    },
+    readiness,
+    runtimeMode: 'test',
+  });
+}
 
 afterEach(async () => {
   await Promise.all(openApps.splice(0).map(async (app) => app.close()));
@@ -11,7 +43,7 @@ afterEach(async () => {
 
 describe(`${SERVICE_NAME} health contract`, () => {
   it.each(['/health/live', '/health/ready'])('returns a safe response for %s', async (url) => {
-    const app = buildService({ serviceName: SERVICE_NAME });
+    const app = buildTestApp();
     openApps.push(app);
 
     const response = await app.inject({ method: 'GET', url });
@@ -23,10 +55,7 @@ describe(`${SERVICE_NAME} health contract`, () => {
   });
 
   it('fails readiness closed without failing liveness', async () => {
-    const app = buildService({
-      readiness: () => false,
-      serviceName: SERVICE_NAME,
-    });
+    const app = buildTestApp(() => false);
     openApps.push(app);
 
     const [live, ready] = await Promise.all([
@@ -40,5 +69,25 @@ describe(`${SERVICE_NAME} health contract`, () => {
       service: SERVICE_NAME,
       status: 'not_ready',
     });
+  });
+
+  it('does not let a readiness callback override absent protected-operation adapters', async () => {
+    const app = buildDomainApi({
+      environment: 'local',
+      origins: {
+        farmer: ['http://farmer.test'],
+        rsk: ['http://rsk.test'],
+        mp: ['http://mp.test'],
+      },
+      appIds: { farmer: [], rsk: [], mp: [] },
+      readiness: () => true,
+      runtimeMode: 'test',
+    });
+    openApps.push(app);
+
+    const response = await app.inject({ method: 'GET', url: '/health/ready' });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json<HealthPayload>().status).toBe('not_ready');
   });
 });

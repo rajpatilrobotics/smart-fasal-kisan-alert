@@ -1,0 +1,255 @@
+{
+  "$defs": {
+    "AuthorizationContext": {
+      "additionalProperties": false,
+      "properties": {
+        "authorizationVersion": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "capabilities": {
+          "items": {
+            "enum": [
+              "case.response.draft",
+              "case.care_plan.issue",
+              "case.severe.resolve",
+              "advisory.review.decide",
+              "alert.draft",
+              "alert.approve",
+              "alert.publish",
+              "alert.delivery.monitor",
+              "alert.delivery.operate",
+              "sensor.agronomic_invalidate",
+              "template.draft",
+              "template.approve",
+              "template.publish",
+              "calendar.review",
+              "market.support",
+              "market.mapping.review",
+              "market.mapping.approve",
+              "assisted_session.operate",
+              "visit.manage",
+              "visit.execute.field",
+              "visit.execute.sensor",
+              "visit.outcome.review",
+              "audit.investigate_sensitive",
+              "rsk.work.read",
+              "rsk.work.operate",
+              "rsk.work.assign",
+              "rsk.protected_search",
+              "rsk.access_grant.issue",
+              "rsk.protected_disclose",
+              "case.read",
+              "case.evidence.request",
+              "case.follow_up.record",
+              "case.resolve.routine",
+              "advisory.review.read",
+              "outreach.operate",
+              "sensor.issue.operate",
+              "sensor.install",
+              "sensor.calibration.record",
+              "sensor.maintenance.execute",
+              "template.read",
+              "alert.read",
+              "identity.role_context.select",
+              "profile.correct",
+              "device_mode.change"
+            ],
+            "type": "string"
+          },
+          "maxItems": 44,
+          "type": "array"
+        },
+        "capabilitySetVersion": {
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer"
+        },
+        "environment": {
+          "enum": [
+            "local",
+            "preview",
+            "staging",
+            "demo",
+            "production"
+          ],
+          "type": "string"
+        },
+        "jurisdictionId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "officeId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "purposeCode": {
+          "enum": [
+            "farmer.self_service",
+            "case.expert_support",
+            "field.visit",
+            "sensor.maintenance",
+            "assisted.service",
+            "alert.delivery",
+            "market.support",
+            "data.rights"
+          ],
+          "type": "string"
+        },
+        "roleContextId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "roleType": {
+          "enum": [
+            "FARMER",
+            "RSK",
+            "MP"
+          ],
+          "type": "string"
+        },
+        "subjectId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "environment",
+        "subjectId",
+        "roleContextId",
+        "roleType",
+        "purposeCode",
+        "authorizationVersion",
+        "capabilitySetVersion",
+        "capabilities"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "activeRoleContext": {
+      "$ref": "#/$defs/AuthorizationContext"
+    },
+    "authorizationVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "capabilitySetVersion": {
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991,
+      "type": "integer"
+    },
+    "deviceBindingState": {
+      "enum": [
+        "ACTIVE",
+        "REQUIRED",
+        "REVOKED"
+      ],
+      "type": "string"
+    },
+    "environment": {
+      "enum": [
+        "local",
+        "preview",
+        "staging",
+        "demo",
+        "production"
+      ],
+      "type": "string"
+    },
+    "mfaState": {
+      "enum": [
+        "NOT_REQUIRED",
+        "CURRENT",
+        "REQUIRED",
+        "EXPIRED"
+      ],
+      "type": "string"
+    },
+    "roles": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilitySetVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "destination": {
+            "enum": [
+              "/farmer/today",
+              "/rsk/work",
+              "/mp/overview"
+            ],
+            "type": "string"
+          },
+          "jurisdictionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "officeId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "roleGrantId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "roleType": {
+            "enum": [
+              "FARMER",
+              "RSK",
+              "MP"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "roleGrantId",
+          "roleType",
+          "destination",
+          "capabilitySetVersion"
+        ],
+        "type": "object"
+      },
+      "maxItems": 12,
+      "type": "array"
+    },
+    "subjectId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "subjectType": {
+      "enum": [
+        "FARMER",
+        "STAFF"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "subjectId",
+    "subjectType",
+    "environment",
+    "mfaState",
+    "deviceBindingState",
+    "authorizationVersion",
+    "capabilitySetVersion",
+    "roles"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

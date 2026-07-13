@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "enum": [
+        "AUTHENTICATION_REQUIRED",
+        "AUTHORIZATION_DENIED",
+        "MFA_REQUIRED",
+        "AUTHORIZATION_VERSION_CHANGED",
+        "CONSENT_OR_ACCESS_VERSION_CHANGED",
+        "DEVICE_BINDING_MISMATCH",
+        "IDEMPOTENCY_KEY_REUSED",
+        "EXPECTED_REVISION_MISMATCH",
+        "INVALID_STATE_TRANSITION",
+        "TOMBSTONED_ENTITY",
+        "SOURCE_VERSION_EXPIRED",
+        "EVIDENCE_INSUFFICIENT",
+        "SYNC_CURSOR_INVALID",
+        "SYNC_CURSOR_EXPIRED",
+        "SYNC_BOOTSTRAP_REQUIRED",
+        "SYNC_SCHEMA_UNSUPPORTED",
+        "SYNC_BATCH_ID_REUSED",
+        "CAUSAL_DEPENDENCY_UNSATISFIED",
+        "ASSIGNMENT_CHANGED",
+        "CLOCK_UNTRUSTED",
+        "MEDIA_INTEGRITY_MISMATCH",
+        "MEDIA_NOT_VERIFIED",
+        "UPLOAD_INTENT_EXPIRED",
+        "VOICE_PROPOSAL_EXPIRED",
+        "VOICE_PROPOSAL_HASH_MISMATCH",
+        "VISUAL_REVIEW_REQUIRED",
+        "RELEASE_INVALIDATED",
+        "RELEASE_UNAVAILABLE",
+        "DEPENDENCY_UNAVAILABLE",
+        "FILTER_NOT_ALLOWLISTED",
+        "COMPARISON_NOT_RELEASABLE",
+        "BATCH_ID_PAYLOAD_MISMATCH",
+        "RATE_LIMITED"
+      ],
+      "type": "string"
+    },
+    "correlationId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "detail": {
+      "maxLength": 500,
+      "minLength": 1,
+      "type": "string"
+    },
+    "fieldErrors": {
+      "default": [],
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "field": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "code"
+        ],
+        "type": "object"
+      },
+      "maxItems": 25,
+      "type": "array"
+    },
+    "retryable": {
+      "type": "boolean"
+    },
+    "status": {
+      "maximum": 599,
+      "minimum": 400,
+      "type": "integer"
+    },
+    "title": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "type": {
+      "format": "uri",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "status",
+    "code",
+    "correlationId",
+    "retryable",
+    "fieldErrors"
+  ],
+  "type": "object",
+  "x-data-classification": "C1"
+}

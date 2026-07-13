@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "reasonCode": {
+      "enum": [
+        "NO_ACTIVE_RELEASE",
+        "RELEASE_INVALID",
+        "RELEASE_STALE"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "const": "UNAVAILABLE",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "reasonCode"
+  ],
+  "type": "object",
+  "x-data-classification": "C1"
+}
