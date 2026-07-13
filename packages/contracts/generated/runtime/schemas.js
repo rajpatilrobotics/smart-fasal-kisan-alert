@@ -1,4 +1,7 @@
 // packages/contracts/src/commands/index.ts
+import { z as z3 } from "zod";
+
+// packages/contracts/src/farmer-setup/index.ts
 import { z as z2 } from "zod";
 
 // packages/contracts/src/http/common.ts
@@ -95,7 +98,12 @@ var CAPABILITY_KEYS = [
   "alert.read",
   "identity.role_context.select",
   "profile.correct",
-  "device_mode.change"
+  "device_mode.change",
+  "farmer.setup.write",
+  "farmer.setup.complete",
+  "farmer.farm.write",
+  "farmer.plot.write",
+  "farmer.voice.setup"
 ];
 var PROBLEM_CODES = [
   "AUTHENTICATION_REQUIRED",
@@ -130,7 +138,10 @@ var PROBLEM_CODES = [
   "FILTER_NOT_ALLOWLISTED",
   "COMPARISON_NOT_RELEASABLE",
   "BATCH_ID_PAYLOAD_MISMATCH",
-  "RATE_LIMITED"
+  "RATE_LIMITED",
+  "SETUP_INCOMPLETE",
+  "GPS_PERMISSION_DENIED",
+  "HARDWARE_SKIPPED"
 ];
 var CONSENT_STATES = ["MISSING", "ALLOWED", "DENIED", "EXPIRED", "WITHDRAWN"];
 var COMMAND_DISPOSITIONS = [
@@ -224,51 +235,291 @@ var AuthorizationContextSchema = z.object({
   capabilities: z.array(CapabilityKeySchema).max(CAPABILITY_KEYS.length)
 }).strict().meta({ id: "AuthorizationContext", "x-data-classification": "C2" });
 
+// packages/contracts/src/farmer-setup/index.ts
+var SetupStatusSchema = z2.enum([
+  "NOT_STARTED",
+  "IN_PROGRESS",
+  "READY_FOR_REVIEW",
+  "COMPLETE",
+  "NEEDS_REVIEW"
+]);
+var FarmerLocaleSchema = z2.enum(["mr-IN", "hi-IN", "en-IN"]);
+var SetupLanguageSchema = z2.enum(["mr", "hi", "en"]);
+var DeviceModeSelectionSchema = z2.enum(["PERSONAL", "TRUSTED_FAMILY", "RSK_ASSISTED"]);
+var SetupSyncStatusSchema = z2.enum([
+  "SAVED_ON_THIS_PHONE",
+  "WAITING_FOR_INTERNET",
+  "SYNCED",
+  "CONFLICT",
+  "LOCKED_RECOVERY",
+  "REJECTED"
+]);
+var AreaUnitSchema = z2.enum(["SQUARE_METRE", "HECTARE", "ACRE", "GUNTHA"]);
+var LocationCaptureMethodSchema = z2.enum([
+  "GPS_POINT",
+  "MANUAL_MAP",
+  "VILLAGE_LANDMARK",
+  "UNKNOWN"
+]);
+var PlotGeometryKindSchema = z2.enum(["NONE", "POINT", "POLYGON", "VILLAGE_LANDMARK"]);
+var SoilSourceSchema = z2.enum([
+  "SOIL_HEALTH_CARD",
+  "LABORATORY",
+  "FARMER_MANUAL",
+  "SENSOR",
+  "UNKNOWN"
+]);
+var WaterSourceSchema = z2.enum([
+  "RAIN_FED",
+  "WELL",
+  "BOREWELL",
+  "CANAL",
+  "POND",
+  "TANKER",
+  "OTHER",
+  "UNKNOWN"
+]);
+var WaterAvailabilitySchema = z2.enum(["HIGH", "MEDIUM", "LOW", "SEASONAL", "UNKNOWN"]);
+var CropStageSchema = z2.enum([
+  "PLANNED",
+  "SOWN",
+  "TRANSPLANTED",
+  "VEGETATIVE",
+  "FLOWERING",
+  "FRUITING",
+  "HARVESTED",
+  "UNKNOWN"
+]);
+var OptionalHardwareStatusSchema = z2.enum([
+  "SKIPPED",
+  "NOT_CONFIGURED",
+  "RSK_SETUP_REQUIRED"
+]);
+var SetupConsentScopeSchema = z2.enum([
+  "location.processing",
+  "audio.storage",
+  "case.sharing",
+  "visit.access",
+  "assisted_service.access",
+  "channel.app_push",
+  "channel.sms",
+  "channel.ivr"
+]);
+var FarmerProfileSetupSchema = z2.object({
+  displayName: z2.string().min(1).max(160).optional(),
+  preferredLocale: FarmerLocaleSchema,
+  timezone: z2.literal("Asia/Kolkata"),
+  accessibility: z2.object({
+    voicePrompts: z2.boolean(),
+    largeTargets: z2.boolean(),
+    highContrast: z2.boolean()
+  }).strict()
+}).strict().meta({ id: "FarmerProfileSetup", "x-data-classification": "C3" });
+var RaigadLocationSchema = z2.object({
+  district: z2.literal("Raigad"),
+  taluka: z2.string().min(1).max(120),
+  village: z2.string().min(1).max(160),
+  landmark: z2.string().min(1).max(240).optional()
+}).strict().meta({ id: "RaigadLocation", "x-data-classification": "C2" });
+var PlotGeometrySummarySchema = z2.object({
+  geometryVersion: z2.int().positive(),
+  kind: PlotGeometryKindSchema,
+  captureMethod: LocationCaptureMethodSchema,
+  gpsPermission: z2.enum(["GRANTED", "DENIED", "PROMPT", "UNKNOWN"]),
+  hasExactServerGeometry: z2.boolean(),
+  recordedAt: TimestampSchema
+}).strict().meta({ id: "PlotGeometrySummary", "x-data-classification": "C2" });
+var PlotSetupSchema = z2.object({
+  plotId: UuidSchema,
+  farmId: UuidSchema,
+  name: z2.string().min(1).max(120),
+  area: z2.number().positive().max(1e6),
+  areaUnit: AreaUnitSchema,
+  normalizedAreaSquareMetres: z2.number().positive().max(1e7),
+  areaConversionVersion: z2.literal("area-v1"),
+  locationMethod: LocationCaptureMethodSchema,
+  geometry: PlotGeometrySummarySchema,
+  revision: RevisionSchema
+}).strict().meta({ id: "PlotSetup", "x-data-classification": "C3" });
+var FarmSetupSchema = z2.object({
+  farmId: UuidSchema,
+  name: z2.string().min(1).max(120),
+  location: RaigadLocationSchema,
+  farmingMethod: z2.enum(["TRADITIONAL", "ORGANIC", "MIXED", "UNKNOWN"]),
+  plots: z2.array(PlotSetupSchema).max(50),
+  revision: RevisionSchema
+}).strict().meta({ id: "FarmSetup", "x-data-classification": "C3" });
+var SoilMeasurementSchema = z2.object({
+  ph: z2.number().min(0).max(14).optional(),
+  nitrogen: z2.number().min(0).max(9999).optional(),
+  phosphorus: z2.number().min(0).max(9999).optional(),
+  potassium: z2.number().min(0).max(9999).optional(),
+  unit: z2.enum(["MG_PER_KG", "KG_PER_HECTARE", "UNKNOWN"]),
+  source: SoilSourceSchema,
+  observedAt: TimestampSchema.optional()
+}).strict().meta({ id: "SoilMeasurement", "x-data-classification": "C3" });
+var WaterContextSchema = z2.object({
+  sources: z2.array(WaterSourceSchema).min(1).max(8),
+  availability: WaterAvailabilitySchema,
+  reliability: z2.enum(["RELIABLE", "SOMETIMES", "UNRELIABLE", "UNKNOWN"]),
+  storage: z2.enum(["NONE", "SMALL_TANK", "FARM_POND", "OTHER", "UNKNOWN"]),
+  rainfed: z2.boolean()
+}).strict().meta({ id: "WaterContext", "x-data-classification": "C3" });
+var CropDeclarationSchema = z2.object({
+  cropName: z2.string().min(1).max(120),
+  variety: z2.string().min(1).max(120).optional(),
+  sowingOrTransplantDate: z2.iso.date().optional(),
+  stage: CropStageSchema,
+  planned: z2.boolean()
+}).strict().meta({ id: "CropDeclaration", "x-data-classification": "C3" });
+var CropHistoryRecordSchema = z2.object({
+  cropName: z2.string().min(1).max(120),
+  seasonLabel: z2.string().min(1).max(120),
+  year: z2.int().min(2e3).max(2100),
+  notes: z2.string().max(500).optional()
+}).strict().meta({ id: "CropHistoryRecord", "x-data-classification": "C3" });
+var SetupConsentsSchema = z2.object({
+  decisions: z2.array(
+    z2.object({
+      scopeKey: SetupConsentScopeSchema,
+      decision: z2.enum(["ALLOW", "DENY", "WITHDRAW"]),
+      decidedAt: TimestampSchema
+    }).strict()
+  )
+}).strict().meta({ id: "SetupConsents", "x-data-classification": "C2" });
+var FarmerSetupDraftSchema = z2.object({
+  draftId: UuidSchema,
+  status: SetupStatusSchema,
+  profile: FarmerProfileSetupSchema,
+  deviceMode: DeviceModeSelectionSchema,
+  consents: SetupConsentsSchema,
+  farms: z2.array(FarmSetupSchema).min(0).max(10),
+  soilByPlot: z2.record(UuidSchema, SoilMeasurementSchema),
+  waterByPlot: z2.record(UuidSchema, WaterContextSchema),
+  cropHistoryByPlot: z2.record(UuidSchema, z2.array(CropHistoryRecordSchema).max(20)),
+  currentCropByPlot: z2.record(UuidSchema, CropDeclarationSchema),
+  hardwareStatus: OptionalHardwareStatusSchema,
+  syncStatus: SetupSyncStatusSchema,
+  revision: RevisionSchema,
+  checksum: Sha256DigestSchema,
+  updatedAt: TimestampSchema
+}).strict().meta({ id: "FarmerSetupDraft", "x-data-classification": "C3" });
+var FarmerSetupSummarySchema = z2.object({
+  status: SetupStatusSchema,
+  activeDraft: FarmerSetupDraftSchema.optional(),
+  completedAt: TimestampSchema.optional(),
+  conflictCount: z2.int().nonnegative(),
+  syncStatus: SetupSyncStatusSchema
+}).strict().meta({ id: "FarmerSetupSummary", "x-data-classification": "C3" });
+var MyFarmResponseSchema = z2.object({
+  setup: FarmerSetupSummarySchema,
+  farms: z2.array(FarmSetupSchema).max(10),
+  totals: z2.object({
+    farms: z2.int().nonnegative(),
+    plots: z2.int().nonnegative(),
+    normalizedAreaSquareMetres: z2.number().nonnegative()
+  }).strict(),
+  currentCropByPlot: z2.record(UuidSchema, CropDeclarationSchema),
+  generatedAt: TimestampSchema
+}).strict().meta({ id: "MyFarmResponse", "x-data-classification": "C3" });
+var SaveFarmerSetupDraftPayloadSchema = z2.object({
+  draft: FarmerSetupDraftSchema.omit({
+    checksum: true,
+    revision: true,
+    syncStatus: true,
+    updatedAt: true
+  })
+}).strict().meta({ id: "SaveFarmerSetupDraftPayload", "x-data-classification": "C3" });
+var CompleteFarmerSetupPayloadSchema = z2.object({
+  draftId: UuidSchema,
+  acceptedDraftRevision: RevisionSchema,
+  acceptedDraftChecksum: Sha256DigestSchema
+}).strict().meta({ id: "CompleteFarmerSetupPayload", "x-data-classification": "C3" });
+var UpdateFarmerPreferencesPayloadSchema = z2.object({
+  preferredLocale: FarmerLocaleSchema,
+  timezone: z2.literal("Asia/Kolkata"),
+  voicePrompts: z2.boolean()
+}).strict().meta({ id: "UpdateFarmerPreferencesPayload", "x-data-classification": "C2" });
+var DeviceModeChangePayloadSchema = z2.object({
+  nextDeviceMode: DeviceModeSelectionSchema,
+  localPrivateWorkState: z2.enum(["NONE", "SYNCED", "LOCKED_RECOVERY_REQUIRED"])
+}).strict().meta({ id: "DeviceModeChangePayload", "x-data-classification": "C2" });
+var SetupVoiceReadResponseSchema = z2.object({
+  setup: FarmerSetupSummarySchema,
+  myFarm: MyFarmResponseSchema.optional(),
+  mode: z2.enum(["LIVE", "RECORDED", "SIMULATED"])
+}).strict().meta({ id: "SetupVoiceReadResponse", "x-data-classification": "C3" });
+var SetupVoiceProposalPayloadSchema = z2.object({
+  targetPath: z2.string().min(1).max(160),
+  proposedValue: JsonObjectSchema,
+  reason: z2.string().min(1).max(240)
+}).strict().meta({ id: "SetupVoiceProposalPayload", "x-data-classification": "C3" });
+
 // packages/contracts/src/commands/index.ts
-var ClientContextSchema = z2.object({
+var ClientContextSchema = z3.object({
   clientRecordedAt: TimestampSchema,
-  timezone: z2.string().min(1).max(64),
-  dataModeClaim: z2.enum(["LIVE", "RECORDED", "SIMULATED"])
+  timezone: z3.string().min(1).max(64),
+  dataModeClaim: z3.enum(["LIVE", "RECORDED", "SIMULATED"])
 }).strict();
-var CommandTargetSchema = z2.object({
-  type: z2.enum(["roleContext", "consentDecision", "accessGrant"]),
+var CommandTargetSchema = z3.object({
+  type: z3.enum([
+    "roleContext",
+    "consentDecision",
+    "accessGrant",
+    "farmerSetupDraft",
+    "farmerSetup",
+    "farmerPreferences",
+    "deviceMode"
+  ]),
   id: UuidSchema
 }).strict();
 var RoleContextCommandTargetSchema = CommandTargetSchema.extend({
-  type: z2.literal("roleContext")
+  type: z3.literal("roleContext")
 }).strict();
 var ConsentDecisionCommandTargetSchema = CommandTargetSchema.extend({
-  type: z2.literal("consentDecision")
+  type: z3.literal("consentDecision")
 }).strict();
 var AccessGrantCommandTargetSchema = CommandTargetSchema.extend({
-  type: z2.literal("accessGrant")
+  type: z3.literal("accessGrant")
 }).strict();
-var SelectRoleContextPayloadSchema = z2.object({
+var FarmerSetupDraftCommandTargetSchema = CommandTargetSchema.extend({
+  type: z3.literal("farmerSetupDraft")
+}).strict();
+var FarmerSetupCommandTargetSchema = CommandTargetSchema.extend({
+  type: z3.literal("farmerSetup")
+}).strict();
+var FarmerPreferencesCommandTargetSchema = CommandTargetSchema.extend({
+  type: z3.literal("farmerPreferences")
+}).strict();
+var DeviceModeCommandTargetSchema = CommandTargetSchema.extend({
+  type: z3.literal("deviceMode")
+}).strict();
+var SelectRoleContextPayloadSchema = z3.object({
   roleGrantId: UuidSchema,
   officeId: UuidSchema.optional(),
   jurisdictionId: UuidSchema.optional()
 }).strict();
-var ConsentDecisionPayloadSchema = z2.object({
-  decision: z2.enum(["ALLOW", "DENY", "WITHDRAW"]),
+var ConsentDecisionPayloadSchema = z3.object({
+  decision: z3.enum(["ALLOW", "DENY", "WITHDRAW"]),
   scopeKey: ConsentScopeSchema,
   purposeKey: PurposeCodeSchema,
-  targetKind: z2.enum(["ACCOUNT", "ASSISTED_FARMER_CONTEXT"]),
+  targetKind: z3.enum(["ACCOUNT", "ASSISTED_FARMER_CONTEXT"]),
   targetId: UuidSchema,
   policyVersionId: UuidSchema,
   expiresAt: TimestampSchema.optional()
 }).strict();
-var AccessGrantPayloadSchema = z2.object({
-  targetKind: z2.literal("ASSISTED_FARMER_CONTEXT"),
+var AccessGrantPayloadSchema = z3.object({
+  targetKind: z3.literal("ASSISTED_FARMER_CONTEXT"),
   targetId: UuidSchema,
   farmerSubjectId: UuidSchema,
-  purposeKey: z2.literal("assisted.service"),
-  consentAccessVersion: z2.int().positive(),
+  purposeKey: z3.literal("assisted.service"),
+  consentAccessVersion: z3.int().positive(),
   expiresAt: TimestampSchema
 }).strict();
 function commandEnvelope(operation, target, payload) {
-  return z2.object({
-    commandSchemaVersion: z2.literal(1),
-    operation: z2.literal(operation),
+  return z3.object({
+    commandSchemaVersion: z3.literal(1),
+    operation: z3.literal(operation),
     target,
     expectedRevision: RevisionSchema,
     payload,
@@ -290,37 +541,69 @@ var IssueAccessGrantCommandSchema = commandEnvelope(
   AccessGrantCommandTargetSchema,
   AccessGrantPayloadSchema
 ).meta({ id: "IssueAccessGrantCommand", "x-data-classification": "C2" });
-var CommandEnvelopeSchema = z2.discriminatedUnion("operation", [
+var SaveFarmerSetupDraftCommandSchema = commandEnvelope(
+  "SaveFarmerSetupDraft",
+  FarmerSetupDraftCommandTargetSchema,
+  SaveFarmerSetupDraftPayloadSchema
+).meta({ id: "SaveFarmerSetupDraftCommand", "x-data-classification": "C3" });
+var CompleteFarmerSetupCommandSchema = commandEnvelope(
+  "CompleteFarmerSetup",
+  FarmerSetupCommandTargetSchema,
+  CompleteFarmerSetupPayloadSchema
+).meta({ id: "CompleteFarmerSetupCommand", "x-data-classification": "C3" });
+var UpdateFarmerPreferencesCommandSchema = commandEnvelope(
+  "UpdateFarmerPreferences",
+  FarmerPreferencesCommandTargetSchema,
+  UpdateFarmerPreferencesPayloadSchema
+).meta({ id: "UpdateFarmerPreferencesCommand", "x-data-classification": "C2" });
+var ChangeDeviceModeCommandSchema = commandEnvelope(
+  "ChangeDeviceMode",
+  DeviceModeCommandTargetSchema,
+  DeviceModeChangePayloadSchema
+).meta({ id: "ChangeDeviceModeCommand", "x-data-classification": "C2" });
+var CommandEnvelopeSchema = z3.discriminatedUnion("operation", [
   SelectRoleContextCommandSchema,
   RecordConsentDecisionCommandSchema,
-  IssueAccessGrantCommandSchema
+  IssueAccessGrantCommandSchema,
+  SaveFarmerSetupDraftCommandSchema,
+  CompleteFarmerSetupCommandSchema,
+  UpdateFarmerPreferencesCommandSchema,
+  ChangeDeviceModeCommandSchema
 ]).meta({ id: "CommandEnvelope", "x-data-classification": "C2" });
 var CommandSchema = CommandEnvelopeSchema;
-var CommandDispositionSchema = z2.enum(COMMAND_DISPOSITIONS);
-var CommandResultSchema = z2.object({
+var CommandDispositionSchema = z3.enum(COMMAND_DISPOSITIONS);
+var CommandResultSchema = z3.object({
   commandId: UuidSchema,
   disposition: CommandDispositionSchema,
-  result: z2.object({
-    type: z2.enum(["roleContext", "consentDecision", "accessGrant"]),
+  result: z3.object({
+    type: z3.enum([
+      "roleContext",
+      "consentDecision",
+      "accessGrant",
+      "farmerSetupDraft",
+      "farmerSetup",
+      "farmerPreferences",
+      "deviceMode"
+    ]),
     id: UuidSchema,
     revision: RevisionSchema
   }).strict().optional(),
-  eventIds: z2.array(UuidSchema).max(20),
+  eventIds: z3.array(UuidSchema).max(20),
   syncAcknowledgementId: UuidSchema.optional(),
   serverReceivedAt: TimestampSchema
 }).strict().meta({ id: "CommandResult", "x-data-classification": "C2" });
 
 // packages/contracts/src/device/index.ts
-import { z as z3 } from "zod";
-var DeviceBatchReceiptSchema = z3.object({
+import { z as z4 } from "zod";
+var DeviceBatchReceiptSchema = z4.object({
   batchId: UuidSchema,
-  state: z3.enum(["DURABLY_ACCEPTED", "ALREADY_ACCEPTED", "REJECTED"]),
+  state: z4.enum(["DURABLY_ACCEPTED", "ALREADY_ACCEPTED", "REJECTED"]),
   receivedAt: TimestampSchema,
-  explicitlyNotAgronomicTrust: z3.literal(true)
+  explicitlyNotAgronomicTrust: z4.literal(true)
 }).strict().meta({ id: "DeviceBatchReceipt", "x-data-classification": "C1" });
 
 // packages/contracts/src/events/index.ts
-import { z as z4 } from "zod";
+import { z as z5 } from "zod";
 
 // packages/contracts/src/events/catalog.json
 var catalog_default = {
@@ -336,19 +619,19 @@ var catalog_default = {
       name: "farmer.setup_saved",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farmer.preferences_changed",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farmer.setup_completed",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "identity.role_context_created",
@@ -366,7 +649,7 @@ var catalog_default = {
       name: "identity.device_mode_changed",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "consent.decision_recorded",
@@ -378,49 +661,49 @@ var catalog_default = {
       name: "farm.created",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farm.updated",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "plot.created",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "plot.updated",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "soil_record.added",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "water_context.updated",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "farm.crop_history_recorded",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "profile.snapshot_created",
       eventClass: "DOMAIN",
       version: 1,
-      status: "reserved"
+      status: "executable"
     },
     {
       name: "season.created",
@@ -2476,15 +2759,15 @@ var eventNames = catalog_default.events.map((event) => event.name);
 if (eventNames.length === 0) {
   throw new Error("The canonical event catalogue must not be empty.");
 }
-var EventNameSchema = z4.enum(eventNames);
-var EventEnvelopeBaseSchema = z4.object({
+var EventNameSchema = z5.enum(eventNames);
+var EventEnvelopeBaseSchema = z5.object({
   eventId: UuidV7Schema,
   eventName: EventNameSchema,
-  eventVersion: z4.int().positive(),
-  aggregateType: z4.string().min(1).max(80),
+  eventVersion: z5.int().positive(),
+  aggregateType: z5.string().min(1).max(80),
   aggregateId: UuidSchema,
-  aggregateRevision: z4.int().positive(),
-  eventOrdinal: z4.int().positive(),
+  aggregateRevision: z5.int().positive(),
+  eventOrdinal: z5.int().positive(),
   occurredAt: TimestampSchema,
   clientRecordedAt: TimestampSchema.optional(),
   serverReceivedAt: TimestampSchema,
@@ -2495,18 +2778,18 @@ var EventEnvelopeBaseSchema = z4.object({
   deviceRef: UuidSchema.optional(),
   jurisdictionId: UuidSchema.optional(),
   purposeCode: PurposeCodeSchema.optional(),
-  consentAccessVersion: z4.int().positive().optional(),
+  consentAccessVersion: z5.int().positive().optional(),
   dataMode: DataModeSchema,
-  provenanceTypes: z4.array(ProvenanceTypeSchema).min(1).max(9),
-  modeDerivationVersion: z4.string().min(1).max(80),
+  provenanceTypes: z5.array(ProvenanceTypeSchema).min(1).max(9),
+  modeDerivationVersion: z5.string().min(1).max(80),
   correlationId: UuidSchema,
   causationId: UuidSchema.optional(),
   traceId: TraceIdSchema.optional(),
-  producerService: z4.string().min(1).max(80),
-  producerBuild: z4.string().min(1).max(120),
+  producerService: z5.string().min(1).max(80),
+  producerBuild: z5.string().min(1).max(120),
   payloadClassification: DataClassificationSchema,
-  retentionClass: z4.string().min(1).max(80),
-  payloadSchemaVersion: z4.int().positive(),
+  retentionClass: z5.string().min(1).max(80),
+  payloadSchemaVersion: z5.int().positive(),
   payload: JsonObjectSchema,
   payloadChecksum: Sha256DigestSchema
 }).strict();
@@ -2514,59 +2797,59 @@ var EventEnvelopeSchema = EventEnvelopeBaseSchema.meta({
   id: "EventEnvelope",
   "x-data-classification": "C2"
 });
-var RoleContextCreatedPayloadSchema = z4.object({
+var RoleContextCreatedPayloadSchema = z5.object({
   roleContextId: UuidSchema,
   subjectId: UuidSchema,
   roleType: RoleTypeSchema,
-  authorizationVersion: z4.int().positive(),
-  capabilitySetVersion: z4.int().positive(),
+  authorizationVersion: z5.int().positive(),
+  capabilitySetVersion: z5.int().positive(),
   expiresAt: TimestampSchema
 }).strict();
-var RoleContextRevokedPayloadSchema = z4.object({
+var RoleContextRevokedPayloadSchema = z5.object({
   roleContextId: UuidSchema,
   subjectId: UuidSchema,
-  authorizationVersion: z4.int().positive(),
-  reasonCode: z4.enum(["USER_SWITCH", "LOGOUT", "GRANT_REVOKED", "SECURITY_VERSION_CHANGED"])
+  authorizationVersion: z5.int().positive(),
+  reasonCode: z5.enum(["USER_SWITCH", "LOGOUT", "GRANT_REVOKED", "SECURITY_VERSION_CHANGED"])
 }).strict();
-var ConsentDecisionRecordedPayloadSchema = z4.object({
+var ConsentDecisionRecordedPayloadSchema = z5.object({
   consentDecisionId: UuidSchema,
   subjectId: UuidSchema,
   scopeKey: ConsentScopeSchema,
   purposeKey: PurposeCodeSchema,
-  targetKind: z4.enum(["ACCOUNT", "ASSISTED_FARMER_CONTEXT"]),
+  targetKind: z5.enum(["ACCOUNT", "ASSISTED_FARMER_CONTEXT"]),
   targetId: UuidSchema,
-  decision: z4.enum(["ALLOW", "DENY", "WITHDRAW"]),
-  accessVersion: z4.int().positive()
+  decision: z5.enum(["ALLOW", "DENY", "WITHDRAW"]),
+  accessVersion: z5.int().positive()
 }).strict();
 var RoleContextCreatedEventSchema = EventEnvelopeBaseSchema.extend({
-  eventName: z4.literal("identity.role_context_created"),
-  payloadClassification: z4.literal("C2"),
+  eventName: z5.literal("identity.role_context_created"),
+  payloadClassification: z5.literal("C2"),
   payload: RoleContextCreatedPayloadSchema
 }).strict();
 var RoleContextRevokedEventSchema = EventEnvelopeBaseSchema.extend({
-  eventName: z4.literal("identity.role_context_revoked"),
-  payloadClassification: z4.literal("C2"),
+  eventName: z5.literal("identity.role_context_revoked"),
+  payloadClassification: z5.literal("C2"),
   payload: RoleContextRevokedPayloadSchema
 }).strict();
 var ConsentDecisionRecordedEventSchema = EventEnvelopeBaseSchema.extend({
-  eventName: z4.literal("consent.decision_recorded"),
-  payloadClassification: z4.literal("C2"),
+  eventName: z5.literal("consent.decision_recorded"),
+  payloadClassification: z5.literal("C2"),
   payload: ConsentDecisionRecordedPayloadSchema
 }).strict();
-var MilestoneOneEventSchema = z4.discriminatedUnion("eventName", [
+var MilestoneOneEventSchema = z5.discriminatedUnion("eventName", [
   RoleContextCreatedEventSchema,
   RoleContextRevokedEventSchema,
   ConsentDecisionRecordedEventSchema
 ]).meta({ id: "MilestoneOneEvent", "x-data-classification": "C2" });
-var SyncLifecyclePayloadSchema = z4.object({
+var SyncLifecyclePayloadSchema = z5.object({
   streamId: UuidSchema,
   batchId: UuidSchema.optional(),
   commandId: UuidSchema.optional(),
   conflictId: UuidSchema.optional(),
-  disposition: z4.enum(["ACCEPTED", "ALREADY_ACCEPTED", "REJECTED", "CONFLICT"]).optional()
+  disposition: z5.enum(["ACCEPTED", "ALREADY_ACCEPTED", "REJECTED", "CONFLICT"]).optional()
 }).strict();
 var SyncLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
-  eventName: z4.enum([
+  eventName: z5.enum([
     "sync.batch_started",
     "sync.event_accepted",
     "sync.event_already_accepted",
@@ -2574,13 +2857,13 @@ var SyncLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
     "sync.conflict_detected",
     "sync.conflict_resolved"
   ]),
-  payloadClassification: z4.literal("C2"),
+  payloadClassification: z5.literal("C2"),
   payload: SyncLifecyclePayloadSchema
 }).strict();
-var MediaUploadVerifiedPayloadSchema = z4.object({
+var MediaUploadVerifiedPayloadSchema = z5.object({
   assetId: UuidSchema,
   derivativeId: UuidSchema,
-  purpose: z4.enum([
+  purpose: z5.enum([
     "CROP_HEALTH_IMAGE",
     "DIARY_MEDIA",
     "RSK_VISIT_EVIDENCE",
@@ -2589,23 +2872,23 @@ var MediaUploadVerifiedPayloadSchema = z4.object({
   ]),
   sourceChecksum: Sha256DigestSchema,
   derivativeChecksum: Sha256DigestSchema,
-  scannerVersion: z4.string().min(1).max(80)
+  scannerVersion: z5.string().min(1).max(80)
 }).strict();
 var MediaUploadVerifiedEventSchema = EventEnvelopeBaseSchema.extend({
-  eventName: z4.literal("media.upload_verified"),
-  payloadClassification: z4.literal("C2"),
+  eventName: z5.literal("media.upload_verified"),
+  payloadClassification: z5.literal("C2"),
   payload: MediaUploadVerifiedPayloadSchema
 }).strict();
-var VoiceLifecyclePayloadSchema = z4.object({
+var VoiceLifecyclePayloadSchema = z5.object({
   sessionId: UuidSchema,
   proposalId: UuidSchema.optional(),
   offlineAudioRefId: UuidSchema.optional(),
-  lifecycleState: z4.string().min(1).max(80),
+  lifecycleState: z5.string().min(1).max(80),
   payloadHash: Sha256DigestSchema.optional(),
-  detailCode: z4.string().min(1).max(80).optional()
+  detailCode: z5.string().min(1).max(80).optional()
 }).strict();
 var VoiceLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
-  eventName: z4.enum([
+  eventName: z5.enum([
     "voice.session_started",
     "voice.session_ended",
     "voice.intent_recognized",
@@ -2623,100 +2906,135 @@ var VoiceLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
     "voice.offline_audio_declined",
     "voice.offline_audio_deleted"
   ]),
-  payloadClassification: z4.enum(["C2", "C3"]),
+  payloadClassification: z5.enum(["C2", "C3"]),
   payload: VoiceLifecyclePayloadSchema
 }).strict();
-var MilestoneTwoEventSchema = z4.union([
+var MilestoneTwoEventSchema = z5.union([
   MilestoneOneEventSchema,
   SyncLifecycleEventSchema,
   MediaUploadVerifiedEventSchema,
   VoiceLifecycleEventSchema
 ]).meta({ id: "MilestoneTwoEvent", "x-data-classification": "C3" });
+var FarmerSetupLifecyclePayloadSchema = z5.object({
+  draftId: UuidSchema.optional(),
+  farmId: UuidSchema.optional(),
+  plotId: UuidSchema.optional(),
+  setupStatus: z5.enum(["NOT_STARTED", "IN_PROGRESS", "READY_FOR_REVIEW", "COMPLETE", "NEEDS_REVIEW"]).optional(),
+  revision: z5.int().nonnegative()
+}).strict();
+var FarmerSetupLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z5.enum([
+    "farmer.setup_saved",
+    "farmer.preferences_changed",
+    "farmer.setup_completed",
+    "identity.device_mode_changed",
+    "farm.created",
+    "farm.updated",
+    "plot.created",
+    "plot.updated",
+    "soil_record.added",
+    "water_context.updated",
+    "farm.crop_history_recorded",
+    "profile.snapshot_created"
+  ]),
+  payloadClassification: z5.enum(["C2", "C3"]),
+  payload: FarmerSetupLifecyclePayloadSchema
+}).strict();
+var MilestoneThreeEventSchema = z5.union([MilestoneTwoEventSchema, FarmerSetupLifecycleEventSchema]).meta({ id: "MilestoneThreeEvent", "x-data-classification": "C3" });
 
 // packages/contracts/src/http/auth.ts
-import { z as z5 } from "zod";
-var ReturnStateRequestSchema = z5.object({
-  routeKey: z5.enum(["FARMER_HOME", "RSK_HOME", "MP_HOME"])
+import { z as z6 } from "zod";
+var ReturnStateRequestSchema = z6.object({
+  routeKey: z6.enum(["FARMER_HOME", "RSK_HOME", "MP_HOME"])
 }).strict().meta({ id: "ReturnStateRequest", "x-data-classification": "C1" });
-var ReturnStateResponseSchema = z5.object({
+var ReturnStateResponseSchema = z6.object({
   returnStateId: UuidSchema,
   expiresAt: TimestampSchema
 }).strict().meta({ id: "ReturnStateResponse", "x-data-classification": "C4" });
-var RoleSummarySchema = z5.object({
+var RoleSummarySchema = z6.object({
   roleGrantId: UuidSchema,
   roleType: RoleTypeSchema,
   officeId: UuidSchema.optional(),
   jurisdictionId: UuidSchema.optional(),
-  destination: z5.enum(["/farmer/today", "/rsk/work", "/mp/overview"]),
-  capabilitySetVersion: z5.int().positive()
+  destination: z6.enum(["/farmer/today", "/rsk/work", "/mp/overview"]),
+  capabilitySetVersion: z6.int().positive()
 }).strict();
-var SessionResponseSchema = z5.object({
+var SessionResponseSchema = z6.object({
   subjectId: UuidSchema,
-  subjectType: z5.enum(["FARMER", "STAFF"]),
-  environment: z5.enum(["local", "preview", "staging", "demo", "production"]),
-  mfaState: z5.enum(["NOT_REQUIRED", "CURRENT", "REQUIRED", "EXPIRED"]),
-  deviceBindingState: z5.enum(["ACTIVE", "REQUIRED", "REVOKED"]),
-  authorizationVersion: z5.int().positive(),
-  capabilitySetVersion: z5.int().positive(),
+  subjectType: z6.enum(["FARMER", "STAFF"]),
+  environment: z6.enum(["local", "preview", "staging", "demo", "production"]),
+  mfaState: z6.enum(["NOT_REQUIRED", "CURRENT", "REQUIRED", "EXPIRED"]),
+  deviceBindingState: z6.enum(["ACTIVE", "REQUIRED", "REVOKED"]),
+  authorizationVersion: z6.int().positive(),
+  capabilitySetVersion: z6.int().positive(),
   activeRoleContext: AuthorizationContextSchema.optional(),
-  roles: z5.array(RoleSummarySchema).max(12)
+  roles: z6.array(RoleSummarySchema).max(12)
 }).strict().meta({ id: "SessionResponse", "x-data-classification": "C2" });
-var RoleContextResponseSchema = z5.object({
+var RoleContextResponseSchema = z6.object({
   roleContext: AuthorizationContextSchema,
   issuedAt: TimestampSchema,
   expiresAt: TimestampSchema
 }).strict().meta({ id: "RoleContextResponse", "x-data-classification": "C2" });
-var ConsentRecordSchema = z5.object({
+var ConsentRecordSchema = z6.object({
   consentDecisionId: UuidSchema.optional(),
   scopeKey: ConsentScopeSchema,
   purposeKey: PurposeCodeSchema,
-  targetKind: z5.enum(["ACCOUNT", "ASSISTED_FARMER_CONTEXT"]),
+  targetKind: z6.enum(["ACCOUNT", "ASSISTED_FARMER_CONTEXT"]),
   targetId: UuidSchema,
   state: ConsentStateSchema,
-  accessVersion: z5.int().positive(),
+  accessVersion: z6.int().positive(),
   expiresAt: TimestampSchema.optional()
 }).strict();
-var ConsentListResponseSchema = z5.object({
-  items: z5.array(ConsentRecordSchema).max(100),
+var ConsentListResponseSchema = z6.object({
+  items: z6.array(ConsentRecordSchema).max(100),
   revision: RevisionSchema
 }).strict().meta({ id: "ConsentListResponse", "x-data-classification": "C2" });
-var FarmerBootstrapResponseSchema = z5.object({
+var FarmerBootstrapResponseSchema = z6.object({
   subjectId: UuidSchema,
-  locale: z5.enum(["mr", "hi", "en"]),
-  onboardingState: z5.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETE"]),
-  authorizationVersion: z5.int().positive(),
-  capabilities: z5.array(CapabilityKeySchema).max(10),
-  farmContextState: z5.literal("UNAVAILABLE_UNTIL_SETUP")
-}).strict().meta({ id: "FarmerBootstrapResponse", "x-data-classification": "C2" });
-var RskBootstrapResponseSchema = z5.object({
+  locale: z6.enum(["mr", "hi", "en"]),
+  onboardingState: z6.enum([
+    "NOT_STARTED",
+    "IN_PROGRESS",
+    "READY_FOR_REVIEW",
+    "COMPLETE",
+    "NEEDS_REVIEW"
+  ]),
+  authorizationVersion: z6.int().positive(),
+  capabilities: z6.array(CapabilityKeySchema).max(10),
+  farmContextState: z6.enum(["UNAVAILABLE_UNTIL_SETUP", "AVAILABLE"]),
+  deviceMode: DeviceModeSelectionSchema,
+  setup: FarmerSetupSummarySchema,
+  myFarm: MyFarmResponseSchema.optional()
+}).strict().meta({ id: "FarmerBootstrapResponse", "x-data-classification": "C3" });
+var RskBootstrapResponseSchema = z6.object({
   subjectId: UuidSchema,
   officeId: UuidSchema,
   jurisdictionId: UuidSchema,
-  authorizationVersion: z5.int().positive(),
-  capabilities: z5.array(CapabilityKeySchema).max(50),
-  workState: z5.literal("UNAVAILABLE_UNTIL_WORK_MILESTONE")
+  authorizationVersion: z6.int().positive(),
+  capabilities: z6.array(CapabilityKeySchema).max(50),
+  workState: z6.literal("UNAVAILABLE_UNTIL_WORK_MILESTONE")
 }).strict().meta({ id: "RskBootstrapResponse", "x-data-classification": "C1" });
-var ProtectedDisclosureRequestSchema = z5.object({
-  targetKind: z5.literal("ASSISTED_FARMER_CONTEXT"),
+var ProtectedDisclosureRequestSchema = z6.object({
+  targetKind: z6.literal("ASSISTED_FARMER_CONTEXT"),
   targetId: UuidSchema,
-  purposeKey: z5.literal("assisted.service"),
-  expectedAccessVersion: z5.int().positive(),
-  fieldSet: z5.literal("CONTACT")
+  purposeKey: z6.literal("assisted.service"),
+  expectedAccessVersion: z6.int().positive(),
+  fieldSet: z6.literal("CONTACT")
 }).strict().meta({ id: "ProtectedDisclosureRequest", "x-data-classification": "C2" });
-var ProtectedDisclosureResponseSchema = z5.object({
+var ProtectedDisclosureResponseSchema = z6.object({
   targetId: UuidSchema,
-  accessVersion: z5.int().positive(),
-  fields: z5.object({
-    displayName: z5.string().min(1).max(160),
-    contact: z5.string().min(1).max(160)
+  accessVersion: z6.int().positive(),
+  fields: z6.object({
+    displayName: z6.string().min(1).max(160),
+    contact: z6.string().min(1).max(160)
   }).strict(),
   auditedAt: TimestampSchema
 }).strict().meta({ id: "ProtectedDisclosureResponse", "x-data-classification": "C3" });
-var MpQueryContextResponseSchema = z5.object({
-  state: z5.literal("UNAVAILABLE"),
-  code: z5.literal("DEPENDENCY_UNAVAILABLE"),
-  availableMetricKeys: z5.array(z5.never()).max(0),
-  activeRelease: z5.null()
+var MpQueryContextResponseSchema = z6.object({
+  state: z6.literal("UNAVAILABLE"),
+  code: z6.literal("DEPENDENCY_UNAVAILABLE"),
+  availableMetricKeys: z6.array(z6.never()).max(0),
+  activeRelease: z6.null()
 }).strict().meta({ id: "MpQueryContextResponse", "x-data-classification": "C1" });
 
 // packages/contracts/src/http/routes.ts
@@ -2858,6 +3176,193 @@ var ROUTES = [
     problemCodes: AUTH_PROBLEMS,
     classification: "C2",
     retentionClass: "consent"
+  },
+  {
+    method: "post",
+    path: "/v1/farmer/setup-drafts",
+    operationId: "saveFarmerSetupDraft",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.setup.write",
+    requestSchema: "SaveFarmerSetupDraftCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [
+      ...AUTH_PROBLEMS,
+      "EXPECTED_REVISION_MISMATCH",
+      "CONSENT_OR_ACCESS_VERSION_CHANGED"
+    ],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "post",
+    path: "/v1/farmer/setup:complete",
+    operationId: "completeFarmerSetup",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.setup.complete",
+    requestSchema: "CompleteFarmerSetupCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "EXPECTED_REVISION_MISMATCH", "SETUP_INCOMPLETE"],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "get",
+    path: "/v1/farmer/my-farm",
+    operationId: "getMyFarm",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "MyFarmResponse",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C3",
+    retentionClass: "none"
+  },
+  {
+    method: "get",
+    path: "/v1/farmer/farms",
+    operationId: "listFarmerFarms",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "MyFarmResponse",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C3",
+    retentionClass: "none"
+  },
+  {
+    method: "post",
+    path: "/v1/farmer/farms",
+    operationId: "createFarmerFarm",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.farm.write",
+    requestSchema: "SaveFarmerSetupDraftCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "EXPECTED_REVISION_MISMATCH"],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "get",
+    path: "/v1/farmer/farms/{farmId}",
+    operationId: "getFarmerFarm",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "FarmSetup",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C3",
+    retentionClass: "none"
+  },
+  {
+    method: "patch",
+    path: "/v1/farmer/farms/{farmId}",
+    operationId: "updateFarmerFarm",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.farm.write",
+    requestSchema: "SaveFarmerSetupDraftCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "EXPECTED_REVISION_MISMATCH"],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "post",
+    path: "/v1/farmer/farms/{farmId}/plots",
+    operationId: "createFarmerPlot",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.plot.write",
+    requestSchema: "SaveFarmerSetupDraftCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "EXPECTED_REVISION_MISMATCH"],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "get",
+    path: "/v1/farmer/plots/{plotId}",
+    operationId: "getFarmerPlot",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    responseSchema: "FarmSetup",
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C3",
+    retentionClass: "none"
+  },
+  {
+    method: "patch",
+    path: "/v1/farmer/plots/{plotId}",
+    operationId: "updateFarmerPlot",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.plot.write",
+    requestSchema: "SaveFarmerSetupDraftCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "EXPECTED_REVISION_MISMATCH"],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "post",
+    path: "/v1/farmer/plots/{plotId}/geometry-versions",
+    operationId: "createFarmerPlotGeometryVersion",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "farmer.plot.write",
+    requestSchema: "SaveFarmerSetupDraftCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "GPS_PERMISSION_DENIED"],
+    classification: "C3",
+    retentionClass: "farmer-setup"
+  },
+  {
+    method: "patch",
+    path: "/v1/farmer/preferences",
+    operationId: "updateFarmerPreferences",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "profile.correct",
+    requestSchema: "UpdateFarmerPreferencesCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: AUTH_PROBLEMS,
+    classification: "C2",
+    retentionClass: "farmer-profile"
+  },
+  {
+    method: "post",
+    path: "/v1/farmer/device-mode-changes",
+    operationId: "changeFarmerDeviceMode",
+    surface: "farmer",
+    auth: "farmer",
+    purpose: "farmer.self_service",
+    capability: "device_mode.change",
+    requestSchema: "ChangeDeviceModeCommand",
+    responseSchema: "CommandResult",
+    command: { idempotency: true, expectedRevision: true },
+    problemCodes: [...AUTH_PROBLEMS, "DEVICE_BINDING_MISMATCH"],
+    classification: "C2",
+    retentionClass: "device-binding"
   },
   {
     method: "get",
@@ -3300,22 +3805,22 @@ var ROUTES = [
 ];
 
 // packages/contracts/src/media/index.ts
-import { z as z6 } from "zod";
-var MediaPurposeSchema = z6.enum([
+import { z as z7 } from "zod";
+var MediaPurposeSchema = z7.enum([
   "CROP_HEALTH_IMAGE",
   "DIARY_MEDIA",
   "RSK_VISIT_EVIDENCE",
   "SENSOR_MAINTENANCE_EVIDENCE",
   "VOICE_OFFLINE_AUDIO"
 ]);
-var MediaOwnerContextSchema = z6.discriminatedUnion("ownerType", [
-  z6.object({ ownerType: z6.literal("HEALTH_REPORT"), ownerId: UuidSchema }).strict(),
-  z6.object({ ownerType: z6.literal("DIARY_ENTRY"), ownerId: UuidSchema }).strict(),
-  z6.object({ ownerType: z6.literal("RSK_VISIT"), ownerId: UuidSchema }).strict(),
-  z6.object({ ownerType: z6.literal("SENSOR_MAINTENANCE"), ownerId: UuidSchema }).strict(),
-  z6.object({ ownerType: z6.literal("VOICE_SESSION"), ownerId: UuidSchema }).strict()
+var MediaOwnerContextSchema = z7.discriminatedUnion("ownerType", [
+  z7.object({ ownerType: z7.literal("HEALTH_REPORT"), ownerId: UuidSchema }).strict(),
+  z7.object({ ownerType: z7.literal("DIARY_ENTRY"), ownerId: UuidSchema }).strict(),
+  z7.object({ ownerType: z7.literal("RSK_VISIT"), ownerId: UuidSchema }).strict(),
+  z7.object({ ownerType: z7.literal("SENSOR_MAINTENANCE"), ownerId: UuidSchema }).strict(),
+  z7.object({ ownerType: z7.literal("VOICE_SESSION"), ownerId: UuidSchema }).strict()
 ]);
-var MediaVerificationStateSchema = z6.enum([
+var MediaVerificationStateSchema = z7.enum([
   "INTENT_ISSUED",
   "UPLOADED_UNVERIFIED",
   "SCANNING",
@@ -3326,7 +3831,7 @@ var MediaVerificationStateSchema = z6.enum([
   "EXPIRED",
   "CANCELLED"
 ]);
-var MediaFailureCodeSchema = z6.enum([
+var MediaFailureCodeSchema = z7.enum([
   "GENERATION_MISMATCH",
   "SIZE_MISMATCH",
   "CHECKSUM_MISMATCH",
@@ -3339,23 +3844,23 @@ var MediaFailureCodeSchema = z6.enum([
   "DURATION_LIMIT_EXCEEDED",
   "CONSENT_OR_ACCESS_VERSION_CHANGED"
 ]);
-var CreateMediaUploadIntentRequestSchema = z6.object({
-  mediaProtocolVersion: z6.literal(1),
+var CreateMediaUploadIntentRequestSchema = z7.object({
+  mediaProtocolVersion: z7.literal(1),
   purpose: MediaPurposeSchema,
   owner: MediaOwnerContextSchema,
   expectedSha256: Sha256DigestSchema,
-  claimedMimeType: z6.enum([
+  claimedMimeType: z7.enum([
     "image/jpeg",
     "image/png",
     "image/webp",
     "audio/webm;codecs=opus",
     "audio/wav"
   ]),
-  declaredSizeBytes: z6.int().positive().max(15 * 1024 * 1024),
-  declaredWidth: z6.int().positive().max(16384).optional(),
-  declaredHeight: z6.int().positive().max(16384).optional(),
-  declaredDurationSeconds: z6.number().positive().max(120).optional(),
-  consentAccessVersion: z6.int().positive()
+  declaredSizeBytes: z7.int().positive().max(15 * 1024 * 1024),
+  declaredWidth: z7.int().positive().max(16384).optional(),
+  declaredHeight: z7.int().positive().max(16384).optional(),
+  declaredDurationSeconds: z7.number().positive().max(120).optional(),
+  consentAccessVersion: z7.int().positive()
 }).strict().superRefine((value, ctx) => {
   const expectedOwnerType = {
     CROP_HEALTH_IMAGE: "HEALTH_REPORT",
@@ -3411,167 +3916,210 @@ var CreateMediaUploadIntentRequestSchema = z6.object({
     });
   }
 }).meta({ id: "CreateMediaUploadIntentRequest", "x-data-classification": "C3" });
-var CreateMediaUploadIntentResponseSchema = z6.object({
+var CreateMediaUploadIntentResponseSchema = z7.object({
   intentId: UuidSchema,
   assetId: UuidSchema,
-  state: z6.literal("INTENT_ISSUED"),
-  resumableUploadUri: z6.string().url().max(4096),
-  generationPrecondition: z6.string().regex(/^[0-9]+$/),
+  state: z7.literal("INTENT_ISSUED"),
+  resumableUploadUri: z7.string().url().max(4096),
+  generationPrecondition: z7.string().regex(/^[0-9]+$/),
   expiresAt: TimestampSchema
 }).strict().meta({ id: "CreateMediaUploadIntentResponse", "x-data-classification": "C4" });
-var FinalizeMediaUploadIntentRequestSchema = z6.object({
-  objectGeneration: z6.string().regex(/^[0-9]+$/),
+var FinalizeMediaUploadIntentRequestSchema = z7.object({
+  objectGeneration: z7.string().regex(/^[0-9]+$/),
   sha256: Sha256DigestSchema,
-  finalSizeBytes: z6.int().positive().max(15 * 1024 * 1024)
+  finalSizeBytes: z7.int().positive().max(15 * 1024 * 1024)
 }).strict().meta({ id: "FinalizeMediaUploadIntentRequest", "x-data-classification": "C3" });
-var MediaOperationAcceptedResponseSchema = z6.object({
+var MediaOperationAcceptedResponseSchema = z7.object({
   operationId: UuidSchema,
   assetId: UuidSchema,
-  state: z6.literal("SCANNING"),
+  state: z7.literal("SCANNING"),
   acceptedAt: TimestampSchema
 }).strict().meta({ id: "MediaOperationAcceptedResponse", "x-data-classification": "C2" });
-var MediaAssetStatusResponseSchema = z6.object({
+var MediaAssetStatusResponseSchema = z7.object({
   assetId: UuidSchema,
   purpose: MediaPurposeSchema,
   state: MediaVerificationStateSchema,
-  revision: z6.int().nonnegative(),
+  revision: z7.int().nonnegative(),
   failureCode: MediaFailureCodeSchema.optional(),
-  verifiedMimeType: z6.string().min(1).max(120).optional(),
-  verifiedSizeBytes: z6.int().positive().optional(),
+  verifiedMimeType: z7.string().min(1).max(120).optional(),
+  verifiedSizeBytes: z7.int().positive().optional(),
   derivativeSha256: Sha256DigestSchema.optional(),
   updatedAt: TimestampSchema
 }).strict().meta({ id: "MediaAssetStatusResponse", "x-data-classification": "C2" });
-var CancelMediaUploadIntentResponseSchema = z6.object({
+var CancelMediaUploadIntentResponseSchema = z7.object({
   intentId: UuidSchema,
-  state: z6.literal("CANCELLED"),
+  state: z7.literal("CANCELLED"),
   cancelledAt: TimestampSchema
 }).strict().meta({ id: "CancelMediaUploadIntentResponse", "x-data-classification": "C2" });
-var ScanMediaAssetRequestSchema = z6.object({
-  scanRequestVersion: z6.literal(1),
+var ScanMediaAssetRequestSchema = z7.object({
+  scanRequestVersion: z7.literal(1),
   assetId: UuidSchema,
   storageEventId: UuidSchema
 }).strict().meta({ id: "ScanMediaAssetRequest", "x-data-classification": "C1" });
-var AttachOfflineAudioRequestSchema = z6.object({
+var AttachOfflineAudioRequestSchema = z7.object({
   assetId: UuidSchema,
   localCaptureId: UuidSchema,
-  language: z6.enum(["mr", "hi", "en"]),
+  language: z7.enum(["mr", "hi", "en"]),
   sessionId: UuidSchema,
-  audioConsentVersion: z6.int().positive(),
-  expectedSessionRevision: z6.int().nonnegative()
+  audioConsentVersion: z7.int().positive(),
+  expectedSessionRevision: z7.int().nonnegative()
 }).strict().meta({ id: "AttachOfflineAudioRequest", "x-data-classification": "C3" });
-var AttachOfflineAudioResponseSchema = z6.object({
+var AttachOfflineAudioResponseSchema = z7.object({
   offlineAudioRefId: UuidSchema,
   attachmentId: UuidSchema,
-  state: z6.literal("TRANSCRIPTION_PENDING"),
+  state: z7.literal("TRANSCRIPTION_PENDING"),
   expiresAt: TimestampSchema
 }).strict().meta({ id: "AttachOfflineAudioResponse", "x-data-classification": "C3" });
 
 // packages/contracts/src/privacy/index.ts
-import { z as z7 } from "zod";
-var MpUnavailableResultSchema = z7.object({
-  status: z7.literal("UNAVAILABLE"),
-  reasonCode: z7.enum(["NO_ACTIVE_RELEASE", "RELEASE_INVALID", "RELEASE_STALE"])
+import { z as z8 } from "zod";
+var MpUnavailableResultSchema = z8.object({
+  status: z8.literal("UNAVAILABLE"),
+  reasonCode: z8.enum(["NO_ACTIVE_RELEASE", "RELEASE_INVALID", "RELEASE_STALE"])
 }).strict().meta({ id: "MpUnavailableResult", "x-data-classification": "C1" });
-var MpSuppressedResultSchema = z7.object({
-  status: z7.literal("SUPPRESSED"),
-  reasonCode: z7.enum(["COHORT_TOO_SMALL", "COMPLEMENTARY_SUPPRESSION", "STICKY_SUPPRESSION"]),
-  methodologyId: z7.string().min(1).max(120)
+var MpSuppressedResultSchema = z8.object({
+  status: z8.literal("SUPPRESSED"),
+  reasonCode: z8.enum(["COHORT_TOO_SMALL", "COMPLEMENTARY_SUPPRESSION", "STICKY_SUPPRESSION"]),
+  methodologyId: z8.string().min(1).max(120)
 }).strict().meta({ id: "MpSuppressedResult", "x-data-classification": "C1" });
-var MpSafeResultSchema = z7.discriminatedUnion("status", [
+var MpSafeResultSchema = z8.discriminatedUnion("status", [
   MpUnavailableResultSchema,
   MpSuppressedResultSchema
 ]);
 
 // packages/contracts/src/sync/index.ts
-import { z as z8 } from "zod";
-var DeviceModeSchema = z8.enum(DEVICE_MODES).meta({
+import { z as z9 } from "zod";
+var DeviceModeSchema = z9.enum(DEVICE_MODES).meta({
   id: "DeviceMode",
   "x-data-classification": "C1"
 });
-var SchemaVersionRangeSchema = z8.object({ minimum: z8.int().positive(), maximum: z8.int().positive() }).strict().refine((range) => range.minimum <= range.maximum, { message: "Invalid version range" });
-var SyncStreamOpenRequestSchema = z8.object({
-  streamProtocolVersion: z8.literal(1),
-  clientBuild: z8.string().min(1).max(80),
-  localDatabaseSchemaVersion: z8.int().positive(),
-  stakeholder: z8.literal("FARMER").optional(),
+var SchemaVersionRangeSchema = z9.object({ minimum: z9.int().positive(), maximum: z9.int().positive() }).strict().refine((range) => range.minimum <= range.maximum, { message: "Invalid version range" });
+var SyncStreamOpenRequestSchema = z9.object({
+  streamProtocolVersion: z9.literal(1),
+  clientBuild: z9.string().min(1).max(80),
+  localDatabaseSchemaVersion: z9.int().positive(),
+  stakeholder: z9.literal("FARMER").optional(),
   deviceMode: DeviceModeSchema,
   commandVersions: SchemaVersionRangeSchema,
   clientEventVersions: SchemaVersionRangeSchema,
   projectionVersions: SchemaVersionRangeSchema,
   mediaVersions: SchemaVersionRangeSchema,
   priorStreamId: UuidSchema.optional(),
-  priorCursor: z8.string().min(1).max(2048).optional()
+  priorCursor: z9.string().min(1).max(2048).optional()
 }).strict().meta({ id: "SyncStreamOpenRequest", "x-data-classification": "C2" });
-var SyncStreamOpenResponseSchema = z8.object({
+var SyncStreamOpenResponseSchema = z9.object({
   streamId: UuidSchema,
   subjectDeviceBindingId: UuidSchema,
-  stakeholder: z8.literal("FARMER"),
-  scope: z8.literal("FARMER_SELF_SERVICE"),
-  authorizationVersion: z8.int().positive(),
+  stakeholder: z9.literal("FARMER"),
+  scope: z9.literal("FARMER_SELF_SERVICE"),
+  authorizationVersion: z9.int().positive(),
   acceptedCommandVersions: SchemaVersionRangeSchema,
   acceptedClientEventVersions: SchemaVersionRangeSchema,
   acceptedProjectionVersions: SchemaVersionRangeSchema,
   acceptedMediaVersions: SchemaVersionRangeSchema,
-  maximumBatchCommands: z8.int().min(1).max(100),
-  maximumBatchBytes: z8.int().min(1).max(524288),
+  maximumBatchCommands: z9.int().min(1).max(100),
+  maximumBatchBytes: z9.int().min(1).max(524288),
   serverTime: TimestampSchema,
-  serverTimeSignature: z8.string().min(16).max(2048),
-  cursor: z8.string().min(1).max(2048),
-  bootstrapRequired: z8.boolean()
+  serverTimeSignature: z9.string().min(16).max(2048),
+  cursor: z9.string().min(1).max(2048),
+  bootstrapRequired: z9.boolean()
 }).strict().meta({ id: "SyncStreamOpenResponse", "x-data-classification": "C2" });
-var SyncCommandEnvelopeSchema = z8.object({
+var SyncCommandBaseSchema = z9.object({
   commandId: UuidSchema,
-  clientEventIds: z8.array(UuidSchema).min(1).max(100),
-  operation: z8.literal("RecordConsentDecision"),
-  commandSchemaVersion: z8.literal(1),
+  clientEventIds: z9.array(UuidSchema).min(1).max(100),
+  commandSchemaVersion: z9.literal(1),
+  expectedRevision: RevisionSchema,
+  occurredAt: TimestampSchema,
+  timezone: z9.string().min(1).max(64),
+  localSequence: z9.int().positive(),
+  causalCommandIds: z9.array(UuidSchema).max(100),
+  requestHash: Sha256DigestSchema
+});
+var SyncConsentCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z9.literal("RecordConsentDecision"),
+  target: ConsentDecisionCommandTargetSchema,
+  payload: ConsentDecisionPayloadSchema
+}).strict().meta({ id: "SyncConsentCommandEnvelope", "x-data-classification": "C2" });
+var SyncSaveFarmerSetupDraftCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z9.literal("SaveFarmerSetupDraft"),
+  target: FarmerSetupDraftCommandTargetSchema,
+  payload: SaveFarmerSetupDraftPayloadSchema
+}).strict().meta({ id: "SyncSaveFarmerSetupDraftCommandEnvelope", "x-data-classification": "C3" });
+var SyncCompleteFarmerSetupCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z9.literal("CompleteFarmerSetup"),
+  target: FarmerSetupCommandTargetSchema,
+  payload: CompleteFarmerSetupPayloadSchema
+}).strict().meta({ id: "SyncCompleteFarmerSetupCommandEnvelope", "x-data-classification": "C3" });
+var SyncUpdateFarmerPreferencesCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z9.literal("UpdateFarmerPreferences"),
+  target: FarmerPreferencesCommandTargetSchema,
+  payload: UpdateFarmerPreferencesPayloadSchema
+}).strict().meta({ id: "SyncUpdateFarmerPreferencesCommandEnvelope", "x-data-classification": "C2" });
+var SyncChangeDeviceModeCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z9.literal("ChangeDeviceMode"),
+  target: DeviceModeCommandTargetSchema,
+  payload: DeviceModeChangePayloadSchema
+}).strict().meta({ id: "SyncChangeDeviceModeCommandEnvelope", "x-data-classification": "C2" });
+var SyncCommandEnvelopeSchema = z9.discriminatedUnion("operation", [
+  SyncConsentCommandEnvelopeSchema,
+  SyncSaveFarmerSetupDraftCommandEnvelopeSchema,
+  SyncCompleteFarmerSetupCommandEnvelopeSchema,
+  SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
+  SyncChangeDeviceModeCommandEnvelopeSchema
+]).meta({ id: "SyncCommandEnvelope", "x-data-classification": "C3" });
+var SyncCommandEnvelopeV2Schema = z9.object({
+  commandId: UuidSchema,
+  clientEventIds: z9.array(UuidSchema).min(1).max(100),
+  operation: z9.literal("RecordConsentDecision"),
+  commandSchemaVersion: z9.literal(1),
   target: ConsentDecisionCommandTargetSchema,
   expectedRevision: RevisionSchema,
   occurredAt: TimestampSchema,
-  timezone: z8.string().min(1).max(64),
-  localSequence: z8.int().positive(),
-  causalCommandIds: z8.array(UuidSchema).max(100),
+  timezone: z9.string().min(1).max(64),
+  localSequence: z9.int().positive(),
+  causalCommandIds: z9.array(UuidSchema).max(100),
   requestHash: Sha256DigestSchema,
   payload: ConsentDecisionPayloadSchema
-}).strict().meta({ id: "SyncCommandEnvelope", "x-data-classification": "C2" });
-var SyncBatchSchema = z8.object({
-  syncBatchVersion: z8.literal(1),
+}).strict().meta({ id: "SyncCommandEnvelopeV2", "x-data-classification": "C2" });
+var SyncBatchSchema = z9.object({
+  syncBatchVersion: z9.literal(1),
   batchId: UuidSchema,
   streamId: UuidSchema,
-  cursor: z8.string().min(1).max(2048),
-  clientBuild: z8.string().min(1).max(80),
-  commands: z8.array(SyncCommandEnvelopeSchema).max(100),
-  feedLimit: z8.int().min(1).max(100)
+  cursor: z9.string().min(1).max(2048),
+  clientBuild: z9.string().min(1).max(80),
+  commands: z9.array(SyncCommandEnvelopeSchema).max(100),
+  feedLimit: z9.int().min(1).max(100)
 }).strict().meta({ id: "SyncBatch", "x-data-classification": "C2" });
-var SyncDispositionBaseSchema = z8.object({
+var SyncDispositionBaseSchema = z9.object({
   commandId: UuidSchema,
-  clientEventIds: z8.array(UuidSchema).min(1).max(100),
+  clientEventIds: z9.array(UuidSchema).min(1).max(100),
   acknowledgementId: UuidSchema,
   serverReceivedAt: TimestampSchema
 });
 var SyncAcceptedDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z8.literal("ACCEPTED"),
+  disposition: z9.literal("ACCEPTED"),
   authoritativeRevision: RevisionSchema,
-  serverEventIds: z8.array(UuidV7Schema).min(1).max(20)
+  serverEventIds: z9.array(UuidV7Schema).min(1).max(20)
 }).strict();
 var SyncAlreadyAcceptedDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z8.literal("ALREADY_ACCEPTED"),
+  disposition: z9.literal("ALREADY_ACCEPTED"),
   authoritativeRevision: RevisionSchema,
-  serverEventIds: z8.array(UuidV7Schema).min(1).max(20)
+  serverEventIds: z9.array(UuidV7Schema).min(1).max(20)
 }).strict();
 var SyncRejectedDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z8.literal("REJECTED"),
+  disposition: z9.literal("REJECTED"),
   problemCode: ProblemCodeSchema,
   authoritativeRevision: RevisionSchema.optional(),
-  serverEventIds: z8.array(UuidV7Schema).max(0)
+  serverEventIds: z9.array(UuidV7Schema).max(0)
 }).strict();
 var SyncConflictDispositionSchema = SyncDispositionBaseSchema.extend({
-  disposition: z8.literal("CONFLICT"),
+  disposition: z9.literal("CONFLICT"),
   problemCode: ProblemCodeSchema,
   conflictId: UuidSchema,
   authoritativeRevision: RevisionSchema,
-  serverEventIds: z8.array(UuidV7Schema).max(0)
+  serverEventIds: z9.array(UuidV7Schema).max(0)
 }).strict();
-var SyncCommandDispositionSchema = z8.discriminatedUnion("disposition", [
+var SyncCommandDispositionSchema = z9.discriminatedUnion("disposition", [
   SyncAcceptedDispositionSchema,
   SyncAlreadyAcceptedDispositionSchema,
   SyncRejectedDispositionSchema,
@@ -3579,62 +4127,62 @@ var SyncCommandDispositionSchema = z8.discriminatedUnion("disposition", [
 ]).meta({ id: "SyncCommandDisposition", "x-data-classification": "C2" });
 var SyncIntegrationEventSchema = MilestoneOneEventSchema;
 var SyncIntegrationEventV2Schema = MilestoneTwoEventSchema;
-var SyncProjectionDeltaSchema = z8.object({
-  projectionType: z8.string().min(1).max(80),
+var SyncProjectionDeltaSchema = z9.object({
+  projectionType: z9.string().min(1).max(80),
   projectionId: UuidSchema,
-  projectionSchemaVersion: z8.int().positive(),
+  projectionSchemaVersion: z9.int().positive(),
   authoritativeRevision: RevisionSchema,
-  changeType: z8.enum(["UPSERT", "TOMBSTONE"]),
+  changeType: z9.enum(["UPSERT", "TOMBSTONE"]),
   dataMode: DataModeSchema,
-  payloadClassification: z8.enum(["C0", "C1", "C2"]),
+  payloadClassification: z9.enum(["C0", "C1", "C2", "C3"]),
   payload: JsonObjectSchema,
   payloadChecksum: Sha256DigestSchema
 }).strict().meta({ id: "SyncProjectionDelta", "x-data-classification": "C2" });
-var SyncFeedEventSchema = z8.object({
+var SyncFeedEventSchema = z9.object({
   feedEventId: UuidV7Schema,
-  sequence: z8.int().positive(),
+  sequence: z9.int().positive(),
   integrationEvent: SyncIntegrationEventSchema,
-  projectionDeltas: z8.array(SyncProjectionDeltaSchema).max(100)
+  projectionDeltas: z9.array(SyncProjectionDeltaSchema).max(100)
 }).strict().meta({ id: "SyncFeedEvent", "x-data-classification": "C2" });
 var SyncFeedEventV2Schema = SyncFeedEventSchema.extend({
   integrationEvent: SyncIntegrationEventV2Schema
 }).strict().meta({ id: "SyncFeedEventV2", "x-data-classification": "C3" });
-var SyncBatchResponseSchema = z8.object({
+var SyncBatchResponseSchema = z9.object({
   batchId: UuidSchema,
-  dispositions: z8.array(SyncCommandDispositionSchema).max(100),
-  feedEvents: z8.array(SyncFeedEventSchema).max(100),
-  nextCursor: z8.string().min(1).max(2048),
-  highWaterMark: z8.string().min(1).max(2048),
-  hasMore: z8.boolean(),
+  dispositions: z9.array(SyncCommandDispositionSchema).max(100),
+  feedEvents: z9.array(SyncFeedEventSchema).max(100),
+  nextCursor: z9.string().min(1).max(2048),
+  highWaterMark: z9.string().min(1).max(2048),
+  hasMore: z9.boolean(),
   serverTime: TimestampSchema,
-  authorizationVersion: z8.int().positive()
+  authorizationVersion: z9.int().positive()
 }).strict().meta({ id: "SyncBatchResponse", "x-data-classification": "C2" });
 var SyncBatchResponseV2Schema = SyncBatchResponseSchema.extend({
-  feedEvents: z8.array(SyncFeedEventV2Schema).max(100)
+  feedEvents: z9.array(SyncFeedEventV2Schema).max(100)
 }).strict().meta({ id: "SyncBatchResponseV2", "x-data-classification": "C3" });
-var SyncBootstrapRequestSchema = z8.object({
-  bootstrapVersion: z8.literal(1),
+var SyncBootstrapRequestSchema = z9.object({
+  bootstrapVersion: z9.literal(1),
   streamId: UuidSchema,
-  localDatabaseSchemaVersion: z8.int().positive(),
+  localDatabaseSchemaVersion: z9.int().positive(),
   supportedProjectionVersions: SchemaVersionRangeSchema
 }).strict().meta({ id: "SyncBootstrapRequest", "x-data-classification": "C2" });
-var SyncTombstoneSchema = z8.object({
-  projectionType: z8.string().min(1).max(80),
+var SyncTombstoneSchema = z9.object({
+  projectionType: z9.string().min(1).max(80),
   projectionId: UuidSchema,
-  deletionEpoch: z8.int().positive(),
+  deletionEpoch: z9.int().positive(),
   minimumResurrectionRevision: RevisionSchema
 }).strict();
-var SyncBootstrapResponseSchema = z8.object({
+var SyncBootstrapResponseSchema = z9.object({
   streamId: UuidSchema,
-  snapshotSchemaVersion: z8.int().positive(),
+  snapshotSchemaVersion: z9.int().positive(),
   snapshotChecksum: Sha256DigestSchema,
   generatedAt: TimestampSchema,
   expiresAt: TimestampSchema,
-  projections: z8.array(SyncProjectionDeltaSchema).max(5e3),
-  tombstones: z8.array(SyncTombstoneSchema).max(5e3),
-  highWaterMark: z8.string().min(1).max(2048),
-  cursor: z8.string().min(1).max(2048),
-  authorizationVersion: z8.int().positive()
+  projections: z9.array(SyncProjectionDeltaSchema).max(5e3),
+  tombstones: z9.array(SyncTombstoneSchema).max(5e3),
+  highWaterMark: z9.string().min(1).max(2048),
+  cursor: z9.string().min(1).max(2048),
+  authorizationVersion: z9.int().positive()
 }).strict().meta({ id: "SyncBootstrapResponse", "x-data-classification": "C2" });
 var SyncFeedPageResponseSchema = SyncBatchResponseSchema.omit({
   batchId: true,
@@ -3644,8 +4192,8 @@ var SyncFeedPageResponseV2Schema = SyncBatchResponseV2Schema.omit({
   batchId: true,
   dispositions: true
 }).meta({ id: "SyncFeedPageResponseV2", "x-data-classification": "C3" });
-var SyncCommandStatusResponseSchema = z8.object({ command: SyncCommandDispositionSchema }).strict().meta({ id: "SyncCommandStatusResponse", "x-data-classification": "C2" });
-var SyncConflictTypeSchema = z8.enum([
+var SyncCommandStatusResponseSchema = z9.object({ command: SyncCommandDispositionSchema }).strict().meta({ id: "SyncCommandStatusResponse", "x-data-classification": "C2" });
+var SyncConflictTypeSchema = z9.enum([
   "EXPECTED_REVISION_MISMATCH",
   "DUPLICATE_LOGICAL_ACTION",
   "CONCURRENT_MUTABLE_FIELD",
@@ -3658,90 +4206,90 @@ var SyncConflictTypeSchema = z8.enum([
   "MEDIA_INTEGRITY_MISMATCH",
   "SCHEMA_REQUIRES_MIGRATION"
 ]);
-var SyncConflictSchema = z8.object({
+var SyncConflictSchema = z9.object({
   conflictId: UuidSchema,
   conflictType: SyncConflictTypeSchema,
   revision: RevisionSchema,
   commandId: UuidSchema,
-  clientEventIds: z8.array(UuidSchema).min(1).max(100),
-  targetType: z8.string().min(1).max(80),
+  clientEventIds: z9.array(UuidSchema).min(1).max(100),
+  targetType: z9.string().min(1).max(80),
   targetId: UuidSchema,
   localRevision: RevisionSchema,
   authoritativeRevision: RevisionSchema,
   localSummary: JsonObjectSchema,
   authoritativeSummary: JsonObjectSchema,
-  allowedActions: z8.array(z8.enum(["CREATE_NEW_COMMAND", "KEEP_BOTH_FACTS", "DISCARD_LOCAL_PROPOSAL"])).min(1).max(3),
-  state: z8.enum(["OPEN", "RESOLUTION_PENDING", "RESOLVED", "LOCKED_RECOVERY"]),
+  allowedActions: z9.array(z9.enum(["CREATE_NEW_COMMAND", "KEEP_BOTH_FACTS", "DISCARD_LOCAL_PROPOSAL"])).min(1).max(3),
+  state: z9.enum(["OPEN", "RESOLUTION_PENDING", "RESOLVED", "LOCKED_RECOVERY"]),
   createdAt: TimestampSchema
 }).strict().meta({ id: "SyncConflict", "x-data-classification": "C2" });
-var SyncConflictListResponseSchema = z8.object({
-  conflicts: z8.array(SyncConflictSchema).max(100),
-  nextCursor: z8.string().max(2048).optional()
+var SyncConflictListResponseSchema = z9.object({
+  conflicts: z9.array(SyncConflictSchema).max(100),
+  nextCursor: z9.string().max(2048).optional()
 }).strict().meta({ id: "SyncConflictListResponse", "x-data-classification": "C2" });
-var SyncConflictResolutionRequestSchema = z8.object({
-  resolutionSchemaVersion: z8.literal(1),
+var SyncConflictResolutionRequestSchema = z9.object({
+  resolutionSchemaVersion: z9.literal(1),
   conflictId: UuidSchema,
   expectedConflictRevision: RevisionSchema,
-  action: z8.enum(["CREATE_NEW_COMMAND", "KEEP_BOTH_FACTS", "DISCARD_LOCAL_PROPOSAL"]),
+  action: z9.enum(["CREATE_NEW_COMMAND", "KEEP_BOTH_FACTS", "DISCARD_LOCAL_PROPOSAL"]),
   resolutionCommandId: UuidSchema,
   payloadHash: Sha256DigestSchema
 }).strict().meta({ id: "SyncConflictResolutionRequest", "x-data-classification": "C2" });
 
 // packages/contracts/src/voice/index.ts
-import { z as z9 } from "zod";
-var VoiceLanguageSchema = z9.enum(["mr", "hi", "en"]);
-var VoiceSessionStateSchema = z9.enum(["CREATED", "READY", "RECONNECTING", "EXPIRING", "CLOSED", "UNAVAILABLE"]);
-var VoiceDelegationSchema = z9.object({
+import { z as z10 } from "zod";
+var VoiceLanguageSchema = z10.enum(["mr", "hi", "en"]);
+var VoiceSessionStateSchema = z10.enum(["CREATED", "READY", "RECONNECTING", "EXPIRING", "CLOSED", "UNAVAILABLE"]);
+var VoiceDelegationSchema = z10.object({
   subjectId: UuidSchema,
   roleContextId: UuidSchema,
   roleType: RoleTypeSchema,
   purpose: PurposeCodeSchema,
-  toolKey: z9.string().min(1).max(120),
-  consentAccessVersion: z9.int().positive(),
+  toolKey: z10.string().min(1).max(120),
+  consentAccessVersion: z10.int().positive(),
   sessionId: UuidSchema,
   expiresAt: TimestampSchema
 }).strict().meta({ id: "VoiceDelegation", "x-data-classification": "C4" });
-var CreateVoiceSessionRequestSchema = z9.object({
-  protocolVersion: z9.literal(1),
+var CreateVoiceSessionRequestSchema = z10.object({
+  protocolVersion: z10.literal(1),
   language: VoiceLanguageSchema,
-  visualRoute: z9.string().min(1).max(240).regex(/^\//),
-  contextIds: z9.array(UuidSchema).max(8),
-  audioCapabilities: z9.object({ realtime: z9.boolean(), httpsAudio: z9.boolean(), offlineAudio: z9.boolean() }).strict()
+  visualRoute: z10.string().min(1).max(240).regex(/^\//),
+  contextIds: z10.array(UuidSchema).max(8),
+  audioCapabilities: z10.object({ realtime: z10.boolean(), httpsAudio: z10.boolean(), offlineAudio: z10.boolean() }).strict()
 }).strict().meta({ id: "CreateVoiceSessionRequest", "x-data-classification": "C2" });
-var CreateVoiceSessionResponseSchema = z9.object({
+var CreateVoiceSessionResponseSchema = z10.object({
   sessionId: UuidSchema,
-  state: z9.literal("CREATED"),
-  websocketEndpoint: z9.string().url().refine((value) => value.startsWith("wss://")),
-  singleUseTicket: z9.string().regex(/^[A-Za-z0-9_-]{32,512}$/),
+  state: z10.literal("CREATED"),
+  websocketEndpoint: z10.string().url().refine((value) => value.startsWith("wss://")),
+  singleUseTicket: z10.string().regex(/^[A-Za-z0-9_-]{32,512}$/),
   ticketExpiresAt: TimestampSchema,
   sessionExpiresAt: TimestampSchema,
-  protocolVersion: z9.literal(1),
-  httpsTurnsEndpoint: z9.string().min(1).max(512)
+  protocolVersion: z10.literal(1),
+  httpsTurnsEndpoint: z10.string().min(1).max(512)
 }).strict().meta({ id: "CreateVoiceSessionResponse", "x-data-classification": "C4" });
-var VoiceTurnRequestSchema = z9.object({
+var VoiceTurnRequestSchema = z10.object({
   turnId: UuidSchema,
-  input: z9.discriminatedUnion("type", [
-    z9.object({ type: z9.literal("TEXT"), text: z9.string().min(1).max(2e3) }).strict(),
-    z9.object({
-      type: z9.literal("AUDIO"),
-      mimeType: z9.enum(["audio/webm;codecs=opus", "audio/wav"]),
+  input: z10.discriminatedUnion("type", [
+    z10.object({ type: z10.literal("TEXT"), text: z10.string().min(1).max(2e3) }).strict(),
+    z10.object({
+      type: z10.literal("AUDIO"),
+      mimeType: z10.enum(["audio/webm;codecs=opus", "audio/wav"]),
       sha256: Sha256DigestSchema,
-      bytesBase64: z9.string().min(4).max(35e4)
+      bytesBase64: z10.string().min(4).max(35e4)
     }).strict()
   ]),
-  clientSequence: z9.int().positive(),
-  acknowledgedServerSequence: z9.int().nonnegative()
+  clientSequence: z10.int().positive(),
+  acknowledgedServerSequence: z10.int().nonnegative()
 }).strict().meta({ id: "VoiceTurnRequest", "x-data-classification": "C4" });
-var VoiceTurnResponseSchema = z9.object({
+var VoiceTurnResponseSchema = z10.object({
   turnId: UuidSchema,
   sessionId: UuidSchema,
-  state: z9.enum(["HELP", "UNAVAILABLE", "NEEDS_CLARIFICATION", "PROPOSAL_PENDING"]),
-  messageKey: z9.string().min(1).max(120),
+  state: z10.enum(["HELP", "UNAVAILABLE", "NEEDS_CLARIFICATION", "PROPOSAL_PENDING"]),
+  messageKey: z10.string().min(1).max(120),
   proposalId: UuidSchema.optional(),
-  serverSequence: z9.int().positive(),
-  acknowledgedClientSequence: z9.int().nonnegative()
+  serverSequence: z10.int().positive(),
+  acknowledgedClientSequence: z10.int().nonnegative()
 }).strict().meta({ id: "VoiceTurnResponse", "x-data-classification": "C2" });
-var VoiceProposalStateSchema = z9.enum([
+var VoiceProposalStateSchema = z10.enum([
   "PENDING",
   "CONFIRMED",
   "CANCELLED",
@@ -3751,18 +4299,18 @@ var VoiceProposalStateSchema = z9.enum([
   "COMPLETE",
   "FAILED"
 ]);
-var VoiceProposalResponseSchema = z9.object({
+var VoiceProposalResponseSchema = z10.object({
   proposalId: UuidSchema,
   sessionId: UuidSchema,
   revision: RevisionSchema,
   state: VoiceProposalStateSchema,
-  toolKey: z9.string().min(1).max(120),
+  toolKey: z10.string().min(1).max(120),
   payloadHash: Sha256DigestSchema,
   readBack: JsonObjectSchema,
   expiresAt: TimestampSchema,
   commandId: UuidSchema.optional()
 }).strict().meta({ id: "VoiceProposalResponse", "x-data-classification": "C3" });
-var VoiceProposalActionBaseSchema = z9.object({
+var VoiceProposalActionBaseSchema = z10.object({
   proposalId: UuidSchema,
   expectedProposalRevision: RevisionSchema,
   commandId: UuidSchema
@@ -3773,18 +4321,18 @@ var CancelVoiceProposalRequestSchema = VoiceProposalActionBaseSchema.strict().me
   id: "CancelVoiceProposalRequest",
   "x-data-classification": "C2"
 });
-var VoiceCommandStatusResponseSchema = z9.object({
+var VoiceCommandStatusResponseSchema = z10.object({
   commandId: UuidSchema,
-  state: z9.enum(["UNKNOWN", "IN_PROGRESS", "ACCEPTED", "REJECTED"]),
+  state: z10.enum(["UNKNOWN", "IN_PROGRESS", "ACCEPTED", "REJECTED"]),
   receiptReference: UuidSchema.optional()
 }).strict().meta({ id: "VoiceCommandStatusResponse", "x-data-classification": "C2" });
-var VoiceControlFrameSchema = z9.object({
-  protocolVersion: z9.literal(1),
+var VoiceControlFrameSchema = z10.object({
+  protocolVersion: z10.literal(1),
   sessionId: UuidSchema,
   messageId: UuidSchema,
-  sequence: z9.int().positive(),
-  acknowledgedSequence: z9.int().nonnegative(),
-  type: z9.enum([
+  sequence: z10.int().positive(),
+  acknowledgedSequence: z10.int().nonnegative(),
+  type: z10.enum([
     "session.start",
     "audio.end",
     "barge_in",
@@ -3818,6 +4366,7 @@ export {
   AccessGrantCommandTargetSchema,
   AccessGrantPayloadSchema,
   ActorTypeSchema,
+  AreaUnitSchema,
   AttachOfflineAudioRequestSchema,
   AttachOfflineAudioResponseSchema,
   AuthorizationContextSchema,
@@ -3828,12 +4377,15 @@ export {
   CancelMediaUploadIntentResponseSchema,
   CancelVoiceProposalRequestSchema,
   CapabilityKeySchema,
+  ChangeDeviceModeCommandSchema,
   ClientContextSchema,
   CommandDispositionSchema,
   CommandEnvelopeSchema,
   CommandResultSchema,
   CommandSchema,
   CommandTargetSchema,
+  CompleteFarmerSetupCommandSchema,
+  CompleteFarmerSetupPayloadSchema,
   ConfirmVoiceProposalRequestSchema,
   ConsentDecisionCommandTargetSchema,
   ConsentDecisionPayloadSchema,
@@ -3848,17 +4400,33 @@ export {
   CreateMediaUploadIntentResponseSchema,
   CreateVoiceSessionRequestSchema,
   CreateVoiceSessionResponseSchema,
+  CropDeclarationSchema,
+  CropHistoryRecordSchema,
+  CropStageSchema,
   DATA_CLASSIFICATIONS,
   DATA_MODES,
   DEVICE_MODES,
   DataClassificationSchema,
   DataModeSchema,
   DeviceBatchReceiptSchema,
+  DeviceModeChangePayloadSchema,
+  DeviceModeCommandTargetSchema,
   DeviceModeSchema,
+  DeviceModeSelectionSchema,
   EVENT_CLASSES,
   EventEnvelopeSchema,
   EventNameSchema,
+  FarmSetupSchema,
   FarmerBootstrapResponseSchema,
+  FarmerLocaleSchema,
+  FarmerPreferencesCommandTargetSchema,
+  FarmerProfileSetupSchema,
+  FarmerSetupCommandTargetSchema,
+  FarmerSetupDraftCommandTargetSchema,
+  FarmerSetupDraftSchema,
+  FarmerSetupLifecycleEventSchema,
+  FarmerSetupLifecyclePayloadSchema,
+  FarmerSetupSummarySchema,
   FieldErrorSchema,
   FinalizeMediaUploadIntentRequestSchema,
   HealthPayloadSchema,
@@ -3866,6 +4434,7 @@ export {
   IssueAccessGrantCommandSchema,
   JsonObjectSchema,
   JsonValueSchema,
+  LocationCaptureMethodSchema,
   M2_VOICE_TOOL_KEYS,
   MediaAssetStatusResponseSchema,
   MediaFailureCodeSchema,
@@ -3876,14 +4445,20 @@ export {
   MediaUploadVerifiedPayloadSchema,
   MediaVerificationStateSchema,
   MilestoneOneEventSchema,
+  MilestoneThreeEventSchema,
   MilestoneTwoEventSchema,
   MpQueryContextResponseSchema,
   MpSafeResultSchema,
   MpSuppressedResultSchema,
   MpUnavailableResultSchema,
+  MyFarmResponseSchema,
+  OptionalHardwareStatusSchema,
   PROBLEM_CODES,
   PROVENANCE_TYPES,
   PURPOSE_CODES,
+  PlotGeometryKindSchema,
+  PlotGeometrySummarySchema,
+  PlotSetupSchema,
   ProblemCodeSchema,
   ProblemDetailsSchema,
   ProtectedDisclosureRequestSchema,
@@ -3892,6 +4467,7 @@ export {
   PurposeCodeSchema,
   ROLE_TYPES,
   ROUTES,
+  RaigadLocationSchema,
   RecordConsentDecisionCommandSchema,
   ReturnStateRequestSchema,
   ReturnStateResponseSchema,
@@ -3905,24 +4481,39 @@ export {
   RoleSummarySchema,
   RoleTypeSchema,
   RskBootstrapResponseSchema,
+  SaveFarmerSetupDraftCommandSchema,
+  SaveFarmerSetupDraftPayloadSchema,
   ScanMediaAssetRequestSchema,
   SchemaVersionRangeSchema,
   SelectRoleContextCommandSchema,
   SelectRoleContextPayloadSchema,
   SessionResponseSchema,
+  SetupConsentScopeSchema,
+  SetupConsentsSchema,
+  SetupLanguageSchema,
+  SetupStatusSchema,
+  SetupSyncStatusSchema,
+  SetupVoiceProposalPayloadSchema,
+  SetupVoiceReadResponseSchema,
   Sha256DigestSchema,
+  SoilMeasurementSchema,
+  SoilSourceSchema,
   SyncBatchResponseSchema,
   SyncBatchResponseV2Schema,
   SyncBatchSchema,
   SyncBootstrapRequestSchema,
   SyncBootstrapResponseSchema,
+  SyncChangeDeviceModeCommandEnvelopeSchema,
   SyncCommandDispositionSchema,
   SyncCommandEnvelopeSchema,
+  SyncCommandEnvelopeV2Schema,
   SyncCommandStatusResponseSchema,
+  SyncCompleteFarmerSetupCommandEnvelopeSchema,
   SyncConflictListResponseSchema,
   SyncConflictResolutionRequestSchema,
   SyncConflictSchema,
   SyncConflictTypeSchema,
+  SyncConsentCommandEnvelopeSchema,
   SyncFeedEventSchema,
   SyncFeedEventV2Schema,
   SyncFeedPageResponseSchema,
@@ -3932,12 +4523,16 @@ export {
   SyncLifecycleEventSchema,
   SyncLifecyclePayloadSchema,
   SyncProjectionDeltaSchema,
+  SyncSaveFarmerSetupDraftCommandEnvelopeSchema,
   SyncStreamOpenRequestSchema,
   SyncStreamOpenResponseSchema,
   SyncTombstoneSchema,
+  SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
   TimestampSchema,
   TraceIdSchema,
   UnavailableSchema,
+  UpdateFarmerPreferencesCommandSchema,
+  UpdateFarmerPreferencesPayloadSchema,
   UuidSchema,
   UuidV7Schema,
   VoiceCommandStatusResponseSchema,
@@ -3950,5 +4545,8 @@ export {
   VoiceProposalStateSchema,
   VoiceSessionStateSchema,
   VoiceTurnRequestSchema,
-  VoiceTurnResponseSchema
+  VoiceTurnResponseSchema,
+  WaterAvailabilitySchema,
+  WaterContextSchema,
+  WaterSourceSchema
 };

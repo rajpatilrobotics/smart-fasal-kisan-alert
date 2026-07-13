@@ -3,8 +3,18 @@ import { z } from 'zod';
 import {
   ConsentDecisionCommandTargetSchema,
   ConsentDecisionPayloadSchema,
+  FarmerSetupDraftCommandTargetSchema,
+  FarmerSetupCommandTargetSchema,
+  FarmerPreferencesCommandTargetSchema,
+  DeviceModeCommandTargetSchema,
 } from '../commands/index.js';
 import { MilestoneOneEventSchema, MilestoneTwoEventSchema } from '../events/index.js';
+import {
+  CompleteFarmerSetupPayloadSchema,
+  DeviceModeChangePayloadSchema,
+  SaveFarmerSetupDraftPayloadSchema,
+  UpdateFarmerPreferencesPayloadSchema,
+} from '../farmer-setup/index.js';
 import {
   DataModeSchema,
   JsonObjectSchema,
@@ -65,8 +75,70 @@ export const SyncStreamOpenResponseSchema = z
   .strict()
   .meta({ id: 'SyncStreamOpenResponse', 'x-data-classification': 'C2' });
 
-/** M2 sync remains Farmer-only and transports only the M1 consent command. */
+const SyncCommandBaseSchema = z.object({
+  commandId: UuidSchema,
+  clientEventIds: z.array(UuidSchema).min(1).max(100),
+  commandSchemaVersion: z.literal(1),
+  expectedRevision: RevisionSchema,
+  occurredAt: TimestampSchema,
+  timezone: z.string().min(1).max(64),
+  localSequence: z.int().positive(),
+  causalCommandIds: z.array(UuidSchema).max(100),
+  requestHash: Sha256DigestSchema,
+});
+
+export const SyncConsentCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('RecordConsentDecision'),
+  target: ConsentDecisionCommandTargetSchema,
+  payload: ConsentDecisionPayloadSchema,
+})
+  .strict()
+  .meta({ id: 'SyncConsentCommandEnvelope', 'x-data-classification': 'C2' });
+
+export const SyncSaveFarmerSetupDraftCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('SaveFarmerSetupDraft'),
+  target: FarmerSetupDraftCommandTargetSchema,
+  payload: SaveFarmerSetupDraftPayloadSchema,
+})
+  .strict()
+  .meta({ id: 'SyncSaveFarmerSetupDraftCommandEnvelope', 'x-data-classification': 'C3' });
+
+export const SyncCompleteFarmerSetupCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('CompleteFarmerSetup'),
+  target: FarmerSetupCommandTargetSchema,
+  payload: CompleteFarmerSetupPayloadSchema,
+})
+  .strict()
+  .meta({ id: 'SyncCompleteFarmerSetupCommandEnvelope', 'x-data-classification': 'C3' });
+
+export const SyncUpdateFarmerPreferencesCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('UpdateFarmerPreferences'),
+  target: FarmerPreferencesCommandTargetSchema,
+  payload: UpdateFarmerPreferencesPayloadSchema,
+})
+  .strict()
+  .meta({ id: 'SyncUpdateFarmerPreferencesCommandEnvelope', 'x-data-classification': 'C2' });
+
+export const SyncChangeDeviceModeCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('ChangeDeviceMode'),
+  target: DeviceModeCommandTargetSchema,
+  payload: DeviceModeChangePayloadSchema,
+})
+  .strict()
+  .meta({ id: 'SyncChangeDeviceModeCommandEnvelope', 'x-data-classification': 'C2' });
+
 export const SyncCommandEnvelopeSchema = z
+  .discriminatedUnion('operation', [
+    SyncConsentCommandEnvelopeSchema,
+    SyncSaveFarmerSetupDraftCommandEnvelopeSchema,
+    SyncCompleteFarmerSetupCommandEnvelopeSchema,
+    SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
+    SyncChangeDeviceModeCommandEnvelopeSchema,
+  ])
+  .meta({ id: 'SyncCommandEnvelope', 'x-data-classification': 'C3' });
+
+/** @deprecated M2 sync command source-compatible alias retained for 90-day compatibility. */
+export const SyncCommandEnvelopeV2Schema = z
   .object({
     commandId: UuidSchema,
     clientEventIds: z.array(UuidSchema).min(1).max(100),
@@ -82,7 +154,7 @@ export const SyncCommandEnvelopeSchema = z
     payload: ConsentDecisionPayloadSchema,
   })
   .strict()
-  .meta({ id: 'SyncCommandEnvelope', 'x-data-classification': 'C2' });
+  .meta({ id: 'SyncCommandEnvelopeV2', 'x-data-classification': 'C2' });
 
 export const SyncBatchSchema = z
   .object({
@@ -148,7 +220,7 @@ export const SyncProjectionDeltaSchema = z
     authoritativeRevision: RevisionSchema,
     changeType: z.enum(['UPSERT', 'TOMBSTONE']),
     dataMode: DataModeSchema,
-    payloadClassification: z.enum(['C0', 'C1', 'C2']),
+    payloadClassification: z.enum(['C0', 'C1', 'C2', 'C3']),
     payload: JsonObjectSchema,
     payloadChecksum: Sha256DigestSchema,
   })

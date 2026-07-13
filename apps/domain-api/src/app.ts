@@ -2,12 +2,15 @@ import { randomUUID } from 'node:crypto';
 
 import {
   CancelMediaUploadIntentResponseSchema,
+  ChangeDeviceModeCommandSchema,
   CommandResultSchema,
+  CompleteFarmerSetupCommandSchema,
   ConsentListResponseSchema,
   CreateMediaUploadIntentRequestSchema,
   CreateMediaUploadIntentResponseSchema,
   FinalizeMediaUploadIntentRequestSchema,
   FarmerBootstrapResponseSchema,
+  FarmSetupSchema,
   HealthPayloadSchema,
   IssueAccessGrantCommandSchema,
   MediaAssetStatusResponseSchema,
@@ -19,6 +22,8 @@ import {
   ReturnStateRequestSchema,
   ReturnStateResponseSchema,
   RskBootstrapResponseSchema,
+  MyFarmResponseSchema,
+  SaveFarmerSetupDraftCommandSchema,
   SelectRoleContextCommandSchema,
   SessionResponseSchema,
   SyncBatchResponseV2Schema,
@@ -33,6 +38,7 @@ import {
   SyncStreamOpenRequestSchema,
   SyncStreamOpenResponseSchema,
   UuidSchema,
+  UpdateFarmerPreferencesCommandSchema,
 } from '@smart-fasal/contracts/schemas';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 
@@ -804,7 +810,7 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
     }
     stateFor(request).corsOrigin = origin;
     return reply
-      .header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+      .header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
       .header('Access-Control-Allow-Headers', CORS_HEADERS)
       .header('Access-Control-Max-Age', '600')
       .code(204)
@@ -910,6 +916,132 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
       throw expectedRevisionMismatchProblem();
     }
     return execute('recordConsentDecision', boundary, CommandResultSchema, { body });
+  });
+
+  function farmerCommandRoute(operationId: DomainOperationId, capability: string): BoundaryRoute {
+    return identityRoute(operationId, {
+      surface: 'farmer',
+      purpose: 'farmer.self_service',
+      capability,
+      command: true,
+      mutation: true,
+      requiresExpectedRevision: true,
+    });
+  }
+
+  app.post('/v1/farmer/setup-drafts', async (request) => {
+    const route = farmerCommandRoute('saveFarmerSetupDraft', 'farmer.setup.write');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(SaveFarmerSetupDraftCommandSchema, request.body);
+    if (body.expectedRevision !== boundary.expectedRevision)
+      throw expectedRevisionMismatchProblem();
+    return execute('saveFarmerSetupDraft', boundary, CommandResultSchema, { body });
+  });
+
+  app.post('/v1/farmer/setup:complete', async (request) => {
+    const route = farmerCommandRoute('completeFarmerSetup', 'farmer.setup.complete');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(CompleteFarmerSetupCommandSchema, request.body);
+    if (body.expectedRevision !== boundary.expectedRevision)
+      throw expectedRevisionMismatchProblem();
+    return execute('completeFarmerSetup', boundary, CommandResultSchema, { body });
+  });
+
+  app.get('/v1/farmer/my-farm', async (request) => {
+    const route = identityRoute('getMyFarm', {
+      surface: 'farmer',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    return execute('getMyFarm', boundary, MyFarmResponseSchema);
+  });
+
+  app.get('/v1/farmer/farms', async (request) => {
+    const route = identityRoute('listFarmerFarms', {
+      surface: 'farmer',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    return execute('listFarmerFarms', boundary, MyFarmResponseSchema);
+  });
+
+  app.post('/v1/farmer/farms', async (request) => {
+    const route = farmerCommandRoute('createFarmerFarm', 'farmer.farm.write');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(SaveFarmerSetupDraftCommandSchema, request.body);
+    return execute('createFarmerFarm', boundary, CommandResultSchema, { body });
+  });
+
+  app.get<{ Params: { farmId: string } }>('/v1/farmer/farms/:farmId', async (request) => {
+    const route = identityRoute('getFarmerFarm', {
+      surface: 'farmer',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    const farmId = parseContract(UuidSchema, request.params.farmId);
+    return execute('getFarmerFarm', boundary, FarmSetupSchema, { params: { farmId } });
+  });
+
+  app.patch<{ Params: { farmId: string } }>('/v1/farmer/farms/:farmId', async (request) => {
+    const route = farmerCommandRoute('updateFarmerFarm', 'farmer.farm.write');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(SaveFarmerSetupDraftCommandSchema, request.body);
+    const farmId = parseContract(UuidSchema, request.params.farmId);
+    return execute('updateFarmerFarm', boundary, CommandResultSchema, { body, params: { farmId } });
+  });
+
+  app.post<{ Params: { farmId: string } }>('/v1/farmer/farms/:farmId/plots', async (request) => {
+    const route = farmerCommandRoute('createFarmerPlot', 'farmer.plot.write');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(SaveFarmerSetupDraftCommandSchema, request.body);
+    const farmId = parseContract(UuidSchema, request.params.farmId);
+    return execute('createFarmerPlot', boundary, CommandResultSchema, { body, params: { farmId } });
+  });
+
+  app.get<{ Params: { plotId: string } }>('/v1/farmer/plots/:plotId', async (request) => {
+    const route = identityRoute('getFarmerPlot', {
+      surface: 'farmer',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    const plotId = parseContract(UuidSchema, request.params.plotId);
+    return execute('getFarmerPlot', boundary, FarmSetupSchema, { params: { plotId } });
+  });
+
+  app.patch<{ Params: { plotId: string } }>('/v1/farmer/plots/:plotId', async (request) => {
+    const route = farmerCommandRoute('updateFarmerPlot', 'farmer.plot.write');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(SaveFarmerSetupDraftCommandSchema, request.body);
+    const plotId = parseContract(UuidSchema, request.params.plotId);
+    return execute('updateFarmerPlot', boundary, CommandResultSchema, { body, params: { plotId } });
+  });
+
+  app.post<{ Params: { plotId: string } }>(
+    '/v1/farmer/plots/:plotId/geometry-versions',
+    async (request) => {
+      const route = farmerCommandRoute('createFarmerPlotGeometryVersion', 'farmer.plot.write');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(SaveFarmerSetupDraftCommandSchema, request.body);
+      const plotId = parseContract(UuidSchema, request.params.plotId);
+      return execute('createFarmerPlotGeometryVersion', boundary, CommandResultSchema, {
+        body,
+        params: { plotId },
+      });
+    },
+  );
+
+  app.patch('/v1/farmer/preferences', async (request) => {
+    const route = farmerCommandRoute('updateFarmerPreferences', 'profile.correct');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(UpdateFarmerPreferencesCommandSchema, request.body);
+    return execute('updateFarmerPreferences', boundary, CommandResultSchema, { body });
+  });
+
+  app.post('/v1/farmer/device-mode-changes', async (request) => {
+    const route = farmerCommandRoute('changeFarmerDeviceMode', 'device_mode.change');
+    const boundary = await verifyBoundary(request, route);
+    const body = parseContract(ChangeDeviceModeCommandSchema, request.body);
+    return execute('changeFarmerDeviceMode', boundary, CommandResultSchema, { body });
   });
 
   const farmerSyncRoute = (operationId: DomainOperationId): BoundaryRoute =>

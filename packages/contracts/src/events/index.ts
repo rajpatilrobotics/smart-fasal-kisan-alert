@@ -210,6 +210,42 @@ export const MilestoneTwoEventSchema = z
   ])
   .meta({ id: 'MilestoneTwoEvent', 'x-data-classification': 'C3' });
 
+export const FarmerSetupLifecyclePayloadSchema = z
+  .object({
+    draftId: UuidSchema.optional(),
+    farmId: UuidSchema.optional(),
+    plotId: UuidSchema.optional(),
+    setupStatus: z
+      .enum(['NOT_STARTED', 'IN_PROGRESS', 'READY_FOR_REVIEW', 'COMPLETE', 'NEEDS_REVIEW'])
+      .optional(),
+    revision: z.int().nonnegative(),
+  })
+  .strict();
+
+export const FarmerSetupLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.enum([
+    'farmer.setup_saved',
+    'farmer.preferences_changed',
+    'farmer.setup_completed',
+    'identity.device_mode_changed',
+    'farm.created',
+    'farm.updated',
+    'plot.created',
+    'plot.updated',
+    'soil_record.added',
+    'water_context.updated',
+    'farm.crop_history_recorded',
+    'profile.snapshot_created',
+  ]),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: FarmerSetupLifecyclePayloadSchema,
+}).strict();
+
+export const MilestoneThreeEventSchema = z
+  .union([MilestoneTwoEventSchema, FarmerSetupLifecycleEventSchema])
+  .meta({ id: 'MilestoneThreeEvent', 'x-data-classification': 'C3' });
+
 export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
 export type MilestoneOneEvent = z.infer<typeof MilestoneOneEventSchema>;
 export type MilestoneTwoEvent = z.infer<typeof MilestoneTwoEventSchema>;
+export type MilestoneThreeEvent = z.infer<typeof MilestoneThreeEventSchema>;

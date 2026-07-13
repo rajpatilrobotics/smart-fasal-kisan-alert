@@ -428,7 +428,7 @@ export interface components {
         };
         readonly AuthorizationContext: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.voice.setup")[];
             readonly capabilitySetVersion: number;
             /** @enum {string} */
             readonly environment: "local" | "preview" | "staging" | "demo" | "production";
@@ -471,7 +471,7 @@ export interface components {
                 readonly id: string;
                 readonly revision: number;
                 /** @enum {string} */
-                readonly type: "roleContext" | "consentDecision" | "accessGrant";
+                readonly type: "roleContext" | "consentDecision" | "accessGrant" | "farmerSetupDraft" | "farmerSetup" | "farmerPreferences" | "deviceMode";
             };
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -652,7 +652,7 @@ export interface components {
         };
         readonly ProblemDetails: {
             /** @enum {string} */
-            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED";
+            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED";
             /** Format: uuid */
             readonly correlationId: string;
             readonly detail?: string;
@@ -701,7 +701,7 @@ export interface components {
         };
         readonly RskBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.voice.setup")[];
             /** Format: uuid */
             readonly jurisdictionId: string;
             /** Format: uuid */
@@ -839,7 +839,7 @@ export interface components {
         readonly optionalRoleContextId: string;
         /** @description Current authorized role-context identifier */
         readonly roleContextId: string;
-        /** @description Supported Milestone 2 contract schema version */
+        /** @description Supported Milestone 3 contract schema version */
         readonly schemaVersion: "1";
         /** @description Optional single inclusive byte range */
         readonly singleByteRange: string;
@@ -907,7 +907,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
             };
             readonly path?: never;
@@ -985,7 +985,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
             };
             readonly path?: never;
@@ -1072,7 +1072,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
             };
             readonly path: {
@@ -1155,7 +1155,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Selected role-context identifier when resolving the current session */
                 readonly "X-Role-Context-Id"?: components["parameters"]["optionalRoleContextId"];
@@ -1229,7 +1229,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Selected role-context identifier when resolving the current session */
                 readonly "X-Role-Context-Id"?: components["parameters"]["optionalRoleContextId"];
@@ -1303,7 +1303,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -1379,7 +1379,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -1457,7 +1457,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -1553,7 +1553,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -1651,7 +1651,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -1738,7 +1738,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -1921,7 +1921,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2008,7 +2008,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2082,7 +2082,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2184,7 +2184,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2271,7 +2271,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2349,7 +2349,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2449,7 +2449,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2549,7 +2549,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2649,7 +2649,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
@@ -2747,7 +2747,7 @@ export interface operations {
                 readonly "X-Client-Build": components["parameters"]["clientBuild"];
                 /** @description Stable installation identifier */
                 readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
-                /** @description Supported Milestone 2 contract schema version */
+                /** @description Supported Milestone 3 contract schema version */
                 readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
                 /** @description Current authorized role-context identifier */
                 readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];

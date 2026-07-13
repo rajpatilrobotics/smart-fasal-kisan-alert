@@ -1,0 +1,35 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "proposedValue": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "propertyNames": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "reason": {
+      "maxLength": 240,
+      "minLength": 1,
+      "type": "string"
+    },
+    "targetPath": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "targetPath",
+    "proposedValue",
+    "reason"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

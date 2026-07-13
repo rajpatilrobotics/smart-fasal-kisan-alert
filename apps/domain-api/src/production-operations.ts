@@ -437,6 +437,7 @@ export interface ProductionDomainCompositionOptions {
   returnStateLifetimeMs?: number;
   producerBuild?: string;
   milestoneTwoOperations?: DomainOperationAdapter;
+  milestoneThreeOperations?: DomainOperationAdapter;
   /** Production must never report ready with the process-local M2 simulator. */
   requireDurableMilestoneTwo?: boolean;
 }
@@ -1703,6 +1704,21 @@ export function createProductionDomainComposition(
           return executeConsentList(options, request);
         case 'recordConsentDecision':
           return executeConsentDecision(options, request, at, ids);
+        case 'saveFarmerSetupDraft':
+        case 'completeFarmerSetup':
+        case 'getMyFarm':
+        case 'listFarmerFarms':
+        case 'createFarmerFarm':
+        case 'getFarmerFarm':
+        case 'updateFarmerFarm':
+        case 'createFarmerPlot':
+        case 'getFarmerPlot':
+        case 'updateFarmerPlot':
+        case 'createFarmerPlotGeometryVersion':
+        case 'updateFarmerPreferences':
+        case 'changeFarmerDeviceMode':
+          if (options.milestoneThreeOperations === undefined) throw dependencyUnavailable();
+          return options.milestoneThreeOperations.execute(request);
         case 'getRskBootstrap':
           return executeRskBootstrap(options, request);
         case 'issueRskAccessGrant':
@@ -1737,6 +1753,7 @@ export function createProductionDomainComposition(
       options.farmer?.role === 'sf_farmer_api' &&
       options.rsk?.role === 'sf_rsk_api' &&
       options.protectedDisclosure?.role === 'sf_rsk_api' &&
+      options.milestoneThreeOperations !== undefined &&
       options.milestoneTwoOperations !== undefined &&
       (!options.requireDurableMilestoneTwo ||
         ('persistence' in options.milestoneTwoOperations &&

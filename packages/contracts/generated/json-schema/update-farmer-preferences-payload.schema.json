@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "preferredLocale": {
+      "enum": [
+        "mr-IN",
+        "hi-IN",
+        "en-IN"
+      ],
+      "type": "string"
+    },
+    "timezone": {
+      "const": "Asia/Kolkata",
+      "type": "string"
+    },
+    "voicePrompts": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "preferredLocale",
+    "timezone",
+    "voicePrompts"
+  ],
+  "type": "object",
+  "x-data-classification": "C2"
+}

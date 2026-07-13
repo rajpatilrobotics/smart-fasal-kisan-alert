@@ -97,6 +97,11 @@ export const CAPABILITY_KEYS = [
   'identity.role_context.select',
   'profile.correct',
   'device_mode.change',
+  'farmer.setup.write',
+  'farmer.setup.complete',
+  'farmer.farm.write',
+  'farmer.plot.write',
+  'farmer.voice.setup',
 ] as const;
 
 export const PROBLEM_CODES = [
@@ -133,6 +138,9 @@ export const PROBLEM_CODES = [
   'COMPARISON_NOT_RELEASABLE',
   'BATCH_ID_PAYLOAD_MISMATCH',
   'RATE_LIMITED',
+  'SETUP_INCOMPLETE',
+  'GPS_PERMISSION_DENIED',
+  'HARDWARE_SKIPPED',
 ] as const;
 
 export const CONSENT_STATES = ['MISSING', 'ALLOWED', 'DENIED', 'EXPIRED', 'WITHDRAWN'] as const;

@@ -258,6 +258,193 @@ h2 {
   outline-offset: 3px;
 }
 
+.farmer-setup-shell {
+  width: min(100%, 760px);
+  min-height: 100vh;
+  margin-inline: auto;
+  padding: 16px 14px 96px;
+  background: var(--color-bg);
+}
+
+.setup-topbar {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 8px 14px;
+}
+
+.small-link {
+  min-width: max-content;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.setup-steps {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-block: 8px 12px;
+  scrollbar-width: thin;
+}
+
+.setup-steps a {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  text-decoration: none;
+}
+
+.setup-steps a[aria-current='page'] {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  font-weight: 800;
+}
+
+.setup-status-panel,
+.setup-card,
+.voice-proposal {
+  margin-block: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.setup-status-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.setup-status-panel span {
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--color-surface-subtle);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.setup-status-panel p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.setup-card label,
+.consent-list label {
+  display: grid;
+  gap: 6px;
+  margin-block: 12px;
+  font-weight: 750;
+}
+
+.setup-card input,
+.setup-card select {
+  min-height: 48px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: white;
+  font: inherit;
+}
+
+.setup-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.plot-list {
+  display: grid;
+  gap: 12px;
+}
+
+.plot-list article {
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fbfdf9;
+}
+
+.plot-list h3,
+.plot-list p {
+  margin: 0 0 8px;
+}
+
+.setup-actions,
+.voice-proposal {
+  display: grid;
+  gap: 10px;
+}
+
+.setup-actions button,
+.voice-proposal button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  background: var(--color-primary);
+  font: inherit;
+  font-weight: 800;
+}
+
+.voice-proposal button:last-child {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.farmer-bottom-nav {
+  position: fixed;
+  z-index: 4;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 760px;
+  margin-inline: auto;
+  padding: 8px;
+  border-top: 1px solid var(--color-border);
+  background: rgb(255 255 255 / 96%);
+}
+
+.farmer-bottom-nav a,
+.farmer-bottom-nav span {
+  display: grid;
+  min-height: 48px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.farmer-bottom-nav a:nth-child(3) {
+  color: white;
+  background: var(--color-primary);
+}
+
+.farmer-bottom-nav span {
+  opacity: 0.55;
+}
+
+@media (min-width: 640px) {
+  .setup-grid,
+  .setup-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Farmer authenticated shell and M2 offline/voice foundation */
 .auth-shell,
 .farmer-app {

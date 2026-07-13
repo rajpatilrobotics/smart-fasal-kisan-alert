@@ -36,7 +36,10 @@
         "FILTER_NOT_ALLOWLISTED",
         "COMPARISON_NOT_RELEASABLE",
         "BATCH_ID_PAYLOAD_MISMATCH",
-        "RATE_LIMITED"
+        "RATE_LIMITED",
+        "SETUP_INCOMPLETE",
+        "GPS_PERMISSION_DENIED",
+        "HARDWARE_SKIPPED"
       ],
       "type": "string"
     },

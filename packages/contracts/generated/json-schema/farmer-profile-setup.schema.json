@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accessibility": {
+      "additionalProperties": false,
+      "properties": {
+        "highContrast": {
+          "type": "boolean"
+        },
+        "largeTargets": {
+          "type": "boolean"
+        },
+        "voicePrompts": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "voicePrompts",
+        "largeTargets",
+        "highContrast"
+      ],
+      "type": "object"
+    },
+    "displayName": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "preferredLocale": {
+      "enum": [
+        "mr-IN",
+        "hi-IN",
+        "en-IN"
+      ],
+      "type": "string"
+    },
+    "timezone": {
+      "const": "Asia/Kolkata",
+      "type": "string"
+    }
+  },
+  "required": [
+    "preferredLocale",
+    "timezone",
+    "accessibility"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

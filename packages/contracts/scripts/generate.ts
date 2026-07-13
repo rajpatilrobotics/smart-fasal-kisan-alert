@@ -18,17 +18,27 @@ import {
   CommandEnvelopeSchema,
   CommandResultSchema,
   CommandSchema,
+  ChangeDeviceModeCommandSchema,
+  CompleteFarmerSetupCommandSchema,
+  CompleteFarmerSetupPayloadSchema,
   ConfirmVoiceProposalRequestSchema,
   ConsentListResponseSchema,
+  CropDeclarationSchema,
+  CropHistoryRecordSchema,
   CorrectVoiceProposalRequestSchema,
   CreateMediaUploadIntentRequestSchema,
   CreateMediaUploadIntentResponseSchema,
   CreateVoiceSessionRequestSchema,
   CreateVoiceSessionResponseSchema,
   DeviceModeSchema,
+  DeviceModeChangePayloadSchema,
   DeviceBatchReceiptSchema,
   EventEnvelopeSchema,
   FarmerBootstrapResponseSchema,
+  FarmerProfileSetupSchema,
+  FarmerSetupDraftSchema,
+  FarmerSetupSummarySchema,
+  FarmSetupSchema,
   FinalizeMediaUploadIntentRequestSchema,
   HealthPayloadSchema,
   IssueAccessGrantCommandSchema,
@@ -36,7 +46,9 @@ import {
   MediaAssetStatusResponseSchema,
   MediaOperationAcceptedResponseSchema,
   MilestoneOneEventSchema,
+  MilestoneThreeEventSchema,
   MilestoneTwoEventSchema,
+  MyFarmResponseSchema,
   MpQueryContextResponseSchema,
   MpSafeResultSchema,
   MpSuppressedResultSchema,
@@ -52,13 +64,26 @@ import {
   ScanMediaAssetRequestSchema,
   SelectRoleContextCommandSchema,
   SessionResponseSchema,
+  SaveFarmerSetupDraftCommandSchema,
+  SaveFarmerSetupDraftPayloadSchema,
+  PlotGeometrySummarySchema,
+  SetupVoiceProposalPayloadSchema,
+  SetupVoiceReadResponseSchema,
+  PlotSetupSchema,
+  RaigadLocationSchema,
+  SetupConsentsSchema,
+  SoilMeasurementSchema,
   SyncBatchResponseSchema,
   SyncBatchResponseV2Schema,
   SyncBatchSchema,
   SyncBootstrapRequestSchema,
   SyncBootstrapResponseSchema,
   SyncCommandDispositionSchema,
+  SyncChangeDeviceModeCommandEnvelopeSchema,
+  SyncCompleteFarmerSetupCommandEnvelopeSchema,
+  SyncConsentCommandEnvelopeSchema,
   SyncCommandEnvelopeSchema,
+  SyncCommandEnvelopeV2Schema,
   SyncCommandStatusResponseSchema,
   SyncConflictListResponseSchema,
   SyncConflictResolutionRequestSchema,
@@ -68,9 +93,14 @@ import {
   SyncFeedPageResponseSchema,
   SyncFeedPageResponseV2Schema,
   SyncProjectionDeltaSchema,
+  SyncSaveFarmerSetupDraftCommandEnvelopeSchema,
   SyncStreamOpenRequestSchema,
   SyncStreamOpenResponseSchema,
+  SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
   UnavailableSchema,
+  UpdateFarmerPreferencesCommandSchema,
+  UpdateFarmerPreferencesPayloadSchema,
+  WaterContextSchema,
   VoiceCommandStatusResponseSchema,
   VoiceControlFrameSchema,
   VoiceDelegationSchema,
@@ -91,7 +121,7 @@ const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workspaceRoot = resolve(packageRoot, '../..');
 const generatedRoot = resolve(packageRoot, 'generated');
-const contractVersion = '1.1.0-m2';
+const contractVersion = '1.2.0-m3';
 
 const schemaRegistry = {
   AuthorizationContext: AuthorizationContextSchema,
@@ -99,11 +129,16 @@ const schemaRegistry = {
   AttachOfflineAudioResponse: AttachOfflineAudioResponseSchema,
   CancelMediaUploadIntentResponse: CancelMediaUploadIntentResponseSchema,
   CancelVoiceProposalRequest: CancelVoiceProposalRequestSchema,
+  ChangeDeviceModeCommand: ChangeDeviceModeCommandSchema,
   Command: CommandSchema,
   CommandEnvelope: CommandEnvelopeSchema,
   CommandResult: CommandResultSchema,
+  CompleteFarmerSetupCommand: CompleteFarmerSetupCommandSchema,
+  CompleteFarmerSetupPayload: CompleteFarmerSetupPayloadSchema,
   ConfirmVoiceProposalRequest: ConfirmVoiceProposalRequestSchema,
   ConsentListResponse: ConsentListResponseSchema,
+  CropDeclaration: CropDeclarationSchema,
+  CropHistoryRecord: CropHistoryRecordSchema,
   CorrectVoiceProposalRequest: CorrectVoiceProposalRequestSchema,
   CreateMediaUploadIntentRequest: CreateMediaUploadIntentRequestSchema,
   CreateMediaUploadIntentResponse: CreateMediaUploadIntentResponseSchema,
@@ -111,8 +146,13 @@ const schemaRegistry = {
   CreateVoiceSessionResponse: CreateVoiceSessionResponseSchema,
   DeviceBatchReceipt: DeviceBatchReceiptSchema,
   DeviceMode: DeviceModeSchema,
+  DeviceModeChangePayload: DeviceModeChangePayloadSchema,
   EventEnvelope: EventEnvelopeSchema,
   FarmerBootstrapResponse: FarmerBootstrapResponseSchema,
+  FarmerProfileSetup: FarmerProfileSetupSchema,
+  FarmerSetupDraft: FarmerSetupDraftSchema,
+  FarmerSetupSummary: FarmerSetupSummarySchema,
+  FarmSetup: FarmSetupSchema,
   FinalizeMediaUploadIntentRequest: FinalizeMediaUploadIntentRequestSchema,
   HealthPayload: HealthPayloadSchema,
   IssueAccessGrantCommand: IssueAccessGrantCommandSchema,
@@ -120,7 +160,9 @@ const schemaRegistry = {
   MediaAssetStatusResponse: MediaAssetStatusResponseSchema,
   MediaOperationAcceptedResponse: MediaOperationAcceptedResponseSchema,
   MilestoneOneEvent: MilestoneOneEventSchema,
+  MilestoneThreeEvent: MilestoneThreeEventSchema,
   MilestoneTwoEvent: MilestoneTwoEventSchema,
+  MyFarmResponse: MyFarmResponseSchema,
   MpQueryContextResponse: MpQueryContextResponseSchema,
   MpSafeResult: MpSafeResultSchema,
   MpSuppressedResult: MpSuppressedResultSchema,
@@ -128,6 +170,9 @@ const schemaRegistry = {
   ProblemDetails: ProblemDetailsSchema,
   ProtectedDisclosureRequest: ProtectedDisclosureRequestSchema,
   ProtectedDisclosureResponse: ProtectedDisclosureResponseSchema,
+  PlotGeometrySummary: PlotGeometrySummarySchema,
+  PlotSetup: PlotSetupSchema,
+  RaigadLocation: RaigadLocationSchema,
   RecordConsentDecisionCommand: RecordConsentDecisionCommandSchema,
   ReturnStateRequest: ReturnStateRequestSchema,
   ReturnStateResponse: ReturnStateResponseSchema,
@@ -136,13 +181,23 @@ const schemaRegistry = {
   ScanMediaAssetRequest: ScanMediaAssetRequestSchema,
   SelectRoleContextCommand: SelectRoleContextCommandSchema,
   SessionResponse: SessionResponseSchema,
+  SaveFarmerSetupDraftCommand: SaveFarmerSetupDraftCommandSchema,
+  SaveFarmerSetupDraftPayload: SaveFarmerSetupDraftPayloadSchema,
+  SetupConsents: SetupConsentsSchema,
+  SetupVoiceProposalPayload: SetupVoiceProposalPayloadSchema,
+  SetupVoiceReadResponse: SetupVoiceReadResponseSchema,
+  SoilMeasurement: SoilMeasurementSchema,
   SyncBatch: SyncBatchSchema,
   SyncBatchResponse: SyncBatchResponseSchema,
   SyncBatchResponseV2: SyncBatchResponseV2Schema,
   SyncBootstrapRequest: SyncBootstrapRequestSchema,
   SyncBootstrapResponse: SyncBootstrapResponseSchema,
   SyncCommandDisposition: SyncCommandDispositionSchema,
+  SyncChangeDeviceModeCommandEnvelope: SyncChangeDeviceModeCommandEnvelopeSchema,
+  SyncCompleteFarmerSetupCommandEnvelope: SyncCompleteFarmerSetupCommandEnvelopeSchema,
+  SyncConsentCommandEnvelope: SyncConsentCommandEnvelopeSchema,
   SyncCommandEnvelope: SyncCommandEnvelopeSchema,
+  SyncCommandEnvelopeV2: SyncCommandEnvelopeV2Schema,
   SyncCommandStatusResponse: SyncCommandStatusResponseSchema,
   SyncConflict: SyncConflictSchema,
   SyncConflictListResponse: SyncConflictListResponseSchema,
@@ -152,9 +207,14 @@ const schemaRegistry = {
   SyncFeedPageResponse: SyncFeedPageResponseSchema,
   SyncFeedPageResponseV2: SyncFeedPageResponseV2Schema,
   SyncProjectionDelta: SyncProjectionDeltaSchema,
+  SyncSaveFarmerSetupDraftCommandEnvelope: SyncSaveFarmerSetupDraftCommandEnvelopeSchema,
   SyncStreamOpenRequest: SyncStreamOpenRequestSchema,
   SyncStreamOpenResponse: SyncStreamOpenResponseSchema,
+  SyncUpdateFarmerPreferencesCommandEnvelope: SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
   Unavailable: UnavailableSchema,
+  UpdateFarmerPreferencesCommand: UpdateFarmerPreferencesCommandSchema,
+  UpdateFarmerPreferencesPayload: UpdateFarmerPreferencesPayloadSchema,
+  WaterContext: WaterContextSchema,
   VoiceCommandStatusResponse: VoiceCommandStatusResponseSchema,
   VoiceControlFrame: VoiceControlFrameSchema,
   VoiceDelegation: VoiceDelegationSchema,
@@ -168,12 +228,20 @@ const compatibilitySchemaGroups = {
     'Command',
     'CommandEnvelope',
     'CommandResult',
+    'ChangeDeviceModeCommand',
+    'CompleteFarmerSetupCommand',
+    'CompleteFarmerSetupPayload',
+    'DeviceModeChangePayload',
     'IssueAccessGrantCommand',
     'RecordConsentDecisionCommand',
+    'SaveFarmerSetupDraftCommand',
+    'SaveFarmerSetupDraftPayload',
     'SelectRoleContextCommand',
+    'UpdateFarmerPreferencesCommand',
+    'UpdateFarmerPreferencesPayload',
   ],
   device: ['DeviceBatchReceipt'],
-  events: ['EventEnvelope', 'MilestoneOneEvent', 'MilestoneTwoEvent'],
+  events: ['EventEnvelope', 'MilestoneOneEvent', 'MilestoneTwoEvent', 'MilestoneThreeEvent'],
   media: [
     'AttachOfflineAudioRequest',
     'AttachOfflineAudioResponse',
@@ -191,12 +259,18 @@ const compatibilitySchemaGroups = {
     'SyncBatchResponse',
     'SyncBatchResponseV2',
     'SyncCommandDisposition',
+    'SyncChangeDeviceModeCommandEnvelope',
+    'SyncCompleteFarmerSetupCommandEnvelope',
+    'SyncConsentCommandEnvelope',
     'SyncCommandEnvelope',
+    'SyncCommandEnvelopeV2',
     'SyncFeedEvent',
     'SyncFeedEventV2',
     'SyncFeedPageResponse',
     'SyncFeedPageResponseV2',
     'SyncProjectionDelta',
+    'SyncSaveFarmerSetupDraftCommandEnvelope',
+    'SyncUpdateFarmerPreferencesCommandEnvelope',
     'SyncBootstrapRequest',
     'SyncBootstrapResponse',
     'SyncCommandStatusResponse',
@@ -205,6 +279,21 @@ const compatibilitySchemaGroups = {
     'SyncConflictResolutionRequest',
     'SyncStreamOpenRequest',
     'SyncStreamOpenResponse',
+  ],
+  setup: [
+    'FarmerSetupDraft',
+    'FarmerProfileSetup',
+    'FarmerSetupSummary',
+    'FarmSetup',
+    'MyFarmResponse',
+    'PlotGeometrySummary',
+    'PlotSetup',
+    'RaigadLocation',
+    'SetupConsents',
+    'SoilMeasurement',
+    'SetupVoiceProposalPayload',
+    'SetupVoiceReadResponse',
+    'WaterContext',
   ],
   voice: [
     'CancelVoiceProposalRequest',
@@ -229,7 +318,7 @@ export async function createOutputs(): Promise<Map<string, string>> {
   const openApis = new Map<ContractSurface, JsonObject>();
 
   outputs.set(
-    resolve(packageRoot, 'compatibility/v2.manifest.json'),
+    resolve(packageRoot, 'compatibility/v3.manifest.json'),
     prettyJson(buildCompatibilityManifest()),
   );
 
@@ -256,7 +345,7 @@ export async function createOutputs(): Promise<Map<string, string>> {
     prettyJson({
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: 'https://contracts.smart-fasal.invalid/platform.schema.json',
-      title: 'Smart Fasal Milestone 2 contract registry',
+      title: 'Smart Fasal Milestone 3 contract registry',
       $defs: Object.fromEntries(
         Object.entries(schemaRegistry).map(([name, schema]) => [name, toJsonSchema(schema)]),
       ),
@@ -301,7 +390,7 @@ export async function createOutputs(): Promise<Map<string, string>> {
   );
   outputs.set(
     resolve(generatedRoot, 'pydantic/smart_fasal_contracts/health.py'),
-    '# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, Status as HealthStatus\n\nCONTRACT_VERSION = "1.1.0-m2"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n',
+    pythonHealthModule(pythonModels),
   );
   outputs.set(resolve(generatedRoot, 'pydantic/smart_fasal_contracts/py.typed'), '');
 
@@ -327,7 +416,7 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
     info: {
       title: `Smart Fasal ${surface} API`,
       version: contractVersion,
-      description: 'Generated Milestone 2 contract. JSON fields use lower camel case.',
+      description: 'Generated Milestone 3 contract. JSON fields use lower camel case.',
     },
     servers: [{ url: `https://${surface}.api.smart-fasal.invalid` }],
     tags: [
@@ -378,7 +467,7 @@ export function buildOpenApi(surface: ContractSurface): JsonObject {
         }),
         schemaVersion: requiredHeader(
           'X-Client-Schema-Version',
-          'Supported Milestone 2 contract schema version',
+          'Supported Milestone 3 contract schema version',
           { type: 'string', const: '1' },
         ),
         roleContextId: requiredHeader(
@@ -455,7 +544,7 @@ export function buildCompatibilityManifest(): JsonObject {
   );
 
   return {
-    baselineVersion: 2,
+    baselineVersion: 3,
     contractVersion,
     policy: 'exact-wire-freeze',
     httpOperations,
@@ -804,6 +893,9 @@ const PROBLEM_STATUS = {
   COMPARISON_NOT_RELEASABLE: 'result-union',
   BATCH_ID_PAYLOAD_MISMATCH: 409,
   RATE_LIMITED: 429,
+  SETUP_INCOMPLETE: 409,
+  GPS_PERMISSION_DENIED: 422,
+  HARDWARE_SKIPPED: 422,
 } as const satisfies Record<(typeof PROBLEM_CODES)[number], number | 'result-union'>;
 
 export function statusForProblem(code: string): number {
@@ -936,6 +1028,14 @@ function pythonPackageModule(): string {
   return `# Generated by packages/contracts/scripts/generate.ts. Do not edit by hand.\nfrom .health import CONTRACT_VERSION, HealthPayload, HealthStatus\nfrom .models import *  # noqa: F403\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n`;
 }
 
+function pythonHealthModule(pythonModels: string): string {
+  const statusType = /class HealthPayload\(BaseModel\):[\s\S]*?\n    status: (?<statusType>\w+)/u.exec(
+    pythonModels,
+  )?.groups?.['statusType'];
+  if (!statusType) throw new Error('Generated Pydantic HealthPayload status type was not found');
+  return `# Generated compatibility module. Do not edit by hand.\nfrom .models import HealthPayload, ${statusType} as HealthStatus\n\nCONTRACT_VERSION = "1.2.0-m3"\n\n__all__ = ["CONTRACT_VERSION", "HealthPayload", "HealthStatus"]\n`;
+}
+
 async function generatePydantic(openApi: JsonObject): Promise<string> {
   const cacheDirectory = resolve(workspaceRoot, 'node_modules/.contract-codegen');
   const inputPath = resolve(cacheDirectory, 'platform.openapi.json');
@@ -948,6 +1048,8 @@ async function generatePydantic(openApi: JsonObject): Promise<string> {
       'run',
       '--project',
       resolve(workspaceRoot, 'apps/intelligence-service'),
+      '--extra',
+      'dev',
       'datamodel-codegen',
       '--input',
       inputPath,

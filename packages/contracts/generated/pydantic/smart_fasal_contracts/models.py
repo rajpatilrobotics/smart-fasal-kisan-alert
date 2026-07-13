@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 from uuid import UUID
@@ -83,6 +84,11 @@ class Capability(StrEnum):
     identity_role_context_select = 'identity.role_context.select'
     profile_correct = 'profile.correct'
     device_mode_change = 'device_mode.change'
+    farmer_setup_write = 'farmer.setup.write'
+    farmer_setup_complete = 'farmer.setup.complete'
+    farmer_farm_write = 'farmer.farm.write'
+    farmer_plot_write = 'farmer.plot.write'
+    farmer_voice_setup = 'farmer.voice.setup'
 
 
 class Environment(StrEnum):
@@ -115,7 +121,7 @@ class AuthorizationContext(BaseModel):
         extra='forbid',
     )
     authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
-    capabilities: Annotated[list[Capability], Field(max_length=44)]
+    capabilities: Annotated[list[Capability], Field(max_length=49)]
     capabilitySetVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     environment: Environment
     jurisdictionId: UUID | None = None
@@ -144,6 +150,29 @@ class CancelVoiceProposalRequest(BaseModel):
     proposalId: UUID
 
 
+class DataModeClaim(StrEnum):
+    LIVE = 'LIVE'
+    RECORDED = 'RECORDED'
+    SIMULATED = 'SIMULATED'
+
+
+class ClientContext(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    dataModeClaim: DataModeClaim
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class Target(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['deviceMode']
+
+
 class Disposition(StrEnum):
     ACCEPTED = 'ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
@@ -156,6 +185,10 @@ class Type(StrEnum):
     roleContext = 'roleContext'
     consentDecision = 'consentDecision'
     accessGrant = 'accessGrant'
+    farmerSetupDraft = 'farmerSetupDraft'
+    farmerSetup = 'farmerSetup'
+    farmerPreferences = 'farmerPreferences'
+    deviceMode = 'deviceMode'
 
 
 class Result(BaseModel):
@@ -177,6 +210,32 @@ class CommandResult(BaseModel):
     result: Result | None = None
     serverReceivedAt: AwareDatetime
     syncAcknowledgementId: UUID | None = None
+
+
+class ClientContext1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    dataModeClaim: DataModeClaim
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class Target1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['farmerSetup']
+
+
+class CompleteFarmerSetupPayload(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acceptedDraftChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    acceptedDraftRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    draftId: UUID
 
 
 class ConfirmVoiceProposalRequest(BaseModel):
@@ -367,6 +426,43 @@ class CreateVoiceSessionResponse(BaseModel):
     websocketEndpoint: AnyUrl
 
 
+class Stage(StrEnum):
+    PLANNED = 'PLANNED'
+    SOWN = 'SOWN'
+    TRANSPLANTED = 'TRANSPLANTED'
+    VEGETATIVE = 'VEGETATIVE'
+    FLOWERING = 'FLOWERING'
+    FRUITING = 'FRUITING'
+    HARVESTED = 'HARVESTED'
+    UNKNOWN = 'UNKNOWN'
+
+
+class CropDeclaration(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cropName: Annotated[str, Field(max_length=120, min_length=1)]
+    planned: bool
+    sowingOrTransplantDate: Annotated[
+        date | None,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ] = None
+    stage: Stage
+    variety: Annotated[str | None, Field(max_length=120, min_length=1)] = None
+
+
+class CropHistoryRecord(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cropName: Annotated[str, Field(max_length=120, min_length=1)]
+    notes: Annotated[str | None, Field(max_length=500)] = None
+    seasonLabel: Annotated[str, Field(max_length=120, min_length=1)]
+    year: Annotated[int, Field(ge=2000, le=2100)]
+
+
 class State1(StrEnum):
     DURABLY_ACCEPTED = 'DURABLY_ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
@@ -387,6 +483,26 @@ class DeviceMode(StrEnum):
     PERSONAL = 'PERSONAL'
     TRUSTED_FAMILY = 'TRUSTED_FAMILY'
     RSK_ASSISTED = 'RSK_ASSISTED'
+
+
+class LocalPrivateWorkState(StrEnum):
+    NONE = 'NONE'
+    SYNCED = 'SYNCED'
+    LOCKED_RECOVERY_REQUIRED = 'LOCKED_RECOVERY_REQUIRED'
+
+
+class NextDeviceMode(StrEnum):
+    PERSONAL = 'PERSONAL'
+    TRUSTED_FAMILY = 'TRUSTED_FAMILY'
+    RSK_ASSISTED = 'RSK_ASSISTED'
+
+
+class DeviceModeChangePayload(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    localPrivateWorkState: LocalPrivateWorkState
+    nextDeviceMode: NextDeviceMode
 
 
 class ActorType(StrEnum):
@@ -789,6 +905,11 @@ class ProvenanceType(StrEnum):
     DERIVED = 'DERIVED'
 
 
+class FarmContextState(StrEnum):
+    UNAVAILABLE_UNTIL_SETUP = 'UNAVAILABLE_UNTIL_SETUP'
+    AVAILABLE = 'AVAILABLE'
+
+
 class Locale(StrEnum):
     mr = 'mr'
     hi = 'hi'
@@ -798,19 +919,64 @@ class Locale(StrEnum):
 class OnboardingState(StrEnum):
     NOT_STARTED = 'NOT_STARTED'
     IN_PROGRESS = 'IN_PROGRESS'
+    READY_FOR_REVIEW = 'READY_FOR_REVIEW'
     COMPLETE = 'COMPLETE'
+    NEEDS_REVIEW = 'NEEDS_REVIEW'
 
 
-class FarmerBootstrapResponse(BaseModel):
+class Accessibility(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
-    capabilities: Annotated[list[Capability], Field(max_length=10)]
-    farmContextState: Literal['UNAVAILABLE_UNTIL_SETUP']
-    locale: Locale
-    onboardingState: OnboardingState
-    subjectId: UUID
+    highContrast: bool
+    largeTargets: bool
+    voicePrompts: bool
+
+
+class PreferredLocale(StrEnum):
+    mr_IN = 'mr-IN'
+    hi_IN = 'hi-IN'
+    en_IN = 'en-IN'
+
+
+class FarmerProfileSetup(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    accessibility: Accessibility
+    displayName: Annotated[str | None, Field(max_length=160, min_length=1)] = None
+    preferredLocale: PreferredLocale
+    timezone: Literal['Asia/Kolkata']
+
+
+class HardwareStatus(StrEnum):
+    SKIPPED = 'SKIPPED'
+    NOT_CONFIGURED = 'NOT_CONFIGURED'
+    RSK_SETUP_REQUIRED = 'RSK_SETUP_REQUIRED'
+
+
+class Status(StrEnum):
+    NOT_STARTED = 'NOT_STARTED'
+    IN_PROGRESS = 'IN_PROGRESS'
+    READY_FOR_REVIEW = 'READY_FOR_REVIEW'
+    COMPLETE = 'COMPLETE'
+    NEEDS_REVIEW = 'NEEDS_REVIEW'
+
+
+class SyncStatus(StrEnum):
+    SAVED_ON_THIS_PHONE = 'SAVED_ON_THIS_PHONE'
+    WAITING_FOR_INTERNET = 'WAITING_FOR_INTERNET'
+    SYNCED = 'SYNCED'
+    CONFLICT = 'CONFLICT'
+    LOCKED_RECOVERY = 'LOCKED_RECOVERY'
+    REJECTED = 'REJECTED'
+
+
+class FarmingMethod(StrEnum):
+    TRADITIONAL = 'TRADITIONAL'
+    ORGANIC = 'ORGANIC'
+    MIXED = 'MIXED'
+    UNKNOWN = 'UNKNOWN'
 
 
 class FinalizeMediaUploadIntentRequest(BaseModel):
@@ -822,7 +988,7 @@ class FinalizeMediaUploadIntentRequest(BaseModel):
     sha256: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
 
 
-class Status(StrEnum):
+class Status2(StrEnum):
     ok = 'ok'
     not_ready = 'not_ready'
 
@@ -832,17 +998,11 @@ class HealthPayload(BaseModel):
         extra='forbid',
     )
     service: Annotated[str, Field(max_length=80, min_length=1)]
-    status: Status
+    status: Status2
     timestamp: AwareDatetime
 
 
-class DataModeClaim(StrEnum):
-    LIVE = 'LIVE'
-    RECORDED = 'RECORDED'
-    SIMULATED = 'SIMULATED'
-
-
-class ClientContext(BaseModel):
+class ClientContext2(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -863,7 +1023,7 @@ class Payload(BaseModel):
     targetKind: Literal['ASSISTED_FARMER_CONTEXT']
 
 
-class Target(BaseModel):
+class Target2(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -875,12 +1035,12 @@ class IssueAccessGrantCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext
+    clientContext: ClientContext2
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['IssueAccessGrant']
     payload: Payload
-    target: Target
+    target: Target2
 
 
 class JsonValue(RootModel[Any]):
@@ -1107,6 +1267,82 @@ class MilestoneOneEvent(
 
 
 class EventName1(StrEnum):
+    farmer_setup_saved = 'farmer.setup_saved'
+    farmer_preferences_changed = 'farmer.preferences_changed'
+    farmer_setup_completed = 'farmer.setup_completed'
+    identity_device_mode_changed = 'identity.device_mode_changed'
+    farm_created = 'farm.created'
+    farm_updated = 'farm.updated'
+    plot_created = 'plot.created'
+    plot_updated = 'plot.updated'
+    soil_record_added = 'soil_record.added'
+    water_context_updated = 'water_context.updated'
+    farm_crop_history_recorded = 'farm.crop_history_recorded'
+    profile_snapshot_created = 'profile.snapshot_created'
+
+
+class SetupStatus(StrEnum):
+    NOT_STARTED = 'NOT_STARTED'
+    IN_PROGRESS = 'IN_PROGRESS'
+    READY_FOR_REVIEW = 'READY_FOR_REVIEW'
+    COMPLETE = 'COMPLETE'
+    NEEDS_REVIEW = 'NEEDS_REVIEW'
+
+
+class Payload4(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    draftId: UUID | None = None
+    farmId: UUID | None = None
+    plotId: UUID | None = None
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    setupStatus: SetupStatus | None = None
+
+
+class PayloadClassification1(StrEnum):
+    C2 = 'C2'
+    C3 = 'C3'
+
+
+class MilestoneThreeEvent1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    actorRef: UUID | None = None
+    actorType: ActorType
+    aggregateId: UUID
+    aggregateRevision: Annotated[int, Field(gt=0, le=9007199254740991)]
+    aggregateType: Annotated[str, Field(max_length=80, min_length=1)]
+    causationId: UUID | None = None
+    clientRecordedAt: AwareDatetime | None = None
+    committedAt: AwareDatetime
+    consentAccessVersion: Annotated[int | None, Field(gt=0, le=9007199254740991)] = None
+    correlationId: UUID
+    dataMode: DataMode
+    deviceRef: UUID | None = None
+    eventId: UUID
+    eventName: EventName1
+    eventOrdinal: Annotated[int, Field(gt=0, le=9007199254740991)]
+    eventVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    jurisdictionId: UUID | None = None
+    modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
+    occurredAt: AwareDatetime
+    payload: Payload4
+    payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    payloadClassification: PayloadClassification1
+    payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    producerBuild: Annotated[str, Field(max_length=120, min_length=1)]
+    producerService: Annotated[str, Field(max_length=80, min_length=1)]
+    provenanceTypes: Annotated[list[ProvenanceType], Field(max_length=9, min_length=1)]
+    purposeCode: PurposeCode | None = None
+    retentionClass: Annotated[str, Field(max_length=80, min_length=1)]
+    roleContextRef: UUID | None = None
+    serverReceivedAt: AwareDatetime
+    traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
+
+
+class EventName2(StrEnum):
     sync_batch_started = 'sync.batch_started'
     sync_event_accepted = 'sync.event_accepted'
     sync_event_already_accepted = 'sync.event_already_accepted'
@@ -1122,7 +1358,7 @@ class Disposition1(StrEnum):
     CONFLICT = 'CONFLICT'
 
 
-class Payload4(BaseModel):
+class Payload5(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1150,13 +1386,13 @@ class MilestoneTwoEvent1(BaseModel):
     dataMode: DataMode
     deviceRef: UUID | None = None
     eventId: UUID
-    eventName: EventName1
+    eventName: EventName2
     eventOrdinal: Annotated[int, Field(gt=0, le=9007199254740991)]
     eventVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     jurisdictionId: UUID | None = None
     modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
     occurredAt: AwareDatetime
-    payload: Payload4
+    payload: Payload5
     payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
     payloadClassification: Literal['C2']
     payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
@@ -1170,7 +1406,7 @@ class MilestoneTwoEvent1(BaseModel):
     traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
 
 
-class Payload5(BaseModel):
+class Payload6(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1205,7 +1441,7 @@ class MilestoneTwoEvent2(BaseModel):
     jurisdictionId: UUID | None = None
     modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
     occurredAt: AwareDatetime
-    payload: Payload5
+    payload: Payload6
     payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
     payloadClassification: Literal['C2']
     payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
@@ -1219,7 +1455,7 @@ class MilestoneTwoEvent2(BaseModel):
     traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
 
 
-class EventName2(StrEnum):
+class EventName3(StrEnum):
     voice_session_started = 'voice.session_started'
     voice_session_ended = 'voice.session_ended'
     voice_intent_recognized = 'voice.intent_recognized'
@@ -1240,7 +1476,7 @@ class EventName2(StrEnum):
     voice_offline_audio_deleted = 'voice.offline_audio_deleted'
 
 
-class Payload6(BaseModel):
+class Payload7(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1250,11 +1486,6 @@ class Payload6(BaseModel):
     payloadHash: Annotated[str | None, Field(pattern='^sha256:[0-9a-f]{64}$')] = None
     proposalId: UUID | None = None
     sessionId: UUID
-
-
-class PayloadClassification1(StrEnum):
-    C2 = 'C2'
-    C3 = 'C3'
 
 
 class MilestoneTwoEvent3(BaseModel):
@@ -1274,13 +1505,13 @@ class MilestoneTwoEvent3(BaseModel):
     dataMode: DataMode
     deviceRef: UUID | None = None
     eventId: UUID
-    eventName: EventName2
+    eventName: EventName3
     eventOrdinal: Annotated[int, Field(gt=0, le=9007199254740991)]
     eventVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     jurisdictionId: UUID | None = None
     modeDerivationVersion: Annotated[str, Field(max_length=80, min_length=1)]
     occurredAt: AwareDatetime
-    payload: Payload6
+    payload: Payload7
     payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
     payloadClassification: PayloadClassification1
     payloadSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
@@ -1343,6 +1574,78 @@ class MpUnavailableResult(BaseModel):
     status: Literal['UNAVAILABLE']
 
 
+class Totals(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    farms: Annotated[int, Field(ge=0, le=9007199254740991)]
+    normalizedAreaSquareMetres: Annotated[float, Field(ge=0.0)]
+    plots: Annotated[int, Field(ge=0, le=9007199254740991)]
+
+
+class CaptureMethod(StrEnum):
+    GPS_POINT = 'GPS_POINT'
+    MANUAL_MAP = 'MANUAL_MAP'
+    VILLAGE_LANDMARK = 'VILLAGE_LANDMARK'
+    UNKNOWN = 'UNKNOWN'
+
+
+class GpsPermission(StrEnum):
+    GRANTED = 'GRANTED'
+    DENIED = 'DENIED'
+    PROMPT = 'PROMPT'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Kind(StrEnum):
+    NONE = 'NONE'
+    POINT = 'POINT'
+    POLYGON = 'POLYGON'
+    VILLAGE_LANDMARK = 'VILLAGE_LANDMARK'
+
+
+class PlotGeometrySummary(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    captureMethod: CaptureMethod
+    geometryVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    gpsPermission: GpsPermission
+    hasExactServerGeometry: bool
+    kind: Kind
+    recordedAt: AwareDatetime
+
+
+class AreaUnit(StrEnum):
+    SQUARE_METRE = 'SQUARE_METRE'
+    HECTARE = 'HECTARE'
+    ACRE = 'ACRE'
+    GUNTHA = 'GUNTHA'
+
+
+class LocationMethod(StrEnum):
+    GPS_POINT = 'GPS_POINT'
+    MANUAL_MAP = 'MANUAL_MAP'
+    VILLAGE_LANDMARK = 'VILLAGE_LANDMARK'
+    UNKNOWN = 'UNKNOWN'
+
+
+class PlotSetup(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    area: Annotated[float, Field(gt=0.0, le=1000000.0)]
+    areaConversionVersion: Literal['area-v1']
+    areaUnit: AreaUnit
+    farmId: UUID
+    geometry: PlotGeometrySummary
+    locationMethod: LocationMethod
+    name: Annotated[str, Field(max_length=120, min_length=1)]
+    normalizedAreaSquareMetres: Annotated[float, Field(gt=0.0, le=10000000.0)]
+    plotId: UUID
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+
+
 class Code(StrEnum):
     AUTHENTICATION_REQUIRED = 'AUTHENTICATION_REQUIRED'
     AUTHORIZATION_DENIED = 'AUTHORIZATION_DENIED'
@@ -1377,6 +1680,9 @@ class Code(StrEnum):
     COMPARISON_NOT_RELEASABLE = 'COMPARISON_NOT_RELEASABLE'
     BATCH_ID_PAYLOAD_MISMATCH = 'BATCH_ID_PAYLOAD_MISMATCH'
     RATE_LIMITED = 'RATE_LIMITED'
+    SETUP_INCOMPLETE = 'SETUP_INCOMPLETE'
+    GPS_PERMISSION_DENIED = 'GPS_PERMISSION_DENIED'
+    HARDWARE_SKIPPED = 'HARDWARE_SKIPPED'
 
 
 class FieldError(BaseModel):
@@ -1430,7 +1736,17 @@ class ProtectedDisclosureResponse(BaseModel):
     targetId: UUID
 
 
-class ClientContext1(BaseModel):
+class RaigadLocation(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    district: Literal['Raigad']
+    landmark: Annotated[str | None, Field(max_length=240, min_length=1)] = None
+    taluka: Annotated[str, Field(max_length=120, min_length=1)]
+    village: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class ClientContext3(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1439,7 +1755,7 @@ class ClientContext1(BaseModel):
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
-class Payload7(BaseModel):
+class Payload8(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1452,7 +1768,7 @@ class Payload7(BaseModel):
     targetKind: TargetKind
 
 
-class Target1(BaseModel):
+class Target3(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1464,12 +1780,12 @@ class RecordConsentDecisionCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext1
+    clientContext: ClientContext3
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['RecordConsentDecision']
-    payload: Payload7
-    target: Target1
+    payload: Payload8
+    target: Target3
 
 
 class RouteKey(StrEnum):
@@ -1514,6 +1830,31 @@ class RskBootstrapResponse(BaseModel):
     workState: Literal['UNAVAILABLE_UNTIL_WORK_MILESTONE']
 
 
+class ClientContext4(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    dataModeClaim: DataModeClaim
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class Target4(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['farmerSetupDraft']
+
+
+class Status3(StrEnum):
+    NOT_STARTED = 'NOT_STARTED'
+    IN_PROGRESS = 'IN_PROGRESS'
+    READY_FOR_REVIEW = 'READY_FOR_REVIEW'
+    COMPLETE = 'COMPLETE'
+    NEEDS_REVIEW = 'NEEDS_REVIEW'
+
+
 class ScanMediaAssetRequest(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -1523,7 +1864,7 @@ class ScanMediaAssetRequest(BaseModel):
     storageEventId: UUID
 
 
-class ClientContext2(BaseModel):
+class ClientContext5(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1532,7 +1873,7 @@ class ClientContext2(BaseModel):
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
-class Payload8(BaseModel):
+class Payload9(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1541,7 +1882,7 @@ class Payload8(BaseModel):
     roleGrantId: UUID
 
 
-class Target2(BaseModel):
+class Target5(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1553,12 +1894,12 @@ class SelectRoleContextCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext2
+    clientContext: ClientContext5
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['SelectRoleContext']
-    payload: Payload8
-    target: Target2
+    payload: Payload9
+    target: Target5
 
 
 class DeviceBindingState(StrEnum):
@@ -1612,6 +1953,75 @@ class SessionResponse(BaseModel):
     subjectType: SubjectType
 
 
+class ScopeKey3(StrEnum):
+    location_processing = 'location.processing'
+    audio_storage = 'audio.storage'
+    case_sharing = 'case.sharing'
+    visit_access = 'visit.access'
+    assisted_service_access = 'assisted_service.access'
+    channel_app_push = 'channel.app_push'
+    channel_sms = 'channel.sms'
+    channel_ivr = 'channel.ivr'
+
+
+class Decision2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    decidedAt: AwareDatetime
+    decision: Decision
+    scopeKey: ScopeKey3
+
+
+class SetupConsents(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    decisions: list[Decision2]
+
+
+class SetupVoiceProposalPayload(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    proposedValue: dict[str, JsonValue]
+    reason: Annotated[str, Field(max_length=240, min_length=1)]
+    targetPath: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class Mode(StrEnum):
+    LIVE = 'LIVE'
+    RECORDED = 'RECORDED'
+    SIMULATED = 'SIMULATED'
+
+
+class Source(StrEnum):
+    SOIL_HEALTH_CARD = 'SOIL_HEALTH_CARD'
+    LABORATORY = 'LABORATORY'
+    FARMER_MANUAL = 'FARMER_MANUAL'
+    SENSOR = 'SENSOR'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Unit(StrEnum):
+    MG_PER_KG = 'MG_PER_KG'
+    KG_PER_HECTARE = 'KG_PER_HECTARE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class SoilMeasurement(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    nitrogen: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
+    observedAt: AwareDatetime | None = None
+    ph: Annotated[float | None, Field(ge=0.0, le=14.0)] = None
+    phosphorus: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
+    potassium: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
+    source: Source
+    unit: Unit
+
+
 class SupportedProjectionVersions(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -1638,6 +2048,32 @@ class Tombstone(BaseModel):
     minimumResurrectionRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     projectionId: UUID
     projectionType: Annotated[str, Field(max_length=80, min_length=1)]
+
+
+class Target6(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['deviceMode']
+
+
+class SyncChangeDeviceModeCommandEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    causalCommandIds: Annotated[list[UUID], Field(max_length=100)]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    occurredAt: AwareDatetime
+    operation: Literal['ChangeDeviceMode']
+    payload: DeviceModeChangePayload
+    requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    target: Target6
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
 class SyncCommandDisposition1(BaseModel):
@@ -1700,6 +2136,9 @@ class ProblemCode(StrEnum):
     COMPARISON_NOT_RELEASABLE = 'COMPARISON_NOT_RELEASABLE'
     BATCH_ID_PAYLOAD_MISMATCH = 'BATCH_ID_PAYLOAD_MISMATCH'
     RATE_LIMITED = 'RATE_LIMITED'
+    SETUP_INCOMPLETE = 'SETUP_INCOMPLETE'
+    GPS_PERMISSION_DENIED = 'GPS_PERMISSION_DENIED'
+    HARDWARE_SKIPPED = 'HARDWARE_SKIPPED'
 
 
 class SyncCommandDisposition3(BaseModel):
@@ -1749,20 +2188,40 @@ class SyncCommandDisposition(
     )
 
 
-class Payload9(BaseModel):
+class Decision4(StrEnum):
+    ALLOW = 'ALLOW'
+    DENY = 'DENY'
+    WITHDRAW = 'WITHDRAW'
+
+
+class ScopeKey4(StrEnum):
+    location_processing = 'location.processing'
+    audio_storage = 'audio.storage'
+    case_sharing = 'case.sharing'
+    sensor_collection = 'sensor.collection'
+    sensor_maintenance_location = 'sensor.maintenance_location'
+    visit_access = 'visit.access'
+    assisted_service_access = 'assisted_service.access'
+    channel_app_push = 'channel.app_push'
+    channel_sms = 'channel.sms'
+    channel_ivr = 'channel.ivr'
+    market_private_fields = 'market.private_fields'
+
+
+class Payload10(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    decision: Decision
+    decision: Decision4
     expiresAt: AwareDatetime | None = None
     policyVersionId: UUID
     purposeKey: PurposeKey
-    scopeKey: ScopeKey
+    scopeKey: ScopeKey4
     targetId: UUID
     targetKind: TargetKind
 
 
-class Target3(BaseModel):
+class Target7(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1770,7 +2229,7 @@ class Target3(BaseModel):
     type: Literal['consentDecision']
 
 
-class SyncCommandEnvelope(BaseModel):
+class SyncCommandEnvelopeV2(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -1782,9 +2241,9 @@ class SyncCommandEnvelope(BaseModel):
     localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     occurredAt: AwareDatetime
     operation: Literal['RecordConsentDecision']
-    payload: Payload9
+    payload: Payload10
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target3
+    target: Target7
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -1793,6 +2252,32 @@ class SyncCommandStatusResponse(BaseModel):
         extra='forbid',
     )
     command: SyncCommandDisposition
+
+
+class Target8(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['farmerSetup']
+
+
+class SyncCompleteFarmerSetupCommandEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    causalCommandIds: Annotated[list[UUID], Field(max_length=100)]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    occurredAt: AwareDatetime
+    operation: Literal['CompleteFarmerSetup']
+    payload: CompleteFarmerSetupPayload
+    requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    target: Target8
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
 class AllowedAction(StrEnum):
@@ -1868,15 +2353,55 @@ class SyncConflictResolutionRequest(BaseModel):
     resolutionSchemaVersion: Literal[1]
 
 
+class Payload11(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    decision: Decision4
+    expiresAt: AwareDatetime | None = None
+    policyVersionId: UUID
+    purposeKey: PurposeKey
+    scopeKey: ScopeKey4
+    targetId: UUID
+    targetKind: TargetKind
+
+
+class Target9(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['consentDecision']
+
+
+class SyncConsentCommandEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    causalCommandIds: Annotated[list[UUID], Field(max_length=100)]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    occurredAt: AwareDatetime
+    operation: Literal['RecordConsentDecision']
+    payload: Payload11
+    requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    target: Target9
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
 class ChangeType(StrEnum):
     UPSERT = 'UPSERT'
     TOMBSTONE = 'TOMBSTONE'
 
 
-class PayloadClassification2(StrEnum):
+class PayloadClassification3(StrEnum):
     C0 = 'C0'
     C1 = 'C1'
     C2 = 'C2'
+    C3 = 'C3'
 
 
 class SyncProjectionDelta(BaseModel):
@@ -1888,10 +2413,18 @@ class SyncProjectionDelta(BaseModel):
     dataMode: DataMode
     payload: dict[str, JsonValue]
     payloadChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    payloadClassification: PayloadClassification2
+    payloadClassification: PayloadClassification3
     projectionId: UUID
     projectionSchemaVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     projectionType: Annotated[str, Field(max_length=80, min_length=1)]
+
+
+class Target10(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['farmerSetupDraft']
 
 
 class ClientEventVersions(BaseModel):
@@ -1996,6 +2529,14 @@ class SyncStreamOpenResponse(BaseModel):
     subjectDeviceBindingId: UUID
 
 
+class Target11(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['farmerPreferences']
+
+
 class Unavailable(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -2004,6 +2545,24 @@ class Unavailable(BaseModel):
     correlationId: UUID
     retryable: bool
     state: Literal['UNAVAILABLE']
+
+
+class ClientContext6(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    dataModeClaim: DataModeClaim
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class UpdateFarmerPreferencesPayload(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    preferredLocale: PreferredLocale
+    timezone: Literal['Asia/Kolkata']
+    voicePrompts: bool
 
 
 class State4(StrEnum):
@@ -2166,32 +2725,73 @@ class VoiceTurnResponse(BaseModel):
     turnId: UUID
 
 
-class Command(
-    RootModel[
-        SelectRoleContextCommand
-        | RecordConsentDecisionCommand
-        | IssueAccessGrantCommand
-    ]
-):
-    root: (
-        SelectRoleContextCommand
-        | RecordConsentDecisionCommand
-        | IssueAccessGrantCommand
-    )
+class Availability(StrEnum):
+    HIGH = 'HIGH'
+    MEDIUM = 'MEDIUM'
+    LOW = 'LOW'
+    SEASONAL = 'SEASONAL'
+    UNKNOWN = 'UNKNOWN'
 
 
-class CommandEnvelope(
-    RootModel[
-        SelectRoleContextCommand
-        | RecordConsentDecisionCommand
-        | IssueAccessGrantCommand
-    ]
-):
-    root: (
-        SelectRoleContextCommand
-        | RecordConsentDecisionCommand
-        | IssueAccessGrantCommand
+class Reliability(StrEnum):
+    RELIABLE = 'RELIABLE'
+    SOMETIMES = 'SOMETIMES'
+    UNRELIABLE = 'UNRELIABLE'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Source1(StrEnum):
+    RAIN_FED = 'RAIN_FED'
+    WELL = 'WELL'
+    BOREWELL = 'BOREWELL'
+    CANAL = 'CANAL'
+    POND = 'POND'
+    TANKER = 'TANKER'
+    OTHER = 'OTHER'
+    UNKNOWN = 'UNKNOWN'
+
+
+class Storage(StrEnum):
+    NONE = 'NONE'
+    SMALL_TANK = 'SMALL_TANK'
+    FARM_POND = 'FARM_POND'
+    OTHER = 'OTHER'
+    UNKNOWN = 'UNKNOWN'
+
+
+class WaterContext(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
     )
+    availability: Availability
+    rainfed: bool
+    reliability: Reliability
+    sources: Annotated[list[Source1], Field(max_length=8, min_length=1)]
+    storage: Storage
+
+
+class ChangeDeviceModeCommand(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientContext: ClientContext
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    operation: Literal['ChangeDeviceMode']
+    payload: DeviceModeChangePayload
+    target: Target
+
+
+class CompleteFarmerSetupCommand(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientContext: ClientContext1
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    operation: Literal['CompleteFarmerSetup']
+    payload: CompleteFarmerSetupPayload
+    target: Target1
 
 
 class CorrectVoiceProposalRequest(BaseModel):
@@ -2241,21 +2841,48 @@ class EventEnvelope(BaseModel):
     traceId: Annotated[str | None, Field(pattern='^[0-9a-f]{32}$')] = None
 
 
+class FarmSetup(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    farmId: UUID
+    farmingMethod: FarmingMethod
+    location: RaigadLocation
+    name: Annotated[str, Field(max_length=120, min_length=1)]
+    plots: Annotated[list[PlotSetup], Field(max_length=50)]
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+
+
+class MilestoneThreeEvent(RootModel[MilestoneTwoEvent | MilestoneThreeEvent1]):
+    root: MilestoneTwoEvent | MilestoneThreeEvent1
+
+
 class MpSafeResult(RootModel[MpUnavailableResult | MpSuppressedResult]):
     root: MpUnavailableResult | MpSuppressedResult
 
 
-class SyncBatch(BaseModel):
+class Draft(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    batchId: UUID
-    clientBuild: Annotated[str, Field(max_length=80, min_length=1)]
-    commands: Annotated[list[SyncCommandEnvelope], Field(max_length=100)]
-    cursor: Annotated[str, Field(max_length=2048, min_length=1)]
-    feedLimit: Annotated[int, Field(ge=1, le=100)]
-    streamId: UUID
-    syncBatchVersion: Literal[1]
+    consents: SetupConsents
+    cropHistoryByPlot: dict[str, list[CropHistoryRecord]]
+    currentCropByPlot: dict[str, CropDeclaration]
+    deviceMode: DeviceMode
+    draftId: UUID
+    farms: Annotated[list[FarmSetup], Field(max_length=10, min_length=0)]
+    hardwareStatus: HardwareStatus
+    profile: FarmerProfileSetup
+    soilByPlot: dict[str, SoilMeasurement]
+    status: Status3
+    waterByPlot: dict[str, WaterContext]
+
+
+class SaveFarmerSetupDraftPayload(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    draft: Draft
 
 
 class SyncBootstrapResponse(BaseModel):
@@ -2318,6 +2945,118 @@ class SyncFeedPageResponseV2(BaseModel):
     serverTime: AwareDatetime
 
 
+class SyncSaveFarmerSetupDraftCommandEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    causalCommandIds: Annotated[list[UUID], Field(max_length=100)]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    occurredAt: AwareDatetime
+    operation: Literal['SaveFarmerSetupDraft']
+    payload: SaveFarmerSetupDraftPayload
+    requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    target: Target10
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class SyncUpdateFarmerPreferencesCommandEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    causalCommandIds: Annotated[list[UUID], Field(max_length=100)]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    occurredAt: AwareDatetime
+    operation: Literal['UpdateFarmerPreferences']
+    payload: UpdateFarmerPreferencesPayload
+    requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    target: Target11
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class UpdateFarmerPreferencesCommand(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientContext: ClientContext6
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    operation: Literal['UpdateFarmerPreferences']
+    payload: UpdateFarmerPreferencesPayload
+    target: Target11
+
+
+class FarmerSetupDraft(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    checksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    consents: SetupConsents
+    cropHistoryByPlot: dict[str, list[CropHistoryRecord]]
+    currentCropByPlot: dict[str, CropDeclaration]
+    deviceMode: DeviceMode
+    draftId: UUID
+    farms: Annotated[list[FarmSetup], Field(max_length=10, min_length=0)]
+    hardwareStatus: HardwareStatus
+    profile: FarmerProfileSetup
+    revision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    soilByPlot: dict[str, SoilMeasurement]
+    status: Status
+    syncStatus: SyncStatus
+    updatedAt: AwareDatetime
+    waterByPlot: dict[str, WaterContext]
+
+
+class FarmerSetupSummary(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    activeDraft: FarmerSetupDraft | None = None
+    completedAt: AwareDatetime | None = None
+    conflictCount: Annotated[int, Field(ge=0, le=9007199254740991)]
+    status: Status
+    syncStatus: SyncStatus
+
+
+class MyFarmResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    currentCropByPlot: dict[str, CropDeclaration]
+    farms: Annotated[list[FarmSetup], Field(max_length=10)]
+    generatedAt: AwareDatetime
+    setup: FarmerSetupSummary
+    totals: Totals
+
+
+class SaveFarmerSetupDraftCommand(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientContext: ClientContext4
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    operation: Literal['SaveFarmerSetupDraft']
+    payload: SaveFarmerSetupDraftPayload
+    target: Target4
+
+
+class SetupVoiceReadResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    mode: Mode
+    myFarm: MyFarmResponse | None = None
+    setup: FarmerSetupSummary
+
+
 class SyncBatchResponse(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -2344,3 +3083,93 @@ class SyncBatchResponseV2(BaseModel):
     highWaterMark: Annotated[str, Field(max_length=2048, min_length=1)]
     nextCursor: Annotated[str, Field(max_length=2048, min_length=1)]
     serverTime: AwareDatetime
+
+
+class SyncCommandEnvelope(
+    RootModel[
+        SyncConsentCommandEnvelope
+        | SyncSaveFarmerSetupDraftCommandEnvelope
+        | SyncCompleteFarmerSetupCommandEnvelope
+        | SyncUpdateFarmerPreferencesCommandEnvelope
+        | SyncChangeDeviceModeCommandEnvelope
+    ]
+):
+    root: (
+        SyncConsentCommandEnvelope
+        | SyncSaveFarmerSetupDraftCommandEnvelope
+        | SyncCompleteFarmerSetupCommandEnvelope
+        | SyncUpdateFarmerPreferencesCommandEnvelope
+        | SyncChangeDeviceModeCommandEnvelope
+    )
+
+
+class Command(
+    RootModel[
+        SelectRoleContextCommand
+        | RecordConsentDecisionCommand
+        | IssueAccessGrantCommand
+        | SaveFarmerSetupDraftCommand
+        | CompleteFarmerSetupCommand
+        | UpdateFarmerPreferencesCommand
+        | ChangeDeviceModeCommand
+    ]
+):
+    root: (
+        SelectRoleContextCommand
+        | RecordConsentDecisionCommand
+        | IssueAccessGrantCommand
+        | SaveFarmerSetupDraftCommand
+        | CompleteFarmerSetupCommand
+        | UpdateFarmerPreferencesCommand
+        | ChangeDeviceModeCommand
+    )
+
+
+class CommandEnvelope(
+    RootModel[
+        SelectRoleContextCommand
+        | RecordConsentDecisionCommand
+        | IssueAccessGrantCommand
+        | SaveFarmerSetupDraftCommand
+        | CompleteFarmerSetupCommand
+        | UpdateFarmerPreferencesCommand
+        | ChangeDeviceModeCommand
+    ]
+):
+    root: (
+        SelectRoleContextCommand
+        | RecordConsentDecisionCommand
+        | IssueAccessGrantCommand
+        | SaveFarmerSetupDraftCommand
+        | CompleteFarmerSetupCommand
+        | UpdateFarmerPreferencesCommand
+        | ChangeDeviceModeCommand
+    )
+
+
+class FarmerBootstrapResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
+    capabilities: Annotated[list[Capability], Field(max_length=10)]
+    deviceMode: DeviceMode
+    farmContextState: FarmContextState
+    locale: Locale
+    myFarm: MyFarmResponse | None = None
+    onboardingState: OnboardingState
+    setup: FarmerSetupSummary
+    subjectId: UUID
+
+
+class SyncBatch(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    batchId: UUID
+    clientBuild: Annotated[str, Field(max_length=80, min_length=1)]
+    commands: Annotated[list[SyncCommandEnvelope], Field(max_length=100)]
+    cursor: Annotated[str, Field(max_length=2048, min_length=1)]
+    feedLimit: Annotated[int, Field(ge=1, le=100)]
+    streamId: UUID
+    syncBatchVersion: Literal[1]

@@ -12,6 +12,7 @@ import {
 export const platform = pgSchema('platform');
 export const media = pgSchema('media');
 export const voice = pgSchema('voice');
+export const farm = pgSchema('farm');
 
 export const seedRuns = platform.table(
   'seed_runs',
@@ -108,4 +109,66 @@ export const voiceSessions = voice.table(
   (table) => [
     index('voice_session_owner_idx').on(table.environment, table.subjectId, table.createdAt),
   ],
+);
+
+export const farmerProfiles = farm.table('farmer_profile', {
+  environment: text('environment').notNull(),
+  farmerSubjectId: uuid('farmer_subject_id').notNull(),
+  preferredLocale: text('preferred_locale').notNull(),
+  timezone: text('timezone').notNull(),
+  deviceMode: text('device_mode').notNull(),
+  setupStatus: text('setup_status').notNull(),
+  setupRevision: bigint('setup_revision', { mode: 'number' }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+});
+
+export const farms = farm.table(
+  'farm',
+  {
+    environment: text('environment').notNull(),
+    farmId: uuid('farm_id').primaryKey(),
+    farmerSubjectId: uuid('farmer_subject_id').notNull(),
+    name: text('name').notNull(),
+    district: text('district').notNull(),
+    taluka: text('taluka').notNull(),
+    village: text('village').notNull(),
+    farmingMethod: text('farming_method').notNull(),
+    revision: bigint('revision', { mode: 'number' }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('farm_owner_idx').on(table.environment, table.farmerSubjectId)],
+);
+
+export const plots = farm.table(
+  'plot',
+  {
+    environment: text('environment').notNull(),
+    plotId: uuid('plot_id').primaryKey(),
+    farmId: uuid('farm_id').notNull(),
+    farmerSubjectId: uuid('farmer_subject_id').notNull(),
+    name: text('name').notNull(),
+    area: text('area').notNull(),
+    areaUnit: text('area_unit').notNull(),
+    normalizedAreaSquareMetres: text('normalized_area_square_metres').notNull(),
+    areaConversionVersion: text('area_conversion_version').notNull(),
+    locationMethod: text('location_method').notNull(),
+    revision: bigint('revision', { mode: 'number' }).notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('plot_owner_idx').on(table.environment, table.farmerSubjectId)],
+);
+
+export const plotGeometryVersions = farm.table(
+  'plot_geometry_version',
+  {
+    environment: text('environment').notNull(),
+    plotId: uuid('plot_id').notNull(),
+    geometryVersion: integer('geometry_version').notNull(),
+    geometryKind: text('geometry_kind').notNull(),
+    captureMethod: text('capture_method').notNull(),
+    gpsPermission: text('gps_permission').notNull(),
+    hasExactServerGeometry: integer('has_exact_server_geometry').notNull(),
+    recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('plot_geometry_owner_idx').on(table.environment, table.plotId)],
 );

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "nitrogen": {
+      "maximum": 9999,
+      "minimum": 0,
+      "type": "number"
+    },
+    "observedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "ph": {
+      "maximum": 14,
+      "minimum": 0,
+      "type": "number"
+    },
+    "phosphorus": {
+      "maximum": 9999,
+      "minimum": 0,
+      "type": "number"
+    },
+    "potassium": {
+      "maximum": 9999,
+      "minimum": 0,
+      "type": "number"
+    },
+    "source": {
+      "enum": [
+        "SOIL_HEALTH_CARD",
+        "LABORATORY",
+        "FARMER_MANUAL",
+        "SENSOR",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "unit": {
+      "enum": [
+        "MG_PER_KG",
+        "KG_PER_HECTARE",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "unit",
+    "source"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

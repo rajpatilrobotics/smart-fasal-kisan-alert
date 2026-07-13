@@ -1,5 +1,21 @@
 const guardedTransactionBrand: unique symbol = Symbol('GuardedTransaction');
 
+interface FarmerSetupOwner {
+  environment: string;
+  subjectId: string;
+}
+
+interface FarmerSetupRecord {
+  owner: FarmerSetupOwner;
+  draft?: unknown;
+  completedAt?: string;
+}
+
+interface FarmerSetupRepository {
+  load(owner: FarmerSetupOwner): Promise<FarmerSetupRecord | undefined>;
+  save(record: FarmerSetupRecord): Promise<void>;
+}
+
 const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -140,4 +156,28 @@ function isUuid(value: string): boolean {
 
 function isNullableContextUuid(value: string): boolean {
   return value === NIL_UUID || isUuid(value);
+}
+
+export class InMemoryFarmerSetupRepository implements FarmerSetupRepository {
+  readonly #records = new Map<string, FarmerSetupRecord>();
+
+  async load(owner: FarmerSetupOwner): Promise<FarmerSetupRecord | undefined> {
+    await Promise.resolve();
+    const record = this.#records.get(ownerKey(owner));
+    if (record === undefined) return undefined;
+    return cloneJson(record);
+  }
+
+  async save(record: FarmerSetupRecord): Promise<void> {
+    await Promise.resolve();
+    this.#records.set(ownerKey(record.owner), cloneJson(record));
+  }
+}
+
+function ownerKey(owner: FarmerSetupOwner): string {
+  return `${owner.environment}:${owner.subjectId}`;
+}
+
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
