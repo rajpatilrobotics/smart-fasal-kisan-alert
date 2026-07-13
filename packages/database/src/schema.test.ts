@@ -118,6 +118,18 @@ describe('foundation migration', () => {
     expect(migration).not.toMatch(/grant\s+select[^;]*identity\.subject_private[^;]*sf_rsk_api/i);
   });
 
+  it('grants only the row-lock column required by the access-grant operation', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0003_assisted_context_row_lock_permission.sql'),
+      'utf8',
+    );
+    expect(migration).toContain(
+      'grant update (updated_at)\non identity.assisted_context\nto sf_migrator;',
+    );
+    expect(migration).not.toMatch(/grant\s+update\s+on\s+identity\.assisted_context/i);
+    expect(migration).not.toMatch(/to\s+sf_(?:farmer|rsk)_api/i);
+  });
+
   it('rate limits return-state creation using only a stable HMAC digest', async () => {
     const migration = await readFile(
       resolve(import.meta.dirname, '../migrations/0002_milestone_1_security_spine.sql'),
