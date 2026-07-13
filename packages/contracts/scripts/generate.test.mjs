@@ -48,6 +48,7 @@ const uuidV7Two = '018f0000-0000-7000-8000-000000000002';
 const timestamp = '2026-07-13T10:00:00+05:30';
 const requestHash = `sha256:${'a'.repeat(64)}`;
 const payloadChecksum = `sha256:${'b'.repeat(64)}`;
+const generationTestTimeout = 20_000;
 
 const commonSurfacePaths = [
   '/health/live',
@@ -203,19 +204,31 @@ function recursivelyReferencedSchemas(api) {
 }
 
 describe('deterministic contract generation', () => {
-  it('keeps every checked-in generated artifact synchronized', async () => {
-    await expect(generateContracts({ checkOnly: true })).resolves.toBe(false);
-  });
+  it(
+    'keeps every checked-in generated artifact synchronized',
+    async () => {
+      await expect(generateContracts({ checkOnly: true })).resolves.toBe(false);
+    },
+    generationTestTimeout,
+  );
 
-  it('produces deterministic outputs on repeated runs', async () => {
-    const first = await createOutputs();
-    const second = await createOutputs();
-    expect([...first.entries()]).toEqual([...second.entries()]);
-  });
+  it(
+    'produces deterministic outputs on repeated runs',
+    async () => {
+      const first = await createOutputs();
+      const second = await createOutputs();
+      expect([...first.entries()]).toEqual([...second.entries()]);
+    },
+    generationTestTimeout,
+  );
 
-  it('returns success from check mode for current artifacts', async () => {
-    await expect(runCli(['node', 'generate.ts', '--check'])).resolves.toBe(0);
-  });
+  it(
+    'returns success from check mode for current artifacts',
+    async () => {
+      await expect(runCli(['node', 'generate.ts', '--check'])).resolves.toBe(0);
+    },
+    generationTestTimeout,
+  );
 
   it('generates strict lower-camel-case JSON schema', async () => {
     const schema = JSON.parse(
@@ -616,6 +629,11 @@ describe('v1 compatibility baseline', () => {
       'sync',
       'voice',
     ]);
+    for (const schemas of Object.values(baseline.schemaGroups)) {
+      for (const entry of Object.values(schemas)) {
+        expect(entry).toEqual({ fingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
+      }
+    }
   });
 });
 

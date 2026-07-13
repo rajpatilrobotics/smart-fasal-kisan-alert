@@ -81,35 +81,73 @@
   },
   "schemaGroups": {
     "commands": {
-      "Command": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359",
-      "CommandEnvelope": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359",
-      "CommandResult": "f9d9a95e77a5f06fb92feebc3bc697b3d4ce7d602da65f1946759f88c0f493fe",
-      "IssueAccessGrantCommand": "b23b55401f22b96b373bb52e7a355bacef043c9bb311fd9623b9d3940925bc08",
-      "RecordConsentDecisionCommand": "203ce4e0cc512f6b7728c68d69a178b1aef9dfa3fa4b1417c0a375a9940699d0",
-      "SelectRoleContextCommand": "b6665edd14cfa9ee26ab3170d637ff99fc6b1f34bb551106ecd9845e5ab11511"
+      "Command": {
+        "fingerprint": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359"
+      },
+      "CommandEnvelope": {
+        "fingerprint": "fc8a15731265a1989d2e4190e178b4645d8d11cdbf4886b562ebe37cc505a359"
+      },
+      "CommandResult": {
+        "fingerprint": "f9d9a95e77a5f06fb92feebc3bc697b3d4ce7d602da65f1946759f88c0f493fe"
+      },
+      "IssueAccessGrantCommand": {
+        "fingerprint": "b23b55401f22b96b373bb52e7a355bacef043c9bb311fd9623b9d3940925bc08"
+      },
+      "RecordConsentDecisionCommand": {
+        "fingerprint": "203ce4e0cc512f6b7728c68d69a178b1aef9dfa3fa4b1417c0a375a9940699d0"
+      },
+      "SelectRoleContextCommand": {
+        "fingerprint": "b6665edd14cfa9ee26ab3170d637ff99fc6b1f34bb551106ecd9845e5ab11511"
+      }
     },
     "device": {
-      "DeviceBatchReceipt": "548687babf669180db9ffeb8f590bd9dc0c6c1c1ec14131f51725c6f2be755e5"
+      "DeviceBatchReceipt": {
+        "fingerprint": "548687babf669180db9ffeb8f590bd9dc0c6c1c1ec14131f51725c6f2be755e5"
+      }
     },
     "events": {
-      "EventEnvelope": "3816a947d2f94977c3a2b74745fa28b8c671fcadeb0d35a7306046c2cdf14429",
-      "MilestoneOneEvent": "293b3fb109443cab41267bcf817d68b56d7801136158d7af4405f30606caca5b"
+      "EventEnvelope": {
+        "fingerprint": "3816a947d2f94977c3a2b74745fa28b8c671fcadeb0d35a7306046c2cdf14429"
+      },
+      "MilestoneOneEvent": {
+        "fingerprint": "293b3fb109443cab41267bcf817d68b56d7801136158d7af4405f30606caca5b"
+      }
     },
     "privacy": {
-      "MpSafeResult": "d5546217b32a83823c394a53b43aa93b5b77b9bd138226e4197eae85d6848559",
-      "MpSuppressedResult": "bace36e2c934ada0f4d71c5048d7a5249de0d718416d5d4921a0738f8266eb25",
-      "MpUnavailableResult": "fdcf03de34a7d163ff2b72dd3ab5eaa204dd20388b6bdfb5d7b8228d40edbb21"
+      "MpSafeResult": {
+        "fingerprint": "d5546217b32a83823c394a53b43aa93b5b77b9bd138226e4197eae85d6848559"
+      },
+      "MpSuppressedResult": {
+        "fingerprint": "bace36e2c934ada0f4d71c5048d7a5249de0d718416d5d4921a0738f8266eb25"
+      },
+      "MpUnavailableResult": {
+        "fingerprint": "fdcf03de34a7d163ff2b72dd3ab5eaa204dd20388b6bdfb5d7b8228d40edbb21"
+      }
     },
     "sync": {
-      "SyncBatch": "3847784511c2f26532eede91cde859cb695c28017a4df2448deac3e89e6657f6",
-      "SyncBatchResponse": "f4d5bdce21a81422d67ce6b53035d8c8c1031a03fa90071b6ca02a65682d084c",
-      "SyncCommandDisposition": "0d334531a01f95d0d2c267f1ca541613044c5199104f21c534719d192aa7b4de",
-      "SyncCommandEnvelope": "b6ac67fd1945f531c62fd78f6c63c95e1140314baad9c77b64e3471d170fe3ee",
-      "SyncFeedEvent": "782fa56f6f6c4239f07355c134f91a7ddfefab10164bbd151ac9421dc226b7e1",
-      "SyncProjectionDelta": "6bbd23f20eacfc4d7d2085e936db4a7e5d3ec7673ca00209a42309d1ffef7b07"
+      "SyncBatch": {
+        "fingerprint": "3847784511c2f26532eede91cde859cb695c28017a4df2448deac3e89e6657f6"
+      },
+      "SyncBatchResponse": {
+        "fingerprint": "f4d5bdce21a81422d67ce6b53035d8c8c1031a03fa90071b6ca02a65682d084c"
+      },
+      "SyncCommandDisposition": {
+        "fingerprint": "0d334531a01f95d0d2c267f1ca541613044c5199104f21c534719d192aa7b4de"
+      },
+      "SyncCommandEnvelope": {
+        "fingerprint": "b6ac67fd1945f531c62fd78f6c63c95e1140314baad9c77b64e3471d170fe3ee"
+      },
+      "SyncFeedEvent": {
+        "fingerprint": "782fa56f6f6c4239f07355c134f91a7ddfefab10164bbd151ac9421dc226b7e1"
+      },
+      "SyncProjectionDelta": {
+        "fingerprint": "6bbd23f20eacfc4d7d2085e936db4a7e5d3ec7673ca00209a42309d1ffef7b07"
+      }
     },
     "voice": {
-      "VoiceDelegation": "56d6be031fdc832bf53e8ee1b1de32af0157880711446aec4b096b5c949eb674"
+      "VoiceDelegation": {
+        "fingerprint": "56d6be031fdc832bf53e8ee1b1de32af0157880711446aec4b096b5c949eb674"
+      }
     }
   },
   "eventCatalogue": {

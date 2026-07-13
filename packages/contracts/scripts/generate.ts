@@ -317,7 +317,10 @@ export function buildCompatibilityManifest(): JsonObject {
     Object.entries(compatibilitySchemaGroups).map(([group, schemaNames]) => [
       group,
       Object.fromEntries(
-        schemaNames.map((name) => [name, fingerprint(toJsonSchema(schemaRegistry[name]))]),
+        schemaNames.map((name) => [
+          name,
+          { fingerprint: fingerprint(toJsonSchema(schemaRegistry[name])) },
+        ]),
       ),
     ]),
   );
