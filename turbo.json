@@ -48,10 +48,12 @@
     },
     "test": {
       "dependsOn": ["^build", "^test"],
+      "env": ["DATABASE_URL"],
       "outputs": []
     },
     "test:unit": {
       "dependsOn": ["^build", "^test:unit"],
+      "env": ["DATABASE_URL"],
       "outputs": []
     },
     "test:coverage": {

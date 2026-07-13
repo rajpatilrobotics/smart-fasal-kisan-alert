@@ -2,8 +2,10 @@ name: CI
 
 on:
   pull_request:
+    branches: [main]
   push:
-    branches: [main, 'rebuild/**']
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -60,9 +62,36 @@ jobs:
       - run: pnpm contracts:check
       - run: pnpm db:migrate
       - run: pnpm db:seed:synthetic
-      - run: pnpm quality
+      - name: Check architecture boundaries
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm architecture:check
+      - name: Lint production and test code
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm lint
+      - name: Type-check TypeScript and Python
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm typecheck
+      - name: Test affected workspaces
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm test:affected
+        env:
+          TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          TURBO_SCM_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Test authentication, authorization, ownership, consent, disclosure and RLS
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm test:security
+      - name: Run integration and architecture tests
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm test:integration
+      - name: Build production artifacts
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm build
+      - name: Run full release regression
+        if: github.event_name == 'workflow_dispatch'
+        run: pnpm quality
 
   browser:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -83,6 +112,7 @@ jobs:
       - run: pnpm test:a11y
 
   terraform:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
