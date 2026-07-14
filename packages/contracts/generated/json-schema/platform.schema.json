@@ -144,11 +144,17 @@
               "farmer.plot.write",
               "farmer.evidence.read",
               "farmer.soil.write",
-              "farmer.voice.setup"
+              "farmer.voice.setup",
+              "farmer.recommendation.read",
+              "farmer.recommendation.run",
+              "farmer.recommendation.review_request",
+              "farmer.recommendation.accept",
+              "farmer.season.start_confirm",
+              "farmer.calendar.read"
             ],
             "type": "string"
           },
-          "maxItems": 51,
+          "maxItems": 57,
           "type": "array"
         },
         "capabilitySetVersion": {
@@ -6925,7 +6931,13 @@
               "farmer.plot.write",
               "farmer.evidence.read",
               "farmer.soil.write",
-              "farmer.voice.setup"
+              "farmer.voice.setup",
+              "farmer.recommendation.read",
+              "farmer.recommendation.run",
+              "farmer.recommendation.review_request",
+              "farmer.recommendation.accept",
+              "farmer.season.start_confirm",
+              "farmer.calendar.read"
             ],
             "type": "string"
           },
@@ -14573,7 +14585,9 @@
             "PAYLOAD_TOO_LARGE",
             "SIGNATURE_INVALID",
             "REPLAY_DETECTED",
-            "CHALLENGE_EXPIRED"
+            "CHALLENGE_EXPIRED",
+            "SOURCE_RIGHTS_OR_VERSION_INVALID",
+            "NO_SAFE_RECOMMENDATION"
           ],
           "type": "string"
         },
@@ -14756,6 +14770,1140 @@
         "district",
         "taluka",
         "village"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "RecommendationAcceptanceRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "candidateId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "expectedRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "start": {
+          "additionalProperties": false,
+          "properties": {
+            "date": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "SOWING",
+                "TRANSPLANTING"
+              ],
+              "type": "string"
+            },
+            "mode": {
+              "enum": [
+                "PROPOSED",
+                "ACTUAL"
+              ],
+              "type": "string"
+            },
+            "timezone": {
+              "const": "Asia/Kolkata",
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode",
+            "kind",
+            "date",
+            "timezone"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "commandId",
+        "expectedRevision",
+        "candidateId",
+        "start"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationAcceptanceResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "acceptanceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "calendarId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "ACCEPTED",
+            "ALREADY_ACCEPTED"
+          ],
+          "type": "string"
+        },
+        "seasonId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "seasonState": {
+          "enum": [
+            "PLANNED_AWAITING_START",
+            "ACTIVE"
+          ],
+          "type": "string"
+        },
+        "serverReceivedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "taskIds": {
+          "items": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "maxItems": 20,
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "commandId",
+        "disposition",
+        "acceptanceId",
+        "seasonId",
+        "calendarId",
+        "taskIds",
+        "seasonState",
+        "serverReceivedAt"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationCandidate": {
+      "$defs": {
+        "RecommendationEvidenceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "dataMode": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "evidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "freshness": {
+              "enum": [
+                "CURRENT",
+                "DATA_IS_OLD",
+                "NO_RECENT_DATA",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            },
+            "metricKey": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "quality": {
+              "enum": [
+                "TRUSTED",
+                "USE_WITH_CAUTION",
+                "TREND_ONLY",
+                "DO_NOT_USE"
+              ],
+              "type": "string"
+            },
+            "sourceName": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "evidenceId",
+            "metricKey",
+            "sourceName",
+            "freshness",
+            "quality",
+            "dataMode"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "candidateId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "confidenceScore": {
+          "maximum": 100,
+          "minimum": 0,
+          "type": "number"
+        },
+        "cropName": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "cropProfileId": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "durationDays": {
+          "exclusiveMinimum": 0,
+          "maximum": 400,
+          "type": "integer"
+        },
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/RecommendationEvidenceRef"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "rank": {
+          "exclusiveMinimum": 0,
+          "maximum": 3,
+          "type": "integer"
+        },
+        "reasons": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 1,
+          "type": "array"
+        },
+        "risks": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 3,
+          "type": "array"
+        },
+        "seasonFitScore": {
+          "maximum": 100,
+          "minimum": 0,
+          "type": "number"
+        },
+        "suitabilityScore": {
+          "maximum": 100,
+          "minimum": 0,
+          "type": "number"
+        },
+        "warnings": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "type": "array"
+        },
+        "waterSafetyScore": {
+          "maximum": 100,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "candidateId",
+        "cropProfileId",
+        "cropName",
+        "rank",
+        "suitabilityScore",
+        "confidenceScore",
+        "waterSafetyScore",
+        "seasonFitScore",
+        "durationDays",
+        "reasons",
+        "risks",
+        "warnings",
+        "evidenceRefs"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationEvidenceRef": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "evidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "DATA_IS_OLD",
+            "NO_RECENT_DATA",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        },
+        "metricKey": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "quality": {
+          "enum": [
+            "TRUSTED",
+            "USE_WITH_CAUTION",
+            "TREND_ONLY",
+            "DO_NOT_USE"
+          ],
+          "type": "string"
+        },
+        "sourceName": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidenceId",
+        "metricKey",
+        "sourceName",
+        "freshness",
+        "quality",
+        "dataMode"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationGateResult": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "cropProfileId": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "gateKey": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNKNOWN_BLOCKING",
+            "NOT_APPLICABLE"
+          ],
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 220,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "cropProfileId",
+        "gateKey",
+        "outcome",
+        "reason"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationReadinessResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "generatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "groups": {
+          "additionalProperties": false,
+          "properties": {
+            "needsAttention": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "action": {
+                    "maxLength": 220,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "key": {
+                    "maxLength": 120,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "label": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "CONFIRMED",
+                      "UNKNOWN",
+                      "NEEDS_REVIEW",
+                      "STALE",
+                      "PROXY",
+                      "NOT_APPLICABLE"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "label",
+                  "state",
+                  "action"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "optionalImprovements": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "maxLength": 120,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "label": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "CONFIRMED",
+                      "UNKNOWN",
+                      "NEEDS_REVIEW",
+                      "STALE",
+                      "PROXY",
+                      "NOT_APPLICABLE"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "label",
+                  "state"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "ready": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "maxLength": 120,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "label": {
+                    "maxLength": 160,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "CONFIRMED",
+                      "UNKNOWN",
+                      "NEEDS_REVIEW",
+                      "STALE",
+                      "PROXY",
+                      "NOT_APPLICABLE"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "label",
+                  "state"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "ready",
+            "needsAttention",
+            "optionalImprovements"
+          ],
+          "type": "object"
+        },
+        "planningContextRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plotId",
+        "generatedAt",
+        "planningContextRevision",
+        "groups"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "confirmedAreaRef": {
+          "additionalProperties": false,
+          "properties": {
+            "areaRevision": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "plotId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "plotId",
+            "areaRevision"
+          ],
+          "type": "object"
+        },
+        "cultivationMethod": {
+          "enum": [
+            "TRADITIONAL",
+            "ORGANIC",
+            "MIXED",
+            "UNKNOWN"
+          ],
+          "type": "string"
+        },
+        "farmerConstraintRefs": {
+          "items": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "type": "array"
+        },
+        "landAvailabilityWindow": {
+          "additionalProperties": false,
+          "properties": {
+            "availableFrom": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            },
+            "availableUntil": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "availableFrom",
+            "availableUntil"
+          ],
+          "type": "object"
+        },
+        "planningContextRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "planningSeasonKey": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "planningSeasonVersion": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "proposedStartWindow": {
+          "additionalProperties": false,
+          "properties": {
+            "earliestDate": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "SOWING",
+                "TRANSPLANTING"
+              ],
+              "type": "string"
+            },
+            "latestDate": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "type": "string"
+            },
+            "timezone": {
+              "const": "Asia/Kolkata",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "earliestDate",
+            "latestDate",
+            "timezone"
+          ],
+          "type": "object"
+        },
+        "schemaVersion": {
+          "const": "recommendation-request-v1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "planningSeasonKey",
+        "planningSeasonVersion",
+        "proposedStartWindow",
+        "cultivationMethod",
+        "landAvailabilityWindow",
+        "confirmedAreaRef",
+        "farmerConstraintRefs",
+        "planningContextRevision"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationResultResponse": {
+      "$defs": {
+        "RecommendationCandidate": {
+          "additionalProperties": false,
+          "properties": {
+            "candidateId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "confidenceScore": {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            "cropName": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "cropProfileId": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "durationDays": {
+              "exclusiveMinimum": 0,
+              "maximum": 400,
+              "type": "integer"
+            },
+            "evidenceRefs": {
+              "items": {
+                "$ref": "#/$defs/RecommendationEvidenceRef"
+              },
+              "maxItems": 12,
+              "type": "array"
+            },
+            "rank": {
+              "exclusiveMinimum": 0,
+              "maximum": 3,
+              "type": "integer"
+            },
+            "reasons": {
+              "items": {
+                "maxLength": 220,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 3,
+              "minItems": 1,
+              "type": "array"
+            },
+            "risks": {
+              "items": {
+                "maxLength": 220,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 3,
+              "type": "array"
+            },
+            "seasonFitScore": {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            "suitabilityScore": {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            },
+            "warnings": {
+              "items": {
+                "maxLength": 220,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 4,
+              "type": "array"
+            },
+            "waterSafetyScore": {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          "required": [
+            "candidateId",
+            "cropProfileId",
+            "cropName",
+            "rank",
+            "suitabilityScore",
+            "confidenceScore",
+            "waterSafetyScore",
+            "seasonFitScore",
+            "durationDays",
+            "reasons",
+            "risks",
+            "warnings",
+            "evidenceRefs"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        },
+        "RecommendationEvidenceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "dataMode": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "evidenceId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "freshness": {
+              "enum": [
+                "CURRENT",
+                "DATA_IS_OLD",
+                "NO_RECENT_DATA",
+                "UNAVAILABLE"
+              ],
+              "type": "string"
+            },
+            "metricKey": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "quality": {
+              "enum": [
+                "TRUSTED",
+                "USE_WITH_CAUTION",
+                "TREND_ONLY",
+                "DO_NOT_USE"
+              ],
+              "type": "string"
+            },
+            "sourceName": {
+              "maxLength": 160,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "evidenceId",
+            "metricKey",
+            "sourceName",
+            "freshness",
+            "quality",
+            "dataMode"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        },
+        "RecommendationGateResult": {
+          "additionalProperties": false,
+          "properties": {
+            "cropProfileId": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "gateKey": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "outcome": {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "UNKNOWN_BLOCKING",
+                "NOT_APPLICABLE"
+              ],
+              "type": "string"
+            },
+            "reason": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "cropProfileId",
+            "gateKey",
+            "outcome",
+            "reason"
+          ],
+          "type": "object",
+          "x-data-classification": "C3"
+        }
+      },
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "blockers": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "type": "array"
+        },
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/RecommendationCandidate"
+          },
+          "maxItems": 3,
+          "type": "array"
+        },
+        "comparisonRows": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "label": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "values": {
+                "additionalProperties": {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              }
+            },
+            "required": [
+              "key",
+              "label",
+              "values"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "etagRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "excluded": {
+          "items": {
+            "$ref": "#/$defs/RecommendationGateResult"
+          },
+          "maxItems": 40,
+          "type": "array"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "generatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "modeExplanation": {
+          "maxLength": 240,
+          "minLength": 1,
+          "type": "string"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "profileSetVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "recommendationId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "resultVersion": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ruleSetVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "snapshotChecksum": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "READY",
+            "NEEDS_INPUT",
+            "NO_SAFE_RESULT",
+            "FAILED"
+          ],
+          "type": "string"
+        },
+        "templateSetVersion": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "recommendationId",
+        "plotId",
+        "state",
+        "generatedAt",
+        "expiresAt",
+        "dataMode",
+        "resultVersion",
+        "etagRevision",
+        "snapshotChecksum",
+        "ruleSetVersion",
+        "profileSetVersion",
+        "templateSetVersion",
+        "candidates",
+        "blockers",
+        "excluded",
+        "modeExplanation",
+        "comparisonRows"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationReviewRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "expectedRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "expectedRevision",
+        "reason"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "RecommendationRunAcceptedResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "acceptedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "estimatedCompletionSeconds": {
+          "exclusiveMinimum": 0,
+          "maximum": 600,
+          "type": "integer"
+        },
+        "operationId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "QUEUED",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED_RETRYABLE",
+            "FAILED_TERMINAL",
+            "CANCELLED",
+            "EXPIRED"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "operationId",
+        "state",
+        "acceptedAt",
+        "estimatedCompletionSeconds"
+      ],
+      "type": "object",
+      "x-data-classification": "C2"
+    },
+    "RecommendationRunStatusResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "operationId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "problemCode": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "recommendationId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "QUEUED",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED_RETRYABLE",
+            "FAILED_TERMINAL",
+            "CANCELLED",
+            "EXPIRED"
+          ],
+          "type": "string"
+        },
+        "updatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operationId",
+        "state",
+        "updatedAt"
       ],
       "type": "object",
       "x-data-classification": "C2"
@@ -15014,11 +16162,17 @@
                   "farmer.plot.write",
                   "farmer.evidence.read",
                   "farmer.soil.write",
-                  "farmer.voice.setup"
+                  "farmer.voice.setup",
+                  "farmer.recommendation.read",
+                  "farmer.recommendation.run",
+                  "farmer.recommendation.review_request",
+                  "farmer.recommendation.accept",
+                  "farmer.season.start_confirm",
+                  "farmer.calendar.read"
                 ],
                 "type": "string"
               },
-              "maxItems": 51,
+              "maxItems": 57,
               "type": "array"
             },
             "capabilitySetVersion": {
@@ -15179,7 +16333,13 @@
               "farmer.plot.write",
               "farmer.evidence.read",
               "farmer.soil.write",
-              "farmer.voice.setup"
+              "farmer.voice.setup",
+              "farmer.recommendation.read",
+              "farmer.recommendation.run",
+              "farmer.recommendation.review_request",
+              "farmer.recommendation.accept",
+              "farmer.season.start_confirm",
+              "farmer.calendar.read"
             ],
             "type": "string"
           },
@@ -16573,6 +17733,112 @@
       "type": "object",
       "x-data-classification": "C1"
     },
+    "SeasonCalendarResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "calendarId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "generatedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "seasonId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "tasks": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "dueDate": {
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                "type": "string"
+              },
+              "source": {
+                "const": "RECOMMENDATION_ACCEPTANCE",
+                "type": "string"
+              },
+              "state": {
+                "enum": [
+                  "PLANNED",
+                  "ACTIVE",
+                  "DONE",
+                  "CANNOT_DO"
+                ],
+                "type": "string"
+              },
+              "taskId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "title": {
+                "maxLength": 160,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "taskId",
+              "title",
+              "dueDate",
+              "state",
+              "source"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "seasonId",
+        "calendarId",
+        "generatedAt",
+        "tasks"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "SeasonStartConfirmationRequest": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "actualStartDate": {
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "type": "string"
+        },
+        "commandId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "expectedRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "timezone": {
+          "const": "Asia/Kolkata",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "expectedRevision",
+        "actualStartDate",
+        "timezone"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
     "SelectRoleContextCommand": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
@@ -16737,11 +18003,17 @@
                   "farmer.plot.write",
                   "farmer.evidence.read",
                   "farmer.soil.write",
-                  "farmer.voice.setup"
+                  "farmer.voice.setup",
+                  "farmer.recommendation.read",
+                  "farmer.recommendation.run",
+                  "farmer.recommendation.review_request",
+                  "farmer.recommendation.accept",
+                  "farmer.season.start_confirm",
+                  "farmer.calendar.read"
                 ],
                 "type": "string"
               },
-              "maxItems": 51,
+              "maxItems": 57,
               "type": "array"
             },
             "capabilitySetVersion": {
@@ -20242,7 +21514,9 @@
                     "PAYLOAD_TOO_LARGE",
                     "SIGNATURE_INVALID",
                     "REPLAY_DETECTED",
-                    "CHALLENGE_EXPIRED"
+                    "CHALLENGE_EXPIRED",
+                    "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                    "NO_SAFE_RECOMMENDATION"
                   ],
                   "type": "string"
                 },
@@ -20351,7 +21625,9 @@
                     "PAYLOAD_TOO_LARGE",
                     "SIGNATURE_INVALID",
                     "REPLAY_DETECTED",
-                    "CHALLENGE_EXPIRED"
+                    "CHALLENGE_EXPIRED",
+                    "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                    "NO_SAFE_RECOMMENDATION"
                   ],
                   "type": "string"
                 },
@@ -22326,7 +23602,9 @@
                     "PAYLOAD_TOO_LARGE",
                     "SIGNATURE_INVALID",
                     "REPLAY_DETECTED",
-                    "CHALLENGE_EXPIRED"
+                    "CHALLENGE_EXPIRED",
+                    "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                    "NO_SAFE_RECOMMENDATION"
                   ],
                   "type": "string"
                 },
@@ -22435,7 +23713,9 @@
                     "PAYLOAD_TOO_LARGE",
                     "SIGNATURE_INVALID",
                     "REPLAY_DETECTED",
-                    "CHALLENGE_EXPIRED"
+                    "CHALLENGE_EXPIRED",
+                    "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                    "NO_SAFE_RECOMMENDATION"
                   ],
                   "type": "string"
                 },
@@ -23190,7 +24470,9 @@
                 "PAYLOAD_TOO_LARGE",
                 "SIGNATURE_INVALID",
                 "REPLAY_DETECTED",
-                "CHALLENGE_EXPIRED"
+                "CHALLENGE_EXPIRED",
+                "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                "NO_SAFE_RECOMMENDATION"
               ],
               "type": "string"
             },
@@ -23299,7 +24581,9 @@
                 "PAYLOAD_TOO_LARGE",
                 "SIGNATURE_INVALID",
                 "REPLAY_DETECTED",
-                "CHALLENGE_EXPIRED"
+                "CHALLENGE_EXPIRED",
+                "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                "NO_SAFE_RECOMMENDATION"
               ],
               "type": "string"
             },
@@ -24990,7 +26274,9 @@
                     "PAYLOAD_TOO_LARGE",
                     "SIGNATURE_INVALID",
                     "REPLAY_DETECTED",
-                    "CHALLENGE_EXPIRED"
+                    "CHALLENGE_EXPIRED",
+                    "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                    "NO_SAFE_RECOMMENDATION"
                   ],
                   "type": "string"
                 },
@@ -25099,7 +26385,9 @@
                     "PAYLOAD_TOO_LARGE",
                     "SIGNATURE_INVALID",
                     "REPLAY_DETECTED",
-                    "CHALLENGE_EXPIRED"
+                    "CHALLENGE_EXPIRED",
+                    "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                    "NO_SAFE_RECOMMENDATION"
                   ],
                   "type": "string"
                 },
@@ -32809,6 +34097,53 @@
           "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
           "type": "string"
         },
+        "result": {
+          "additionalProperties": false,
+          "properties": {
+            "dataMode": {
+              "enum": [
+                "LIVE",
+                "RECORDED",
+                "SIMULATED"
+              ],
+              "type": "string"
+            },
+            "openDetailsRoute": {
+              "maxLength": 240,
+              "minLength": 1,
+              "pattern": "^\\/",
+              "type": "string"
+            },
+            "recommendationId": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "resultType": {
+              "const": "RECOMMENDATION_READ",
+              "type": "string"
+            },
+            "sourceGeneratedAt": {
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+              "type": "string"
+            },
+            "summary": {
+              "maxLength": 600,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "resultType",
+            "recommendationId",
+            "summary",
+            "openDetailsRoute",
+            "dataMode",
+            "sourceGeneratedAt"
+          ],
+          "type": "object"
+        },
         "serverSequence": {
           "exclusiveMinimum": 0,
           "maximum": 9007199254740991,
@@ -32824,7 +34159,8 @@
             "HELP",
             "UNAVAILABLE",
             "NEEDS_CLARIFICATION",
-            "PROPOSAL_PENDING"
+            "PROPOSAL_PENDING",
+            "RESULT_READY"
           ],
           "type": "string"
         },

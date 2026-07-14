@@ -1,55 +1,87 @@
-# Milestone 3 — Farmer and Farm Setup
+# Milestone 5 — Smart Crop Recommendation Engine
 
 ## 1. Goal
 
-Implement Document 11 Milestone 3 on `build/milestone-3-farmer-farm-setup`: a Marathi-first, mobile-first Farmer setup experience for the Raigad pilot. The slice covers Farmer onboarding, device mode, independent consents, Farm and Plot setup, soil/water/crop context, skippable hardware, offline-resumable drafts, minimal setup voice proposals, synchronization and the My Farm result.
+Deliver the Raigad Farmer recommendation vertical slice from readiness through crop acceptance:
+
+- Use Milestone 3 Farmer/Farm/Plot context and Milestone 4 evidence.
+- Return up to three approved crops with reproducible suitability, separate confidence, reasons, risks and evidence.
+- Support Marathi-first mobile and read-only voice access.
+- Atomically create the accepted Season, Calendar and initial Tasks.
+
+Baseline is merged `main` commit `35152bcaf9ca1488b296e125fbe664abb3e93152`. The existing Milestone 4 `plan.md` stash remains unapplied and undeleted.
 
 ## 2. Problem
 
-Milestones 0, 1 and 2 provide the repository runway, identity/security spine, encrypted offline store, sync/outbox foundation, media foundation and voice proposal transport. The Farmer app still lacks the real FS-01 setup flow and farm data model, and M2 sync currently accepts only consent commands. Without M3, the J1/Raigad demo cannot complete a two-Plot Farmer setup with GPS denied, hardware skipped, offline interruption, sync replay and voice-confirmed field changes.
+Milestone 3 supplies ownership, Plot area/geography, farming method, water context, crop history and Farmer constraints. Milestone 4 supplies evidence/source/quality/freshness/mode concepts. Milestone 5 needs sealed decision snapshots, governed crop profiles/rules/templates, deterministic crop scoring, Farmer/voice/offline delivery, and a minimum Season/Calendar foundation.
+
+Google display weather, pending evidence, display-only evidence, unlicensed evidence and legacy unavailable values must not silently drive a Recommendation.
 
 ## 3. Proposed Solution
 
-Reuse the M1 authorization/consent/security context and M2 encrypted offline/outbox/voice proposal primitives. Add M3 contracts, pure setup rules, persistence/migration/RLS, Domain API handlers, Farmer PWA routes/components and focused tests. Keep hardware optional, store exact/private setup data only behind Farmer ownership, preserve Live/Recorded/Simulated truth labels and avoid all Milestone 4 weather, Earth Engine, credit, insurance, Web3 and complete evidence-spine work.
+Create `packages/agronomy` as the pure deterministic Recommendation authority. The server derives ownership, evidence, crop candidates, rules, templates, weights and result mode. Clients can send only the strict `recommendation-request-v1` planning request and cannot send crop IDs, score overrides, provider values, trust decisions or mode.
 
-## 4. Files To Change
+The engine applies hard gates before scoring, calculates suitability and confidence separately, ranks deterministically, returns at most three crops, and stores/exposes deterministic explanations. Optional model explanations may only explain a stored result and must be rejected if they alter crop order, numbers, units, warnings, mode or limitations.
 
-- `packages/contracts`: M3 Farmer setup commands, routes, sync projections, events and generated artifacts.
-- `packages/domain`, `packages/application`, `packages/persistence`: setup validation, command handling, idempotency, ownership, conflict and voice proposal execution.
-- `packages/database`: forward migration `0005`, schema metadata, synthetic seed and RLS/security tests.
-- `packages/offline` and `packages/voice`: small adapters/extensions only where needed to reuse M2 storage and proposal transport.
-- `packages/ui`, `packages/maps`, `packages/i18n`: shared Farmer setup UI helpers, map adapter boundary and Marathi/Hindi/English copy.
-- `apps/domain-api`: Farmer setup HTTP/sync/voice endpoints with server-side authorization and consent rechecks.
-- `apps/farmer-web`: onboarding, Farm/Plot, Soil, Water, Crop, Sensor, Review, My Farm, Settings, Sync Status and Help screens.
-- `tests`: targeted integration/E2E/security tests for the required M3 acceptance path.
+## 4. Files to Change
 
-## 5. Step By Step Tasks
+- `plan.md`
+- `packages/contracts`
+- `packages/agronomy`
+- `packages/database`
+- `packages/application` and `apps/domain-api`
+- `apps/farmer-web`
+- `packages/offline`
+- `packages/voice`
+- `packages/i18n`
+- `evaluation/` and synthetic scenario fixtures
 
-1. Verify `origin/main` is `79beea4ebea6c58473ce897d7e64e711b6218008`, the worktree is clean and the branch is based on that commit.
-2. Freeze M3 contracts/events first, including setup drafts, farm/plot/soil/water/crop commands, bootstrap v3, sync command envelopes and Farmer-only route metadata.
-3. Add migration `0005` with Farmer profile/setup progress, Farm, Plot, geometry version, soil record, water context, crop history/current setup snapshot, optional hardware status, idempotency, RLS and audit-safe constraints.
-4. Implement pure domain/application setup rules: required fields, area normalization, Raigad context, setup state, consent effects, GPS-denied/manual alternatives, skippable hardware, idempotency and honest conflict results.
-5. Extend Domain API and sync replay to dispatch M3 commands through the same authorization, consent and ownership path used by connected endpoints.
-6. Add the Farmer PWA setup flow, My Farm, Settings, Sync Status and Help screens with Marathi-first copy, clear offline states and no dead controls.
-7. Add minimal FS-01 voice setup tools using existing M2 proposal tickets: read setup state, propose allowed field changes and mutate only after exact confirmation.
-8. Add focused tests for cross-owner denial, account-switch isolation, consents, GPS denied, hardware skipped, restart/resume, outbox replay, conflict handling, voice confirm/cancel, two-Plot setup and migration/RLS.
-9. Run Hackathon Delivery Mode fast checks: contract generation/check, migration/seed when a local `DATABASE_URL` is available, targeted tests, security tests, lint, typecheck and production builds.
-10. Commit logical changes, push the requested branch and open a draft PR to `main` without deployment or merge.
+No production deployment, commit, push or PR is part of this milestone implementation step.
+
+## 5. Step by Step Tasks
+
+1. Freeze Recommendation, Season, Calendar, voice and event contracts.
+2. Add governed registry, evidence snapshot and decision-weather persistence.
+3. Add minimum Season/Calendar/Task schema.
+4. Implement deterministic hard gates, scoring, confidence, ranking and explanations.
+5. Add Recommendation request/read/review/accept/start-confirmation orchestration.
+6. Add Farmer readiness, result, evidence, acceptance and Calendar screens.
+7. Add offline draft/result cache behavior.
+8. Register read-only multilingual voice result support.
+9. Add Raigad synthetic scenario and golden vectors.
+10. Run Hackathon Delivery Mode blocking checks and report exact results.
+11. Add live-ready evidence provider boundaries and persistence adapters so SIMULATED,
+    RECORDED and LIVE_UNAVAILABLE paths are explicit instead of hard-coded in the engine.
 
 ## 6. Acceptance Criteria
 
-- A Farmer can complete the J1/Raigad two-Plot setup with GPS denied, hardware skipped, interruption during offline use, draft resume after restart, sync after reconnect, and a correct My Farm result.
-- Setup statuses accurately distinguish Saved on This Phone, Waiting for Internet, Synced, Conflict and Locked Recovery.
-- Independent consents can be accepted, denied and withdrawn without granting pending capabilities before server acceptance.
-- Farm/Plot data supports multiple farms and multiple plots where the contracts allow it, with plot area/unit plus normalized square metres and versioned geometry metadata.
-- Soil, water, crop history and current/planned crop context are recorded without starting Milestone 4 recommendation/weather/Earth work.
-- Voice reads only authorized setup data, proposes only FS-01 setup field changes and requires explicit confirmation before mutation.
-- Server-side ownership, tenant/context, consent and RLS protections deny cross-owner access and account switching cannot expose cached data.
+- Every returned crop passes every active hard gate.
+- Suitability and confidence stay separate in contracts and UI.
+- Missing, stale, proxy, conflicting and unusable evidence is visible and never fabricated.
+- Google display weather and pending/unlicensed evidence cannot enter a decision snapshot.
+- Hardware absence still permits the no-hardware path.
+- Voice can read stored Recommendation results but cannot run or accept them.
+- Acceptance creates exactly one Season, Calendar and initial task set, or nothing.
+- Proposed dates do not activate stage-relative tasks.
+- RSK review creates only a purpose-bound work reference.
 
 ## 7. Testing Plan
 
-Run targeted unit and component tests during development, then contracts generation/check, database migration and synthetic seed when PostgreSQL/PostGIS is available, RLS/security tests, Farmer Web tests, Domain API setup tests, offline/sync tests, voice proposal tests, integration tests, lint, strict typecheck and production builds. Do not add coverage thresholds, make SonarCloud blocking, deploy or run expensive final-release checks unless needed to diagnose a real failure.
+Run focused checks while implementing:
+
+- Agronomy unit tests for gates, fixed-point scores, ranking, confidence and model-explanation fidelity.
+- Contract generation/checks for Farmer APIs, voice response shape and capability vocabulary.
+- Database migration/schema tests for M5 tables, RLS markers and decision-weather separation.
+- Domain API tests for recommendation run/read/review/accept/calendar behavior.
+- Offline tests for schema v4 draft/result caching and Locked Recovery compatibility.
+- Farmer UI tests for readiness, result cards, evidence, acceptance and Calendar states.
+
+Hackathon Delivery Mode blocking checks remain lint, types, deterministic contracts, fresh migrations/synthetic seed, affected tests, auth/ownership/consent/audit/RLS, small integration/security, production build, Gitleaks and High/Critical dependency findings.
 
 ## 8. Open Questions
 
-No product decision is blocked. Current/planned crop context will be stored as M3 setup/crop declaration state, not as the future full Season feature. Optional hardware will be recorded as skipped/not configured/RSK setup required only; real device trust/assignment remains in later hardware milestones.
+- Crop profile thresholds and golden rankings are `PROPOSED` until named agronomy/RSK review approves them.
+- Marathi critical recommendation copy/audio needs named human review.
+- Real external credentials are still required for true LIVE weather/Earth/lab calls. Until then,
+  provider adapters return recorded demo evidence or typed `LIVE_UNAVAILABLE` evidence, never fake
+  live values.

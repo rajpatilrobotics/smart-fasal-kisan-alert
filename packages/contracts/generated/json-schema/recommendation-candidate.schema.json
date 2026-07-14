@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "RecommendationEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "evidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "DATA_IS_OLD",
+            "NO_RECENT_DATA",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        },
+        "metricKey": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "quality": {
+          "enum": [
+            "TRUSTED",
+            "USE_WITH_CAUTION",
+            "TREND_ONLY",
+            "DO_NOT_USE"
+          ],
+          "type": "string"
+        },
+        "sourceName": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidenceId",
+        "metricKey",
+        "sourceName",
+        "freshness",
+        "quality",
+        "dataMode"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidateId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "confidenceScore": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "cropName": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "cropProfileId": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "durationDays": {
+      "exclusiveMinimum": 0,
+      "maximum": 400,
+      "type": "integer"
+    },
+    "evidenceRefs": {
+      "items": {
+        "$ref": "#/$defs/RecommendationEvidenceRef"
+      },
+      "maxItems": 12,
+      "type": "array"
+    },
+    "rank": {
+      "exclusiveMinimum": 0,
+      "maximum": 3,
+      "type": "integer"
+    },
+    "reasons": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "type": "array"
+    },
+    "risks": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 3,
+      "type": "array"
+    },
+    "seasonFitScore": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "suitabilityScore": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "warnings": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 4,
+      "type": "array"
+    },
+    "waterSafetyScore": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    }
+  },
+  "required": [
+    "candidateId",
+    "cropProfileId",
+    "cropName",
+    "rank",
+    "suitabilityScore",
+    "confidenceScore",
+    "waterSafetyScore",
+    "seasonFitScore",
+    "durationDays",
+    "reasons",
+    "risks",
+    "warnings",
+    "evidenceRefs"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

@@ -4,7 +4,7 @@ import type { DeviceMode } from '@smart-fasal/contracts/schemas';
 
 import type { EncryptedEnvelope } from './crypto.js';
 
-export const LOCAL_DATABASE_SCHEMA_VERSION = 3;
+export const LOCAL_DATABASE_SCHEMA_VERSION = 4;
 
 export interface LocalEventRow {
   eventId: string;
@@ -128,6 +128,28 @@ export interface EvidenceCacheRow {
   encrypted: EncryptedEnvelope;
 }
 
+export interface RecommendationDraftRow {
+  draftId: string;
+  plotId: string;
+  status: 'SAVED_ON_THIS_PHONE' | 'WAITING_FOR_INTERNET' | 'EVALUATING' | 'REJECTED' | 'CONFLICT';
+  commandId: string;
+  payloadHash: string;
+  contextRevision: number;
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
+export interface RecommendationResultCacheRow {
+  recommendationId: string;
+  plotId: string;
+  status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+  generatedAt: string;
+  freshnessLabel: string;
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
 const VERSION_ONE_STORES = {
   localEvents: '&eventId,commandId,localSequence,eventSchemaVersion',
   projections: '&projectionKey,projectionType,projectionId,authorityState,projectionSchemaVersion',
@@ -157,6 +179,8 @@ export class FarmerOfflineDatabase extends Dexie {
   partitionLock!: Table<PartitionLockRow, string>;
   purgeReceipts!: Table<PurgeReceiptRow, string>;
   evidenceCache!: Table<EvidenceCacheRow, string>;
+  recommendationDrafts!: Table<RecommendationDraftRow, string>;
+  recommendationResults!: Table<RecommendationResultCacheRow, string>;
 
   constructor(databaseName: string) {
     super(databaseName);
@@ -169,6 +193,9 @@ export class FarmerOfflineDatabase extends Dexie {
         scheduledReminders: '&reminderId,dueAt,state',
         purgeReceipts: '&receiptId,state,createdAt',
         evidenceCache: '&cacheKey,plotId,status,updatedAt,projectionSchemaVersion',
+        recommendationDrafts:
+          '&draftId,plotId,status,commandId,payloadHash,contextRevision,updatedAt',
+        recommendationResults: '&recommendationId,plotId,status,dataMode,generatedAt,updatedAt',
       })
       .upgrade(async (transaction) => {
         await transaction.table<CacheMetadataRow>('cacheMetadata').put({

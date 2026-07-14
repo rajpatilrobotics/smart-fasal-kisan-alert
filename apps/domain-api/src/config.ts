@@ -7,8 +7,10 @@ export const SERVICE_CONFIG = parseServiceEnvironment(process.env, {
 });
 
 const DEPLOYMENT_ENVIRONMENTS = ['local', 'preview', 'staging', 'demo', 'production'] as const;
+const RECOMMENDATION_EVIDENCE_MODES = ['recorded_raigad', 'live_unavailable'] as const;
 
 export type DeploymentEnvironment = (typeof DEPLOYMENT_ENVIRONMENTS)[number];
+export type RecommendationEvidenceMode = (typeof RECOMMENDATION_EVIDENCE_MODES)[number];
 
 function isDeploymentEnvironment(value: string): value is DeploymentEnvironment {
   return DEPLOYMENT_ENVIRONMENTS.some((candidate) => candidate === value);
@@ -55,6 +57,21 @@ function readMfaMaximumAge(value: string | undefined): number {
   return seconds;
 }
 
+function readRecommendationEvidenceMode(
+  value: string | undefined,
+  environment: DeploymentEnvironment,
+): RecommendationEvidenceMode {
+  if (value === undefined) {
+    return environment === 'local' || environment === 'demo'
+      ? 'recorded_raigad'
+      : 'live_unavailable';
+  }
+  if (RECOMMENDATION_EVIDENCE_MODES.some((candidate) => candidate === value)) {
+    return value as RecommendationEvidenceMode;
+  }
+  throw new Error('RECOMMENDATION_EVIDENCE_MODE must be recorded_raigad or live_unavailable.');
+}
+
 function optionalSecret(value: string | undefined): string | undefined {
   const candidate = value?.trim();
   return candidate === undefined || candidate.length === 0 ? undefined : candidate;
@@ -70,6 +87,10 @@ export const API_BOUNDARY_CONFIG = {
   environment: deploymentEnvironment,
   firebaseProjectId: firebaseProjectId === '' ? undefined : firebaseProjectId,
   staffMfaMaximumAgeSeconds: readMfaMaximumAge(process.env['STAFF_MFA_MAX_AGE_SECONDS']),
+  recommendationEvidenceMode: readRecommendationEvidenceMode(
+    process.env['RECOMMENDATION_EVIDENCE_MODE'],
+    deploymentEnvironment,
+  ),
   databaseUrls: {
     farmer: optionalSecret(process.env['FARMER_DATABASE_URL']),
     rsk: optionalSecret(process.env['RSK_DATABASE_URL']),

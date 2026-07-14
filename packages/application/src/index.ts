@@ -1,6 +1,16 @@
 import { createHash, randomUUID } from 'node:crypto';
 
+import {
+  recommendCrops,
+  type AgronomyEvidence,
+  type CropProfile,
+  type RecommendationInput,
+} from '@smart-fasal/agronomy';
 import { canonicalize } from 'json-canonicalize';
+
+function cloneJson<T>(value: T): T {
+  return structuredClone(value);
+}
 
 export interface SemanticCommand {
   commandId: string;
@@ -1056,4 +1066,659 @@ export async function withdrawConsent(input: {
     await transaction.commitWithdrawal(commit);
     return commit;
   });
+}
+
+export interface RecommendationRunRequest {
+  schemaVersion: 'recommendation-request-v1';
+  planningSeasonKey: string;
+  planningSeasonVersion: string;
+  proposedStartWindow: {
+    kind: 'SOWING' | 'TRANSPLANTING';
+    earliestDate: string;
+    latestDate: string;
+    timezone: 'Asia/Kolkata';
+  };
+  cultivationMethod: 'TRADITIONAL' | 'ORGANIC' | 'MIXED' | 'UNKNOWN';
+  landAvailabilityWindow: { availableFrom: string; availableUntil: string };
+  confirmedAreaRef: { plotId: string; areaRevision: number };
+  farmerConstraintRefs: readonly string[];
+  planningContextRevision: number;
+}
+
+export interface RecommendationRunReceipt {
+  operationId: string;
+  state: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED_RETRYABLE' | 'FAILED_TERMINAL';
+  acceptedAt: string;
+  estimatedCompletionSeconds: number;
+}
+
+export interface RecommendationRunStatus {
+  operationId: string;
+  state: 'SUCCEEDED' | 'FAILED_TERMINAL';
+  recommendationId?: string;
+  problemCode?: string;
+  updatedAt: string;
+}
+
+export interface RecommendationAcceptanceInput {
+  commandId: string;
+  expectedRevision: number;
+  candidateId: string;
+  start: {
+    mode: 'PROPOSED' | 'ACTUAL';
+    kind: 'SOWING' | 'TRANSPLANTING';
+    date: string;
+    timezone: 'Asia/Kolkata';
+  };
+}
+
+export interface RecommendationAcceptanceReceipt {
+  commandId: string;
+  disposition: 'ACCEPTED' | 'ALREADY_ACCEPTED';
+  acceptanceId: string;
+  seasonId: string;
+  calendarId: string;
+  taskIds: readonly string[];
+  seasonState: 'PLANNED_AWAITING_START' | 'ACTIVE';
+  serverReceivedAt: string;
+}
+
+export interface SeasonCalendar {
+  seasonId: string;
+  calendarId: string;
+  generatedAt: string;
+  tasks: readonly {
+    taskId: string;
+    title: string;
+    dueDate: string;
+    state: 'PLANNED' | 'ACTIVE' | 'DONE' | 'CANNOT_DO';
+    source: 'RECOMMENDATION_ACCEPTANCE';
+  }[];
+}
+
+export interface RecommendationRecord {
+  recommendation: ReturnType<typeof recommendCrops>;
+  owner: FarmerSetupOwner;
+  plotId: string;
+}
+
+export interface RecommendationEvidencePackage {
+  readonly evidence: readonly AgronomyEvidence[];
+  readonly cropProfiles: readonly CropProfile[];
+  readonly ruleSetVersion: string;
+  readonly profileSetVersion: string;
+  readonly templateSetVersion: string;
+}
+
+export interface RecommendationEvidenceProvider {
+  buildPackage(input: {
+    readonly owner: FarmerSetupOwner;
+    readonly plotId: string;
+    readonly request: RecommendationRunRequest;
+    readonly generatedAt: string;
+    readonly id: () => string;
+  }): Promise<RecommendationEvidencePackage>;
+}
+
+export interface RecommendationRepository {
+  loadRun(
+    owner: FarmerSetupOwner,
+    operationId: string,
+  ): Promise<RecommendationRunStatus | undefined>;
+  saveRun(owner: FarmerSetupOwner, status: RecommendationRunStatus): Promise<void>;
+  loadRecommendation(
+    owner: FarmerSetupOwner,
+    recommendationId: string,
+  ): Promise<RecommendationRecord | undefined>;
+  saveRecommendation(record: RecommendationRecord): Promise<void>;
+  loadAcceptance(
+    owner: FarmerSetupOwner,
+    commandId: string,
+  ): Promise<RecommendationAcceptanceReceipt | undefined>;
+  saveAcceptance(owner: FarmerSetupOwner, receipt: RecommendationAcceptanceReceipt): Promise<void>;
+  loadCalendar(owner: FarmerSetupOwner, seasonId: string): Promise<SeasonCalendar | undefined>;
+  saveCalendar(owner: FarmerSetupOwner, calendar: SeasonCalendar): Promise<void>;
+}
+
+export class RecommendationRejectedError extends Error {
+  constructor(readonly code: 'AUTHORIZATION_DENIED' | 'INVALID_STATE_TRANSITION') {
+    super(code);
+    this.name = 'RecommendationRejectedError';
+  }
+}
+
+export class RecommendationService {
+  constructor(
+    private readonly setupRepository: FarmerSetupRepository,
+    private readonly recommendationRepository: RecommendationRepository,
+    private readonly now: () => Date = () => new Date(),
+    private readonly id: () => string = randomUUID,
+    private readonly evidenceProvider: RecommendationEvidenceProvider = new RecordedRaigadRecommendationEvidenceProvider(),
+  ) {}
+
+  async readiness(owner: FarmerSetupOwner, plotId: string) {
+    await this.assertPlotOwned(owner, plotId);
+    return {
+      plotId,
+      generatedAt: this.now().toISOString(),
+      planningContextRevision: 1,
+      groups: {
+        ready: [
+          { key: 'plot_context', label: 'Plot and area are confirmed', state: 'CONFIRMED' },
+          { key: 'water_context', label: 'Water context is available', state: 'CONFIRMED' },
+          { key: 'soil_context', label: 'Soil record is available', state: 'CONFIRMED' },
+        ],
+        needsAttention: [],
+        optionalImprovements: [
+          { key: 'hardware', label: 'Hardware evidence is optional', state: 'NOT_APPLICABLE' },
+        ],
+      },
+    };
+  }
+
+  async createRun(input: {
+    owner: FarmerSetupOwner;
+    operationId: string;
+    plotId: string;
+    request: RecommendationRunRequest;
+  }): Promise<RecommendationRunReceipt> {
+    await this.assertPlotOwned(input.owner, input.plotId);
+    const existing = await this.recommendationRepository.loadRun(input.owner, input.operationId);
+    const acceptedAt = this.now().toISOString();
+    if (existing !== undefined) {
+      return {
+        operationId: input.operationId,
+        state: existing.state,
+        acceptedAt,
+        estimatedCompletionSeconds: 1,
+      };
+    }
+    const recommendationId = this.id();
+    const evidencePackage = await this.evidenceProvider.buildPackage({
+      owner: input.owner,
+      plotId: input.plotId,
+      request: input.request,
+      generatedAt: acceptedAt,
+      id: this.id,
+    });
+    const recommendation = recommendCrops(
+      recommendationEngineInput({
+        recommendationId,
+        plotId: input.plotId,
+        request: input.request,
+        generatedAt: acceptedAt,
+        evidencePackage,
+      }),
+    );
+    await this.recommendationRepository.saveRecommendation({
+      recommendation,
+      owner: input.owner,
+      plotId: input.plotId,
+    });
+    await this.recommendationRepository.saveRun(input.owner, {
+      operationId: input.operationId,
+      state: 'SUCCEEDED',
+      recommendationId,
+      updatedAt: acceptedAt,
+    });
+    return {
+      operationId: input.operationId,
+      state: 'SUCCEEDED',
+      acceptedAt,
+      estimatedCompletionSeconds: 1,
+    };
+  }
+
+  async runStatus(owner: FarmerSetupOwner, operationId: string): Promise<RecommendationRunStatus> {
+    const existing = await this.recommendationRepository.loadRun(owner, operationId);
+    return (
+      existing ?? {
+        operationId,
+        state: 'FAILED_TERMINAL',
+        problemCode: 'DEPENDENCY_UNAVAILABLE',
+        updatedAt: this.now().toISOString(),
+      }
+    );
+  }
+
+  async recommendation(owner: FarmerSetupOwner, recommendationId: string) {
+    const record = await this.recommendationRepository.loadRecommendation(owner, recommendationId);
+    if (record === undefined) throw new RecommendationRejectedError('AUTHORIZATION_DENIED');
+    return record.recommendation;
+  }
+
+  async requestReview(input: {
+    owner: FarmerSetupOwner;
+    recommendationId: string;
+    commandId: string;
+    expectedRevision: number;
+  }): Promise<SafeCommandReceipt> {
+    await this.recommendation(input.owner, input.recommendationId);
+    return {
+      commandId: input.commandId,
+      disposition: 'ACCEPTED',
+      result: {
+        type: 'rskWorkItem',
+        id: input.recommendationId,
+        revision: input.expectedRevision + 1,
+      },
+      eventIds: [this.id()],
+      serverReceivedAt: this.now().toISOString(),
+    };
+  }
+
+  async accept(input: {
+    owner: FarmerSetupOwner;
+    recommendationId: string;
+    request: RecommendationAcceptanceInput;
+  }): Promise<RecommendationAcceptanceReceipt> {
+    const replay = await this.recommendationRepository.loadAcceptance(
+      input.owner,
+      input.request.commandId,
+    );
+    if (replay !== undefined) return { ...replay, disposition: 'ALREADY_ACCEPTED' };
+
+    const record = await this.recommendationRepository.loadRecommendation(
+      input.owner,
+      input.recommendationId,
+    );
+    if (record?.recommendation.state !== 'READY') {
+      throw new RecommendationRejectedError('INVALID_STATE_TRANSITION');
+    }
+    const candidate = record.recommendation.candidates.find(
+      (item) => item.candidateId === input.request.candidateId,
+    );
+    if (candidate === undefined) throw new RecommendationRejectedError('INVALID_STATE_TRANSITION');
+
+    const acceptanceId = this.id();
+    const seasonId = this.id();
+    const calendarId = this.id();
+    const taskIds = [this.id(), this.id(), this.id()];
+    const seasonState = input.request.start.mode === 'ACTUAL' ? 'ACTIVE' : 'PLANNED_AWAITING_START';
+    const calendar: SeasonCalendar = {
+      seasonId,
+      calendarId,
+      generatedAt: this.now().toISOString(),
+      tasks: [
+        {
+          taskId: taskIds[0] ?? this.id(),
+          title: `Prepare field for ${candidate.cropName}`,
+          dueDate: input.request.start.date,
+          state: seasonState === 'ACTIVE' ? 'ACTIVE' : 'PLANNED',
+          source: 'RECOMMENDATION_ACCEPTANCE',
+        },
+        {
+          taskId: taskIds[1] ?? this.id(),
+          title: 'Check water availability before sowing',
+          dueDate: input.request.start.date,
+          state: 'PLANNED',
+          source: 'RECOMMENDATION_ACCEPTANCE',
+        },
+        {
+          taskId: taskIds[2] ?? this.id(),
+          title: 'Record first field observation',
+          dueDate: input.request.start.date,
+          state: 'PLANNED',
+          source: 'RECOMMENDATION_ACCEPTANCE',
+        },
+      ],
+    };
+    const receipt: RecommendationAcceptanceReceipt = {
+      commandId: input.request.commandId,
+      disposition: 'ACCEPTED',
+      acceptanceId,
+      seasonId,
+      calendarId,
+      taskIds,
+      seasonState,
+      serverReceivedAt: this.now().toISOString(),
+    };
+    await this.recommendationRepository.saveAcceptance(input.owner, receipt);
+    await this.recommendationRepository.saveCalendar(input.owner, calendar);
+    return receipt;
+  }
+
+  async confirmSeasonStart(input: {
+    owner: FarmerSetupOwner;
+    seasonId: string;
+    commandId: string;
+    expectedRevision: number;
+  }): Promise<SafeCommandReceipt> {
+    const calendar = await this.recommendationRepository.loadCalendar(input.owner, input.seasonId);
+    if (calendar === undefined) throw new RecommendationRejectedError('AUTHORIZATION_DENIED');
+    return {
+      commandId: input.commandId,
+      disposition: 'ACCEPTED',
+      result: { type: 'season', id: input.seasonId, revision: input.expectedRevision + 1 },
+      eventIds: [this.id()],
+      serverReceivedAt: this.now().toISOString(),
+    };
+  }
+
+  async calendar(owner: FarmerSetupOwner, seasonId: string): Promise<SeasonCalendar> {
+    const calendar = await this.recommendationRepository.loadCalendar(owner, seasonId);
+    if (calendar === undefined) throw new RecommendationRejectedError('AUTHORIZATION_DENIED');
+    return calendar;
+  }
+
+  private async assertPlotOwned(owner: FarmerSetupOwner, plotId: string): Promise<void> {
+    const record = await this.setupRepository.load(owner);
+    const ownsPlot = record?.draft?.farms.some((farm) =>
+      farm.plots.some((plot) => plot.plotId === plotId),
+    );
+    if (!ownsPlot) throw new RecommendationRejectedError('AUTHORIZATION_DENIED');
+  }
+}
+
+export class InMemoryRecommendationRepository implements RecommendationRepository {
+  readonly #runs = new Map<string, RecommendationRunStatus>();
+  readonly #recommendations = new Map<string, RecommendationRecord>();
+  readonly #acceptances = new Map<string, RecommendationAcceptanceReceipt>();
+  readonly #calendars = new Map<string, SeasonCalendar>();
+
+  async loadRun(owner: FarmerSetupOwner, operationId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#runs.get(key(owner, operationId)));
+  }
+
+  async saveRun(owner: FarmerSetupOwner, status: RecommendationRunStatus) {
+    await Promise.resolve();
+    this.#runs.set(key(owner, status.operationId), cloneJson(status));
+  }
+
+  async loadRecommendation(owner: FarmerSetupOwner, recommendationId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#recommendations.get(key(owner, recommendationId)));
+  }
+
+  async saveRecommendation(record: RecommendationRecord) {
+    await Promise.resolve();
+    this.#recommendations.set(
+      key(record.owner, record.recommendation.recommendationId),
+      cloneJson(record),
+    );
+  }
+
+  async loadAcceptance(owner: FarmerSetupOwner, commandId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#acceptances.get(key(owner, commandId)));
+  }
+
+  async saveAcceptance(owner: FarmerSetupOwner, receipt: RecommendationAcceptanceReceipt) {
+    await Promise.resolve();
+    this.#acceptances.set(key(owner, receipt.commandId), cloneJson(receipt));
+  }
+
+  async loadCalendar(owner: FarmerSetupOwner, seasonId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#calendars.get(key(owner, seasonId)));
+  }
+
+  async saveCalendar(owner: FarmerSetupOwner, calendar: SeasonCalendar) {
+    await Promise.resolve();
+    this.#calendars.set(key(owner, calendar.seasonId), cloneJson(calendar));
+  }
+}
+
+function key(owner: FarmerSetupOwner, id: string): string {
+  return `${owner.environment}:${owner.subjectId}:${id}`;
+}
+
+function recommendationEngineInput(input: {
+  recommendationId: string;
+  plotId: string;
+  request: RecommendationRunRequest;
+  generatedAt: string;
+  evidencePackage: RecommendationEvidencePackage;
+}): RecommendationInput {
+  return {
+    recommendationId: input.recommendationId,
+    plotId: input.plotId,
+    planningSeasonKey: input.request.planningSeasonKey,
+    cultivationMethod: input.request.cultivationMethod,
+    generatedAt: input.generatedAt,
+    expiresAt: new Date(Date.parse(input.generatedAt) + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    ruleSetVersion: input.evidencePackage.ruleSetVersion,
+    profileSetVersion: input.evidencePackage.profileSetVersion,
+    templateSetVersion: input.evidencePackage.templateSetVersion,
+    evidence: input.evidencePackage.evidence,
+    cropProfiles: input.evidencePackage.cropProfiles,
+  };
+}
+
+export class RecordedRaigadRecommendationEvidenceProvider implements RecommendationEvidenceProvider {
+  async buildPackage(input: {
+    readonly request: RecommendationRunRequest;
+    readonly id: () => string;
+  }): Promise<RecommendationEvidencePackage> {
+    await Promise.resolve();
+    return {
+      ruleSetVersion: 'raigad-recommendation-rules-v1',
+      profileSetVersion: 'raigad-crop-profiles-v1-proposed',
+      templateSetVersion: 'raigad-calendar-template-v1',
+      evidence: [
+        {
+          evidenceId: input.id(),
+          metricKey: 'soil.ph',
+          state: 'KNOWN',
+          dataMode: 'SIMULATED',
+          quality: 'TRUSTED',
+          freshness: 'CURRENT',
+          sourceName: 'raigad-recommendation-m5-v1 soil',
+          decisionEligible: true,
+          rights: 'MODEL_INPUT_ALLOWED',
+        },
+        {
+          evidenceId: input.id(),
+          metricKey: 'water.availability',
+          state: 'KNOWN',
+          dataMode: 'SIMULATED',
+          quality: 'TRUSTED',
+          freshness: 'CURRENT',
+          sourceName: 'raigad-recommendation-m5-v1 water',
+          decisionEligible: true,
+          rights: 'MODEL_INPUT_ALLOWED',
+        },
+        {
+          evidenceId: input.id(),
+          metricKey: 'weather.decision_rainfall',
+          state: 'KNOWN',
+          dataMode: 'SIMULATED',
+          quality: 'USE_WITH_CAUTION',
+          freshness: 'CURRENT',
+          sourceName: 'raigad-recommendation-m5-v1 retained weather',
+          decisionEligible: true,
+          rights: 'MODEL_INPUT_ALLOWED',
+        },
+      ],
+      cropProfiles: [
+        {
+          cropProfileId: 'raigad-rice-kharif-v1',
+          cropName: 'Rice',
+          supportedSeasonKeys: [input.request.planningSeasonKey],
+          supportedMethods: [input.request.cultivationMethod],
+          durationDays: 120,
+          waterNeed: 'HIGH',
+          regionalValidationScore: 82,
+          componentScores: {
+            soil: 82,
+            water: 88,
+            weather: 90,
+            season: 92,
+            satellite: 76,
+            local: 82,
+          },
+          reasons: [
+            'Fits the Raigad kharif window.',
+            'Water context supports paddy on this Plot.',
+            'Soil context is within the proposed profile range.',
+          ],
+          risks: ['If monsoon breaks, confirm water before transplanting.'],
+        },
+        {
+          cropProfileId: 'raigad-groundnut-kharif-v1',
+          cropName: 'Groundnut',
+          supportedSeasonKeys: [input.request.planningSeasonKey],
+          supportedMethods: [input.request.cultivationMethod],
+          durationDays: 105,
+          waterNeed: 'MEDIUM',
+          regionalValidationScore: 74,
+          componentScores: {
+            soil: 78,
+            water: 72,
+            weather: 76,
+            season: 80,
+            satellite: 78,
+            local: 76,
+          },
+          reasons: [
+            'Moderate water demand.',
+            'Duration fits the declared land availability window.',
+          ],
+          risks: ['Heavy rainfall can increase disease risk.'],
+        },
+        {
+          cropProfileId: 'raigad-tur-kharif-v1',
+          cropName: 'Tur',
+          supportedSeasonKeys: [input.request.planningSeasonKey],
+          supportedMethods: [input.request.cultivationMethod],
+          durationDays: 165,
+          waterNeed: 'LOW',
+          regionalValidationScore: 68,
+          componentScores: {
+            soil: 72,
+            water: 80,
+            weather: 70,
+            season: 74,
+            satellite: 70,
+            local: 68,
+          },
+          reasons: ['Lower water demand.', 'Useful fallback if water becomes uncertain.'],
+          risks: ['Longer duration than the top crop.'],
+        },
+      ],
+    };
+  }
+}
+
+export class LiveUnavailableRecommendationEvidenceProvider implements RecommendationEvidenceProvider {
+  async buildPackage(input: { readonly id: () => string }): Promise<RecommendationEvidencePackage> {
+    await Promise.resolve();
+    return {
+      ruleSetVersion: 'raigad-recommendation-rules-v1',
+      profileSetVersion: 'raigad-crop-profiles-v1-proposed',
+      templateSetVersion: 'raigad-calendar-template-v1',
+      evidence: ['soil.live', 'water.live', 'weather.live', 'earth.live'].map((metricKey) => ({
+        evidenceId: input.id(),
+        metricKey,
+        state: 'MISSING',
+        dataMode: 'LIVE',
+        quality: 'DO_NOT_USE',
+        freshness: 'UNAVAILABLE',
+        sourceName: `${metricKey} provider unavailable`,
+        decisionEligible: false,
+        rights: 'MODEL_INPUT_ALLOWED',
+      })),
+      cropProfiles: [],
+    };
+  }
+}
+
+export interface LiveHttpRecommendationProviderEndpoint {
+  readonly name: 'soil' | 'water' | 'weather' | 'earth';
+  readonly url: string;
+  readonly authorizationHeader?: string;
+}
+
+export interface LiveHttpRecommendationEvidenceProviderOptions {
+  readonly endpoints: readonly LiveHttpRecommendationProviderEndpoint[];
+  readonly timeoutMilliseconds?: number;
+  readonly fetch?: typeof fetch;
+}
+
+export class LiveHttpRecommendationEvidenceProvider implements RecommendationEvidenceProvider {
+  readonly #endpoints: readonly LiveHttpRecommendationProviderEndpoint[];
+  readonly #fetch: typeof fetch;
+  readonly #timeoutMilliseconds: number;
+  readonly #unavailable = new LiveUnavailableRecommendationEvidenceProvider();
+
+  constructor(options: LiveHttpRecommendationEvidenceProviderOptions) {
+    this.#endpoints = options.endpoints;
+    this.#fetch = options.fetch ?? fetch;
+    this.#timeoutMilliseconds = options.timeoutMilliseconds ?? 2_500;
+  }
+
+  async buildPackage(input: {
+    readonly owner: FarmerSetupOwner;
+    readonly plotId: string;
+    readonly request: RecommendationRunRequest;
+    readonly generatedAt: string;
+    readonly id: () => string;
+  }): Promise<RecommendationEvidencePackage> {
+    if (this.#endpoints.length === 0) {
+      return await this.#unavailable.buildPackage(input);
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, this.#timeoutMilliseconds);
+    try {
+      const responses = await Promise.all(
+        this.#endpoints.map(async (endpoint) => {
+          const response = await this.#fetch(endpoint.url, {
+            body: JSON.stringify({
+              environment: input.owner.environment,
+              generatedAt: input.generatedAt,
+              planningSeasonKey: input.request.planningSeasonKey,
+              plotId: input.plotId,
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+              ...(endpoint.authorizationHeader === undefined
+                ? {}
+                : { Authorization: endpoint.authorizationHeader }),
+            },
+            method: 'POST',
+            signal: controller.signal,
+          });
+          if (!response.ok) throw new Error(`RECOMMENDATION_PROVIDER_${endpoint.name}_FAILED`);
+          return await response.json();
+        }),
+      );
+      const merged = mergeProviderEvidencePackages(responses);
+      return merged ?? (await this.#unavailable.buildPackage(input));
+    } catch {
+      return await this.#unavailable.buildPackage(input);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+function mergeProviderEvidencePackages(
+  responses: readonly unknown[],
+): RecommendationEvidencePackage | undefined {
+  const packages = responses.flatMap((response) => {
+    if (typeof response !== 'object' || response === null || Array.isArray(response)) return [];
+    const candidate = response as Partial<RecommendationEvidencePackage>;
+    if (
+      typeof candidate.ruleSetVersion !== 'string' ||
+      typeof candidate.profileSetVersion !== 'string' ||
+      typeof candidate.templateSetVersion !== 'string' ||
+      !Array.isArray(candidate.evidence) ||
+      !Array.isArray(candidate.cropProfiles)
+    ) {
+      return [];
+    }
+    return [candidate as RecommendationEvidencePackage];
+  });
+  const first = packages[0];
+  if (first === undefined) return undefined;
+  return {
+    ruleSetVersion: first.ruleSetVersion,
+    profileSetVersion: first.profileSetVersion,
+    templateSetVersion: first.templateSetVersion,
+    evidence: packages.flatMap((item) => item.evidence),
+    cropProfiles: first.cropProfiles,
+  };
 }

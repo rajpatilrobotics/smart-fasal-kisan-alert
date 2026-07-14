@@ -30,6 +30,7 @@ interface VoiceCopy {
   readonly title: string;
   readonly transportHelp: string;
   readonly transportNeedsClarification: string;
+  readonly transportRecommendationResult: string;
   readonly typePlaceholder: string;
   readonly voiceActionUnavailable: string;
 }
@@ -63,6 +64,7 @@ const VOICE_COPY = {
     transportHelp: 'Help is shown below. No farm result or action was created.',
     transportNeedsClarification:
       'More detail would be needed, but this milestone has no owned Farmer tool for this action.',
+    transportRecommendationResult: 'Recommendation result is ready.',
     typePlaceholder: 'For example: What can I do on this screen?',
     voiceActionUnavailable: 'Voice unavailable for this action — use touch or text.',
   },
@@ -94,6 +96,7 @@ const VOICE_COPY = {
     transportHelp: 'मदद नीचे दिखाई गई है। खेत का कोई परिणाम या कार्रवाई नहीं बनी।',
     transportNeedsClarification:
       'और जानकारी चाहिए, लेकिन इस माइलस्टोन में इस कार्रवाई का किसान टूल उपलब्ध नहीं है।',
+    transportRecommendationResult: 'फसल सिफ़ारिश परिणाम तैयार है।',
     typePlaceholder: 'उदाहरण: मैं इस स्क्रीन पर क्या कर सकता हूँ?',
     voiceActionUnavailable:
       'इस कार्रवाई के लिए आवाज़ उपलब्ध नहीं है — स्पर्श या टेक्स्ट का उपयोग करें।',
@@ -126,6 +129,7 @@ const VOICE_COPY = {
     transportHelp: 'मदत खाली दाखवली आहे. शेताचा कोणताही निकाल किंवा कृती तयार झाली नाही.',
     transportNeedsClarification:
       'अधिक तपशील आवश्यक आहे, पण या टप्प्यात या कृतीसाठी शेतकरी टूल उपलब्ध नाही.',
+    transportRecommendationResult: 'पीक शिफारस निकाल तयार आहे.',
     typePlaceholder: 'उदाहरण: या स्क्रीनवर मी काय करू शकतो?',
     voiceActionUnavailable: 'या कृतीसाठी आवाज उपलब्ध नाही — स्पर्श किंवा मजकूर वापरा.',
   },
@@ -150,6 +154,7 @@ type ShellStatus =
   | 'needs-clarification'
   | 'offline'
   | 'provider-unavailable'
+  | 'recommendation-result'
   | 'sending';
 
 function useOnlineStatus(): boolean {
@@ -174,6 +179,7 @@ function statusMessage(copy: VoiceCopy, status: ShellStatus): string | null {
   if (status === 'needs-clarification') return copy.transportNeedsClarification;
   if (status === 'offline') return copy.offline;
   if (status === 'provider-unavailable') return copy.providerUnavailable;
+  if (status === 'recommendation-result') return copy.transportRecommendationResult;
   return null;
 }
 
@@ -195,6 +201,9 @@ export function FarmerNavigation({
   const [helpVisible, setHelpVisible] = useState(false);
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState('');
+  const [recommendationResult, setRecommendationResult] = useState<
+    Extract<FarmerVoiceTextOutcome, { kind: 'recommendation-result' }> | undefined
+  >();
   const [status, setStatus] = useState<ShellStatus>('idle');
 
   const close = useCallback(() => {
@@ -203,6 +212,7 @@ export function FarmerNavigation({
     setOpen(false);
     setHelpVisible(false);
     setQuestion('');
+    setRecommendationResult(undefined);
     setStatus('idle');
     queueMicrotask(() => openRef.current?.focus());
   }, []);
@@ -267,6 +277,7 @@ export function FarmerNavigation({
     requestRef.current?.abort();
     const controller = new AbortController();
     requestRef.current = controller;
+    setRecommendationResult(undefined);
     setStatus('sending');
     try {
       const result = await submitText(text, controller.signal);
@@ -276,6 +287,9 @@ export function FarmerNavigation({
         setStatus('help');
       } else if (result.kind === 'needs-clarification') {
         setStatus('needs-clarification');
+      } else if (result.kind === 'recommendation-result') {
+        setRecommendationResult(result);
+        setStatus('recommendation-result');
       } else {
         setStatus('provider-unavailable');
       }
@@ -410,6 +424,25 @@ export function FarmerNavigation({
               <p aria-live="polite" className="voice-status">
                 {visibleStatus}
               </p>
+            ) : null}
+            {recommendationResult ? (
+              <article className="voice-result-card">
+                <h3>{copy.transportRecommendationResult}</h3>
+                <p>{recommendationResult.summary}</p>
+                <dl>
+                  <div>
+                    <dt>Mode</dt>
+                    <dd>{recommendationResult.dataMode}</dd>
+                  </div>
+                  <div>
+                    <dt>Freshness</dt>
+                    <dd>{recommendationResult.sourceGeneratedAt}</dd>
+                  </div>
+                </dl>
+                <Link className="primary-link" href={recommendationResult.openDetailsRoute}>
+                  Open details
+                </Link>
+              </article>
             ) : null}
             {helpVisible ? <p className="voice-help">{copy.helpBody}</p> : null}
           </section>

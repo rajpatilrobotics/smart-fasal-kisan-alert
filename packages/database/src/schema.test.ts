@@ -186,6 +186,56 @@ describe('foundation migration', () => {
     );
   });
 
+  it('adds the Milestone 5 recommendation, decision evidence and calendar tables', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0007_milestone_5_recommendation_calendar.sql'),
+      'utf8',
+    );
+    for (const relation of [
+      'agronomy.crop_profile_version',
+      'agronomy.rule_set_version',
+      'agronomy.evidence_snapshot',
+      'agronomy.recommendation_request',
+      'agronomy.recommendation_result',
+      'agronomy.recommendation_candidate',
+      'agronomy.recommendation_acceptance',
+      'agronomy.farm_season',
+      'workflow.calendar',
+      'workflow.task',
+      'workflow.rsk_work_item',
+      'workflow.work_recommendation_link',
+    ]) {
+      expect(migration).toContain(`create table ${relation}`);
+    }
+    expect(migration).toContain('evidence.decision_weather_edition');
+    expect(migration).toContain('SOURCE_RIGHTS_OR_VERSION_INVALID');
+    expect(migration).toContain('force row level security');
+    expect(migration).toContain("freshness <> 'UNAVAILABLE'");
+    expect(migration).toContain("source = 'RECOMMENDATION_ACCEPTANCE'");
+  });
+
+  it('adds persistent Milestone 5 JSON payload columns in a follow-up migration', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0008_milestone_5_persistent_payloads.sql'),
+      'utf8',
+    );
+    expect(migration).toContain('alter table agronomy.recommendation_request');
+    expect(migration).toContain('status_payload jsonb');
+    expect(migration).toContain('alter table agronomy.recommendation_result');
+    expect(migration).toContain('result_payload jsonb');
+    expect(migration).toContain('alter table workflow.calendar');
+    expect(migration).toContain('calendar_payload jsonb');
+  });
+
+  it('seeds a synthetic Milestone 5 Raigad recommendation demo without private data', async () => {
+    const seed = await readFile(resolve(import.meta.dirname, './seed-synthetic.ts'), 'utf8');
+    expect(seed).toContain('synthetic-milestone-5-raigad-recommendation');
+    expect(seed).toContain('RECORDED');
+    expect(seed).toContain('recommendation_result');
+    expect(seed).toContain('workflow.calendar');
+    expect(seed).toContain('containsPersonalData: false');
+  });
+
   it('exposes the typed foundation schema', () => {
     expect(seedRuns.profile.name).toBe('profile');
     expect(schemaCompatibility.schemaVersion.name).toBe('schema_version');

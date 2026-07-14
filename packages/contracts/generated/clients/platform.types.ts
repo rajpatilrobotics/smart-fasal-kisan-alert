@@ -384,6 +384,38 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/v1/farmer/plots/{plotId}/recommendation-readiness": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerRecommendationReadiness"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/plots/{plotId}/recommendation-runs": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["createFarmerRecommendationRun"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/v1/farmer/plots/{plotId}/soil-records": {
         readonly parameters: {
             readonly query?: never;
@@ -414,6 +446,102 @@ export interface paths {
         readonly options?: never;
         readonly head?: never;
         readonly patch: operations["updateFarmerPreferences"];
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/recommendation-runs/{operationId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerRecommendationRun"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/recommendations/{recommendationId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerRecommendation"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/recommendations/{recommendationId}/acceptances": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["acceptFarmerRecommendation"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/recommendations/{recommendationId}/review-requests": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["createFarmerRecommendationReviewRequest"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/seasons/{seasonId}/calendar": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerSeasonCalendar"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/seasons/{seasonId}/start-confirmations": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["confirmFarmerSeasonStart"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
         readonly trace?: never;
     };
     readonly "/v1/farmer/setup-drafts": {
@@ -892,7 +1020,7 @@ export interface components {
         };
         readonly AuthorizationContext: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read")[];
             readonly capabilitySetVersion: number;
             /** @enum {string} */
             readonly environment: "local" | "preview" | "staging" | "demo" | "production";
@@ -1364,7 +1492,7 @@ export interface components {
         };
         readonly FarmerBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read")[];
             /** @enum {string} */
             readonly deviceMode: "PERSONAL" | "TRUSTED_FAMILY" | "RSK_ASSISTED";
             /** @enum {string} */
@@ -2010,7 +2138,7 @@ export interface components {
         };
         readonly ProblemDetails: {
             /** @enum {string} */
-            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED";
+            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION";
             /** Format: uuid */
             readonly correlationId: string;
             readonly detail?: string;
@@ -2053,6 +2181,191 @@ export interface components {
             readonly landmark?: string;
             readonly taluka: string;
             readonly village: string;
+        };
+        readonly RecommendationAcceptanceRequest: {
+            /** Format: uuid */
+            readonly candidateId: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly expectedRevision: number;
+            readonly start: {
+                /** Format: date */
+                readonly date: string;
+                /** @enum {string} */
+                readonly kind: "SOWING" | "TRANSPLANTING";
+                /** @enum {string} */
+                readonly mode: "PROPOSED" | "ACTUAL";
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+        };
+        readonly RecommendationAcceptanceResponse: {
+            /** Format: uuid */
+            readonly acceptanceId: string;
+            /** Format: uuid */
+            readonly calendarId: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @enum {string} */
+            readonly disposition: "ACCEPTED" | "ALREADY_ACCEPTED";
+            /** Format: uuid */
+            readonly seasonId: string;
+            /** @enum {string} */
+            readonly seasonState: "PLANNED_AWAITING_START" | "ACTIVE";
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            readonly taskIds: readonly string[];
+        };
+        readonly RecommendationCandidate: {
+            /** Format: uuid */
+            readonly candidateId: string;
+            readonly confidenceScore: number;
+            readonly cropName: string;
+            readonly cropProfileId: string;
+            readonly durationDays: number;
+            readonly evidenceRefs: readonly components["schemas"]["RecommendationEvidenceRef"][];
+            readonly rank: number;
+            readonly reasons: readonly string[];
+            readonly risks: readonly string[];
+            readonly seasonFitScore: number;
+            readonly suitabilityScore: number;
+            readonly warnings: readonly string[];
+            readonly waterSafetyScore: number;
+        };
+        readonly RecommendationEvidenceRef: {
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly evidenceId: string;
+            /** @enum {string} */
+            readonly freshness: "CURRENT" | "DATA_IS_OLD" | "NO_RECENT_DATA" | "UNAVAILABLE";
+            readonly metricKey: string;
+            /** @enum {string} */
+            readonly quality: "TRUSTED" | "USE_WITH_CAUTION" | "TREND_ONLY" | "DO_NOT_USE";
+            readonly sourceName: string;
+        };
+        readonly RecommendationGateResult: {
+            readonly cropProfileId: string;
+            readonly gateKey: string;
+            /** @enum {string} */
+            readonly outcome: "PASS" | "FAIL" | "UNKNOWN_BLOCKING" | "NOT_APPLICABLE";
+            readonly reason: string;
+        };
+        readonly RecommendationReadinessResponse: {
+            /** Format: date-time */
+            readonly generatedAt: string;
+            readonly groups: {
+                readonly needsAttention: readonly {
+                    readonly action: string;
+                    readonly key: string;
+                    readonly label: string;
+                    /** @enum {string} */
+                    readonly state: "CONFIRMED" | "UNKNOWN" | "NEEDS_REVIEW" | "STALE" | "PROXY" | "NOT_APPLICABLE";
+                }[];
+                readonly optionalImprovements: readonly {
+                    readonly key: string;
+                    readonly label: string;
+                    /** @enum {string} */
+                    readonly state: "CONFIRMED" | "UNKNOWN" | "NEEDS_REVIEW" | "STALE" | "PROXY" | "NOT_APPLICABLE";
+                }[];
+                readonly ready: readonly {
+                    readonly key: string;
+                    readonly label: string;
+                    /** @enum {string} */
+                    readonly state: "CONFIRMED" | "UNKNOWN" | "NEEDS_REVIEW" | "STALE" | "PROXY" | "NOT_APPLICABLE";
+                }[];
+            };
+            readonly planningContextRevision: number;
+            /** Format: uuid */
+            readonly plotId: string;
+        };
+        readonly RecommendationRequest: {
+            readonly confirmedAreaRef: {
+                readonly areaRevision: number;
+                /** Format: uuid */
+                readonly plotId: string;
+            };
+            /** @enum {string} */
+            readonly cultivationMethod: "TRADITIONAL" | "ORGANIC" | "MIXED" | "UNKNOWN";
+            readonly farmerConstraintRefs: readonly string[];
+            readonly landAvailabilityWindow: {
+                /** Format: date */
+                readonly availableFrom: string;
+                /** Format: date */
+                readonly availableUntil: string;
+            };
+            readonly planningContextRevision: number;
+            readonly planningSeasonKey: string;
+            readonly planningSeasonVersion: string;
+            readonly proposedStartWindow: {
+                /** Format: date */
+                readonly earliestDate: string;
+                /** @enum {string} */
+                readonly kind: "SOWING" | "TRANSPLANTING";
+                /** Format: date */
+                readonly latestDate: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            /** @constant */
+            readonly schemaVersion: "recommendation-request-v1";
+        };
+        readonly RecommendationResultResponse: {
+            readonly blockers: readonly string[];
+            readonly candidates: readonly components["schemas"]["RecommendationCandidate"][];
+            readonly comparisonRows: readonly {
+                readonly key: string;
+                readonly label: string;
+                readonly values: {
+                    readonly [key: string]: string;
+                };
+            }[];
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            readonly etagRevision: number;
+            readonly excluded: readonly components["schemas"]["RecommendationGateResult"][];
+            /** Format: date-time */
+            readonly expiresAt: string;
+            /** Format: date-time */
+            readonly generatedAt: string;
+            readonly modeExplanation: string;
+            /** Format: uuid */
+            readonly plotId: string;
+            readonly profileSetVersion: string;
+            /** Format: uuid */
+            readonly recommendationId: string;
+            readonly resultVersion: number;
+            readonly ruleSetVersion: string;
+            readonly snapshotChecksum: string;
+            /** @enum {string} */
+            readonly state: "READY" | "NEEDS_INPUT" | "NO_SAFE_RESULT" | "FAILED";
+            readonly templateSetVersion: string;
+        };
+        readonly RecommendationReviewRequest: {
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly expectedRevision: number;
+            readonly reason: string;
+        };
+        readonly RecommendationRunAcceptedResponse: {
+            /** Format: date-time */
+            readonly acceptedAt: string;
+            readonly estimatedCompletionSeconds: number;
+            /** Format: uuid */
+            readonly operationId: string;
+            /** @enum {string} */
+            readonly state: "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED_RETRYABLE" | "FAILED_TERMINAL" | "CANCELLED" | "EXPIRED";
+        };
+        readonly RecommendationRunStatusResponse: {
+            /** Format: uuid */
+            readonly operationId: string;
+            readonly problemCode?: string;
+            /** Format: uuid */
+            readonly recommendationId?: string;
+            /** @enum {string} */
+            readonly state: "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED_RETRYABLE" | "FAILED_TERMINAL" | "CANCELLED" | "EXPIRED";
+            /** Format: date-time */
+            readonly updatedAt: string;
         };
         readonly RecordConsentDecisionCommand: {
             readonly clientContext: {
@@ -2109,7 +2422,7 @@ export interface components {
         };
         readonly RskBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read")[];
             /** Format: uuid */
             readonly jurisdictionId: string;
             /** Format: uuid */
@@ -2174,6 +2487,34 @@ export interface components {
             readonly scanRequestVersion: 1;
             /** Format: uuid */
             readonly storageEventId: string;
+        };
+        readonly SeasonCalendarResponse: {
+            /** Format: uuid */
+            readonly calendarId: string;
+            /** Format: date-time */
+            readonly generatedAt: string;
+            /** Format: uuid */
+            readonly seasonId: string;
+            readonly tasks: readonly {
+                /** Format: date */
+                readonly dueDate: string;
+                /** @constant */
+                readonly source: "RECOMMENDATION_ACCEPTANCE";
+                /** @enum {string} */
+                readonly state: "PLANNED" | "ACTIVE" | "DONE" | "CANNOT_DO";
+                /** Format: uuid */
+                readonly taskId: string;
+                readonly title: string;
+            }[];
+        };
+        readonly SeasonStartConfirmationRequest: {
+            /** Format: date */
+            readonly actualStartDate: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly timezone: "Asia/Kolkata";
         };
         readonly SelectRoleContextCommand: {
             readonly clientContext: {
@@ -2403,7 +2744,7 @@ export interface components {
             /** @constant */
             readonly disposition: "REJECTED";
             /** @enum {string} */
-            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED";
+            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION";
             readonly serverEventIds: readonly string[];
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -2419,7 +2760,7 @@ export interface components {
             /** @constant */
             readonly disposition: "CONFLICT";
             /** @enum {string} */
-            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED";
+            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION";
             readonly serverEventIds: readonly string[];
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -2843,11 +3184,23 @@ export interface components {
             readonly messageKey: string;
             /** Format: uuid */
             readonly proposalId?: string;
+            readonly result?: {
+                /** @enum {string} */
+                readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly openDetailsRoute: string;
+                /** Format: uuid */
+                readonly recommendationId: string;
+                /** @constant */
+                readonly resultType: "RECOMMENDATION_READ";
+                /** Format: date-time */
+                readonly sourceGeneratedAt: string;
+                readonly summary: string;
+            };
             readonly serverSequence: number;
             /** Format: uuid */
             readonly sessionId: string;
             /** @enum {string} */
-            readonly state: "HELP" | "UNAVAILABLE" | "NEEDS_CLARIFICATION" | "PROPOSAL_PENDING";
+            readonly state: "HELP" | "UNAVAILABLE" | "NEEDS_CLARIFICATION" | "PROPOSAL_PENDING" | "RESULT_READY";
             /** Format: uuid */
             readonly turnId: string;
         };
@@ -4906,6 +5259,184 @@ export interface operations {
             };
         };
     };
+    readonly getFarmerRecommendationReadiness: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly plotId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["RecommendationReadinessResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly createFarmerRecommendationRun: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly plotId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["RecommendationRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Accepted */
+            readonly 202: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["RecommendationRunAcceptedResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     readonly createFarmerSoilRecord: {
         readonly parameters: {
             readonly query?: never;
@@ -5022,6 +5553,522 @@ export interface operations {
         readonly requestBody: {
             readonly content: {
                 readonly "application/json": components["schemas"]["UpdateFarmerPreferencesCommand"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["CommandResult"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly getFarmerRecommendationRun: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly operationId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["RecommendationRunStatusResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly getFarmerRecommendation: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly recommendationId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["RecommendationResultResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly acceptFarmerRecommendation: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly recommendationId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["RecommendationAcceptanceRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["RecommendationAcceptanceResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly createFarmerRecommendationReviewRequest: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly recommendationId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["RecommendationReviewRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["CommandResult"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly getFarmerSeasonCalendar: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly seasonId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["SeasonCalendarResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly confirmFarmerSeasonStart: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly seasonId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["SeasonStartConfirmationRequest"];
             };
         };
         readonly responses: {

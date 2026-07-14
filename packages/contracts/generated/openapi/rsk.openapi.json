@@ -228,11 +228,17 @@
                 "farmer.plot.write",
                 "farmer.evidence.read",
                 "farmer.soil.write",
-                "farmer.voice.setup"
+                "farmer.voice.setup",
+                "farmer.recommendation.read",
+                "farmer.recommendation.run",
+                "farmer.recommendation.review_request",
+                "farmer.recommendation.accept",
+                "farmer.season.start_confirm",
+                "farmer.calendar.read"
               ],
               "type": "string"
             },
-            "maxItems": 51,
+            "maxItems": 57,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -1165,7 +1171,9 @@
               "PAYLOAD_TOO_LARGE",
               "SIGNATURE_INVALID",
               "REPLAY_DETECTED",
-              "CHALLENGE_EXPIRED"
+              "CHALLENGE_EXPIRED",
+              "SOURCE_RIGHTS_OR_VERSION_INVALID",
+              "NO_SAFE_RECOMMENDATION"
             ],
             "type": "string"
           },
@@ -1418,7 +1426,13 @@
                 "farmer.plot.write",
                 "farmer.evidence.read",
                 "farmer.soil.write",
-                "farmer.voice.setup"
+                "farmer.voice.setup",
+                "farmer.recommendation.read",
+                "farmer.recommendation.run",
+                "farmer.recommendation.review_request",
+                "farmer.recommendation.accept",
+                "farmer.season.start_confirm",
+                "farmer.calendar.read"
               ],
               "type": "string"
             },
@@ -1881,6 +1895,53 @@
             "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
             "type": "string"
           },
+          "result": {
+            "additionalProperties": false,
+            "properties": {
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "openDetailsRoute": {
+                "maxLength": 240,
+                "minLength": 1,
+                "pattern": "^\\/",
+                "type": "string"
+              },
+              "recommendationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "resultType": {
+                "const": "RECOMMENDATION_READ",
+                "type": "string"
+              },
+              "sourceGeneratedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "summary": {
+                "maxLength": 600,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "resultType",
+              "recommendationId",
+              "summary",
+              "openDetailsRoute",
+              "dataMode",
+              "sourceGeneratedAt"
+            ],
+            "type": "object"
+          },
           "serverSequence": {
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991,
@@ -1896,7 +1957,8 @@
               "HELP",
               "UNAVAILABLE",
               "NEEDS_CLARIFICATION",
-              "PROPOSAL_PENDING"
+              "PROPOSAL_PENDING",
+              "RESULT_READY"
             ],
             "type": "string"
           },
@@ -5463,7 +5525,13 @@
     "farmer.plot.write",
     "farmer.evidence.read",
     "farmer.soil.write",
-    "farmer.voice.setup"
+    "farmer.voice.setup",
+    "farmer.recommendation.read",
+    "farmer.recommendation.run",
+    "farmer.recommendation.review_request",
+    "farmer.recommendation.accept",
+    "farmer.season.start_confirm",
+    "farmer.calendar.read"
   ],
   "x-smart-fasal-consent-scope-registry": [
     "location.processing",

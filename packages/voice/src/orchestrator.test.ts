@@ -53,6 +53,11 @@ function createService(provider?: VoiceProvider, offlineReauthorize = true) {
   return { execute, service, tickets };
 }
 
+let generatedUuid = 700;
+function randomUUIDForTest() {
+  return `019f5678-1234-7000-8000-${String(generatedUuid++).padStart(12, '0')}`;
+}
+
 describe('bounded voice transport', () => {
   it('offers help but reports provider/tool outage honestly through the shared turn path', async () => {
     const { service } = createService();
@@ -220,5 +225,59 @@ describe('bounded voice transport', () => {
       service.completeOfflineTranscription(attached.offlineAudioRefId, principal),
     ).rejects.toThrow('CONSENT_OR_ACCESS_VERSION_CHANGED');
     expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('returns a Marathi recommendation read result only through the registered read tool', async () => {
+    const provider: VoiceProvider = {
+      cancel: vi.fn().mockResolvedValue(undefined),
+      interpret: vi.fn().mockResolvedValue({
+        kind: 'VALIDATED_RESULT',
+        messageKey: 'voice.recommendation.ready',
+        toolKey: 'farmer.recommendation.read',
+        result: {
+          resultType: 'RECOMMENDATION_READ',
+          recommendationId: '019f5678-1234-7000-8000-000000000080',
+          summary: 'तांदूळ पहिली शिफारस आहे कारण पाणी आणि खरीप हंगाम जुळतो.',
+          openDetailsRoute: '/farmer/recommendations/019f5678-1234-7000-8000-000000000080',
+          dataMode: 'RECORDED',
+          sourceGeneratedAt: '2026-07-14T09:00:00.000+05:30',
+        },
+      }),
+    };
+    const { service } = createService(provider);
+    const session = service.createSession(binding).session;
+
+    const disabledResult = await service.processTurn(session.sessionId, principal, {
+      turnId: '019f5678-1234-7000-8000-000000000081',
+      input: { type: 'TEXT', text: 'माझ्या शेतात कोणते पीक घ्यावे आणि का?' },
+      clientSequence: 1,
+      acknowledgedServerSequence: 0,
+    });
+    expect(disabledResult.state).toBe('UNAVAILABLE');
+    expect(disabledResult).not.toHaveProperty('result');
+
+    const enabled = new VoiceTransportService({
+      proposals: new InMemoryVoiceProposalStore({
+        executor: { execute: vi.fn() },
+        policy: { reauthorize: vi.fn().mockResolvedValue(true) },
+        registeredToolKeys: [],
+      }),
+      provider,
+      randomId: () => randomUUIDForTest(),
+      registeredToolKeys: ['farmer.recommendation.read'],
+      tickets: new InMemoryVoiceTicketStore({ randomId: () => randomUUIDForTest() }),
+    });
+    const enabledSession = enabled.createSession(binding).session;
+    await expect(
+      enabled.processTurn(enabledSession.sessionId, principal, {
+        turnId: '019f5678-1234-7000-8000-000000000082',
+        input: { type: 'TEXT', text: 'माझ्या शेतात कोणते पीक घ्यावे आणि का?' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      }),
+    ).resolves.toMatchObject({
+      state: 'RESULT_READY',
+      result: { dataMode: 'RECORDED', resultType: 'RECOMMENDATION_READ' },
+    });
   });
 });
