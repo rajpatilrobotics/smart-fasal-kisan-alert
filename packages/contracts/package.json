@@ -43,7 +43,7 @@
     "test:unit": "vitest run"
   },
   "devDependencies": {
-    "@types/node": "24.10.0",
+    "@types/node": "26.1.1",
     "esbuild": "0.28.1",
     "openapi-typescript": "7.13.0",
     "tsx": "4.23.0",
