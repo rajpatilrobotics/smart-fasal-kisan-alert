@@ -17,6 +17,7 @@ import {
   FarmerOfflineDatabase,
   LOCAL_DATABASE_SCHEMA_VERSION,
   type AcknowledgementRow,
+  type AdvisoryCacheRow,
   type ConflictRow,
   type LocalEventRow,
   type MediaBlobRow,
@@ -228,6 +229,33 @@ export interface RecommendationResultCacheInput {
   readonly generatedAt: string;
   readonly freshnessLabel: string;
   readonly payload: Readonly<Record<string, unknown>>;
+}
+
+export interface AdvisoryCacheInput {
+  readonly advisoryId: string;
+  readonly plotId: string;
+  readonly status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+  readonly generatedAt: string;
+  readonly urgency: string;
+  readonly payload: Readonly<Record<string, unknown>>;
+}
+
+export interface AdvisoryResponseLocalInput {
+  readonly eventId: string;
+  readonly commandId: string;
+  readonly advisoryId: string;
+  readonly expectedRevision: number;
+  readonly response: 'ACKNOWLEDGE' | 'SNOOZE' | 'MARK_ACTION_COMPLETED' | 'CANNOT_DO';
+  readonly snoozeUntil?: string;
+  readonly note?: string;
+  readonly clientRecordedAt: string;
+  readonly timezone: 'Asia/Kolkata';
+  readonly actorRef: string;
+  readonly deviceRef: string;
+  readonly localSequence: number;
+  readonly correlationId: string;
+  readonly dataMode?: 'LIVE' | 'RECORDED' | 'SIMULATED';
 }
 
 export type CompatibilityResult =
@@ -493,6 +521,22 @@ export class FarmerOfflineStore {
       generatedAt: row.generatedAt,
       plotId: row.plotId,
       status: row.status,
+      updatedAt: row.updatedAt,
+    });
+  }
+
+  private advisoryCacheAad(
+    row: Pick<
+      AdvisoryCacheRow,
+      'advisoryId' | 'plotId' | 'status' | 'dataMode' | 'generatedAt' | 'urgency' | 'updatedAt'
+    >,
+  ) {
+    return this.aad('advisoryCache', row.advisoryId, 1, {
+      dataMode: row.dataMode,
+      generatedAt: row.generatedAt,
+      plotId: row.plotId,
+      status: row.status,
+      urgency: row.urgency,
       updatedAt: row.updatedAt,
     });
   }
@@ -838,6 +882,99 @@ export class FarmerOfflineStore {
     const row = await this.database.recommendationResults.get(recommendationId);
     if (row === undefined) return undefined;
     return decryptJson(this.key, this.recommendationResultAad(row), row.encrypted);
+  }
+
+  async cacheAdvisory(input: AdvisoryCacheInput): Promise<void> {
+    await this.assertAccessible();
+    const updatedAt = Date.now();
+    const row = {
+      advisoryId: input.advisoryId,
+      plotId: input.plotId,
+      status: input.status,
+      dataMode: input.dataMode,
+      generatedAt: input.generatedAt,
+      urgency: input.urgency,
+      updatedAt,
+    };
+    await this.database.advisoryCache.put({
+      ...row,
+      encrypted: await encryptJson(this.key, this.advisoryCacheAad(row), input.payload),
+    });
+  }
+
+  async readCachedAdvisory(
+    advisoryId: string,
+  ): Promise<Readonly<Record<string, unknown>> | undefined> {
+    await this.assertAccessible();
+    const row = await this.database.advisoryCache.get(advisoryId);
+    if (row === undefined) return undefined;
+    return decryptJson(this.key, this.advisoryCacheAad(row), row.encrypted);
+  }
+
+  async saveAdvisoryResponse(input: AdvisoryResponseLocalInput): Promise<LocalCommitReceipt> {
+    const payload = {
+      response: input.response,
+      ...(input.snoozeUntil === undefined ? {} : { snoozeUntil: input.snoozeUntil }),
+      ...(input.note === undefined ? {} : { note: input.note }),
+      clientRecordedAt: input.clientRecordedAt,
+      timezone: input.timezone,
+    } as const;
+    const command = {
+      commandId: input.commandId,
+      clientEventIds: [input.eventId],
+      operation: 'RespondToAdvisory',
+      commandSchemaVersion: 1,
+      target: { type: 'advisory', id: input.advisoryId },
+      expectedRevision: input.expectedRevision,
+      occurredAt: input.clientRecordedAt,
+      timezone: input.timezone,
+      localSequence: input.localSequence,
+      causalCommandIds: [],
+      requestHash: await sha256CanonicalJson({
+        operation: 'RespondToAdvisory',
+        commandSchemaVersion: 1,
+        target: { type: 'advisory', id: input.advisoryId },
+        expectedRevision: input.expectedRevision,
+        payload,
+      }),
+      payload,
+    } satisfies SyncCommandEnvelope;
+    return this.commitLocalAction({
+      event: {
+        eventId: input.eventId,
+        eventName: 'advisory.response_saved_local',
+        eventSchemaVersion: 1,
+        commandId: input.commandId,
+        actorRef: input.actorRef,
+        deviceRef: input.deviceRef,
+        localSequence: input.localSequence,
+        aggregateType: 'advisory',
+        aggregateId: input.advisoryId,
+        occurredAt: input.clientRecordedAt,
+        clientRecordedAt: input.clientRecordedAt,
+        timezone: input.timezone,
+        baseRevision: input.expectedRevision,
+        dataMode: input.dataMode ?? 'LIVE',
+        provenanceTypes: ['FARMER_REPORTED'],
+        correlationId: input.correlationId,
+        payload,
+      },
+      projection: {
+        projectionType: 'farmer.advisory.response',
+        projectionId: input.advisoryId,
+        projectionSchemaVersion: 1,
+        dataMode: input.dataMode ?? 'LIVE',
+        payload: {
+          advisoryId: input.advisoryId,
+          status: 'SAVED_ON_THIS_PHONE',
+          response: input.response,
+          clientRecordedAt: input.clientRecordedAt,
+          ...(input.snoozeUntil === undefined ? {} : { snoozeUntil: input.snoozeUntil }),
+        },
+      },
+      command,
+      priority: 10,
+    });
   }
 
   async getLocalEvent(eventId: string): Promise<LocalCommitInput['event'] | undefined> {

@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  AdvisoryResponseReceiptSchema,
+  AdvisoryResponseRequestSchema,
+  AdvisoryResultResponseSchema,
   CancelMediaUploadIntentResponseSchema,
   ChangeDeviceModeCommandSchema,
   CommandResultSchema,
@@ -11,6 +14,7 @@ import {
   CreateMediaUploadIntentResponseSchema,
   FinalizeMediaUploadIntentRequestSchema,
   FarmerBootstrapResponseSchema,
+  FarmerTodayResponseSchema,
   FarmSetupSchema,
   HealthPayloadSchema,
   IssueAccessGrantCommandSchema,
@@ -1033,6 +1037,62 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
       const plotId = parseContract(UuidSchema, request.params.plotId);
       return execute('getFarmerPlotEvidenceSummary', boundary, PlotEvidenceSummarySchema, {
         params: { plotId },
+      });
+    },
+  );
+
+  app.get('/v1/farmer/today', async (request) => {
+    const route = identityRoute('getFarmerToday', {
+      surface: 'farmer',
+      capability: 'farmer.today.read',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    return execute('getFarmerToday', boundary, FarmerTodayResponseSchema);
+  });
+
+  app.get('/v1/farmer/advisories', async (request) => {
+    const route = identityRoute('listFarmerAdvisories', {
+      surface: 'farmer',
+      capability: 'farmer.advisory.read',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    return execute('listFarmerAdvisories', boundary, FarmerTodayResponseSchema);
+  });
+
+  app.get<{ Params: { advisoryId: string } }>(
+    '/v1/farmer/advisories/:advisoryId',
+    async (request) => {
+      const route = identityRoute('getFarmerAdvisory', {
+        surface: 'farmer',
+        capability: 'farmer.advisory.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const advisoryId = parseContract(UuidSchema, request.params.advisoryId);
+      return execute('getFarmerAdvisory', boundary, AdvisoryResultResponseSchema, {
+        params: { advisoryId },
+      });
+    },
+  );
+
+  app.post<{ Params: { advisoryId: string } }>(
+    '/v1/farmer/advisories/:advisoryId/responses',
+    async (request) => {
+      const route = farmerCommandRoute('respondToFarmerAdvisory', 'farmer.advisory.respond');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(AdvisoryResponseRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const advisoryId = parseContract(UuidSchema, request.params.advisoryId);
+      return execute('respondToFarmerAdvisory', boundary, AdvisoryResponseReceiptSchema, {
+        body,
+        params: { advisoryId },
       });
     },
   );

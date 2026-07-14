@@ -208,6 +208,54 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/v1/farmer/advisories": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["listFarmerAdvisories"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/advisories/{advisoryId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerAdvisory"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/advisories/{advisoryId}/responses": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["respondToFarmerAdvisory"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/v1/farmer/bootstrap": {
         readonly parameters: {
             readonly query?: never;
@@ -570,6 +618,22 @@ export interface paths {
         readonly get?: never;
         readonly put?: never;
         readonly post: operations["completeFarmerSetup"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/today": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerToday"];
+        readonly put?: never;
+        readonly post?: never;
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -996,6 +1060,110 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        readonly AdvisoryAction: {
+            /** @enum {string} */
+            readonly actionKind: "IRRIGATE" | "DELAY_IRRIGATION" | "MONITOR" | "PROTECT_CROP" | "CHECK_SENSOR" | "CONSULT_RSK" | "APPLY_NUTRIENT_WITH_CAUTION";
+            readonly cannotDoAlternative?: string;
+            readonly label: string;
+            readonly timingLabel: string;
+        };
+        readonly AdvisoryAlertProjection: {
+            /** Format: uuid */
+            readonly alertId: string;
+            /** @constant */
+            readonly channel: "IN_APP";
+            /** Format: date-time */
+            readonly lastInteractionAt?: string;
+            /** @enum {string} */
+            readonly lifecycleState: "ACTIVE" | "ACKNOWLEDGED" | "SNOOZED" | "RESOLVED" | "EXPIRED";
+        };
+        readonly AdvisoryEvidenceRef: {
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly evidenceId: string;
+            /** @enum {string} */
+            readonly freshness: "CURRENT" | "DATA_IS_OLD" | "NO_RECENT_DATA" | "UNAVAILABLE";
+            readonly limitation?: string;
+            readonly metricKey: string;
+            /** Format: date-time */
+            readonly observedAt?: string;
+            /** @enum {string} */
+            readonly quality: "TRUSTED" | "USE_WITH_CAUTION" | "TREND_ONLY" | "DO_NOT_USE";
+            readonly sourceName: string;
+        };
+        readonly AdvisoryReason: {
+            readonly code: string;
+            readonly contribution: number;
+            readonly label: string;
+        };
+        readonly AdvisoryResponseReceipt: {
+            /** Format: uuid */
+            readonly advisoryId: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @enum {string} */
+            readonly disposition: "ACCEPTED" | "ALREADY_ACCEPTED";
+            readonly eventIds: readonly string[];
+            /** @enum {string} */
+            readonly lifecycleState: "GENERATED" | "ACTIVE" | "ACKNOWLEDGED" | "SNOOZED" | "RESOLVED" | "EXPIRED" | "DEDUPLICATED";
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+        };
+        readonly AdvisoryResponseRequest: {
+            /** Format: date-time */
+            readonly clientRecordedAt: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly expectedRevision: number;
+            readonly note?: string;
+            /** @enum {string} */
+            readonly response: "ACKNOWLEDGE" | "SNOOZE" | "MARK_ACTION_COMPLETED" | "CANNOT_DO";
+            /** Format: date-time */
+            readonly snoozeUntil?: string;
+            /** @constant */
+            readonly timezone: "Asia/Kolkata";
+        };
+        readonly AdvisoryResultResponse: {
+            /** Format: date-time */
+            readonly activeFrom: string;
+            /** Format: uuid */
+            readonly advisoryId: string;
+            readonly alert?: components["schemas"]["AdvisoryAlertProjection"];
+            readonly confidenceScore: number;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            readonly deduplicationKey: string;
+            readonly etagRevision: number;
+            readonly evidenceRefs: readonly components["schemas"]["AdvisoryEvidenceRef"][];
+            /** Format: date-time */
+            readonly expiresAt: string;
+            /** Format: date-time */
+            readonly generatedAt: string;
+            /** @enum {string} */
+            readonly kind: "DRY_SPELL_RISK" | "IRRIGATION_NEEDED" | "IRRIGATION_DELAY_RAIN_EXPECTED" | "HEAVY_RAIN_WATERLOGGING_RISK" | "HEAT_HUMIDITY_WEATHER_RISK" | "LOW_SOIL_MOISTURE" | "NUTRIENT_PH_GUIDANCE" | "SENSOR_EVIDENCE_PROBLEM";
+            /** @enum {string} */
+            readonly lifecycleState: "GENERATED" | "ACTIVE" | "ACKNOWLEDGED" | "SNOOZED" | "RESOLVED" | "EXPIRED" | "DEDUPLICATED";
+            readonly limitations: readonly string[];
+            /** Format: uuid */
+            readonly plotId: string;
+            readonly recommendedAction: components["schemas"]["AdvisoryAction"];
+            readonly resultVersion: number;
+            readonly riskScore: number;
+            readonly ruleSetVersion: string;
+            /** @enum {string} */
+            readonly severity: "INFO" | "WATCH" | "ACTION" | "URGENT";
+            readonly snapshotChecksum: string;
+            readonly summary: string;
+            /** Format: uuid */
+            readonly supersedesAdvisoryId?: string;
+            /** Format: uuid */
+            readonly taskId?: string;
+            readonly title: string;
+            /** @enum {string} */
+            readonly urgency: "TODAY" | "NEXT_24_HOURS" | "NEXT_2_TO_3_DAYS" | "WHEN_POSSIBLE";
+            readonly why: readonly components["schemas"]["AdvisoryReason"][];
+        };
         readonly AttachOfflineAudioRequest: {
             /** Format: uuid */
             readonly assetId: string;
@@ -1020,7 +1188,7 @@ export interface components {
         };
         readonly AuthorizationContext: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond")[];
             readonly capabilitySetVersion: number;
             /** @enum {string} */
             readonly environment: "local" | "preview" | "staging" | "demo" | "production";
@@ -1073,8 +1241,8 @@ export interface components {
                 readonly type: "deviceMode";
             };
         };
-        readonly Command: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"];
-        readonly CommandEnvelope: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"];
+        readonly Command: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"] | components["schemas"]["RespondToAdvisoryCommand"];
+        readonly CommandEnvelope: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"] | components["schemas"]["RespondToAdvisoryCommand"];
         readonly CommandResult: {
             /** Format: uuid */
             readonly commandId: string;
@@ -1086,7 +1254,7 @@ export interface components {
                 readonly id: string;
                 readonly revision: number;
                 /** @enum {string} */
-                readonly type: "roleContext" | "consentDecision" | "accessGrant" | "farmerSetupDraft" | "farmerSetup" | "farmerPreferences" | "deviceMode";
+                readonly type: "roleContext" | "consentDecision" | "accessGrant" | "farmerSetupDraft" | "farmerSetup" | "farmerPreferences" | "deviceMode" | "advisory";
             };
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -1404,7 +1572,7 @@ export interface components {
             /** Format: uuid */
             readonly eventId: string;
             /** @enum {string} */
-            readonly eventName: "farmer.setup_saved_local" | "farmer.setup_saved" | "farmer.preferences_changed" | "farmer.setup_completed" | "identity.role_context_created" | "identity.role_context_revoked" | "identity.device_mode_changed" | "consent.decision_recorded" | "farm.created" | "farm.updated" | "plot.created" | "plot.updated" | "soil_record.added" | "water_context.updated" | "farm.crop_history_recorded" | "profile.snapshot_created" | "season.created" | "season.start_confirmed" | "season.activated" | "harvest.window_confirmed" | "harvest.readiness_updated" | "harvest.actual_recorded" | "today.briefing_generated" | "today.briefing_played" | "today.primary_action_selected" | "today.card_opened" | "evidence.validated" | "evidence.snapshot_created" | "evidence.snapshot_finalized" | "evidence.snapshot_invalidated" | "evidence.freshness_changed" | "recommendation.requested" | "recommendation.input_rejected" | "recommendation.generated" | "recommendation.no_safe_result" | "recommendation.review_requested" | "recommendation.accepted" | "recommendation.superseded" | "decision.impact_review_requested" | "decision.impact_review_completed" | "dry_spell.evaluated" | "advisory.evaluated" | "advisory.no_action" | "advisory.review_requested" | "advisory.review_claimed" | "advisory.consent_checked" | "advisory.evidence_accessed" | "advisory.review_decided" | "advisory.issued" | "advisory.publication_started" | "advisory.publication_failed" | "advisory.publication_retried" | "advisory.publication_blocked" | "advisory.published" | "advisory.recalculated" | "advisory.replaced" | "advisory.cancelled" | "advisory.disputed" | "farmer.response_recorded" | "constraint.recorded" | "template.version_created" | "template.submitted" | "template.reviewed" | "template.approved" | "template.changes_requested" | "template.activation_started" | "template.activation_failed" | "template.published" | "template.expired" | "template.retired" | "template.rolled_back" | "calendar.instantiated" | "calendar.task_created" | "calendar.task_changed" | "calendar.task_replaced" | "calendar.task_completed" | "calendar.task_partially_completed" | "calendar.task_blocked" | "calendar.task_cancelled" | "calendar.reminder_scheduled_local" | "calendar.reminder_requested" | "calendar.review_created" | "calendar.review_claimed" | "calendar.review_evidence_requested" | "calendar.review_decided" | "calendar.change_application_started" | "calendar.change_application_failed" | "calendar.change_applied" | "diary.entry_saved_local" | "diary.activity_recorded" | "diary.observation_recorded" | "diary.entry_corrected" | "diary.entry_voided" | "sync.batch_started" | "sync.event_accepted" | "sync.event_already_accepted" | "sync.event_rejected" | "sync.conflict_detected" | "sync.conflict_resolved" | "media.upload_verified" | "diary.media_attached" | "health_media.attached" | "visit.media_attached" | "data.export_requested" | "data.export_retrieved" | "data.export_cancelled" | "data.export_preparation_started" | "data.export_ready" | "data.export_failed" | "data.export_expired" | "data.export_artifact_deleted" | "data.deletion_requested" | "data.deletion_completed" | "data.deletion_started" | "data.deletion_item_completed" | "data.deletion_item_failed" | "data.deletion_ledger_committed" | "data.restore_ledger_verified" | "data.tombstone_created" | "health_report.saved" | "health_media.queued" | "health_report.synced" | "health_report.triage_ready" | "triage.completed" | "triage.escalated" | "triage.escalation_sharing_declined" | "case.created" | "case.contact_access_authorized" | "case.evidence_accessed" | "case.evidence_requested" | "case.care_plan_issued" | "case.visit_scheduled" | "case.follow_up_recorded" | "case.resolved" | "case.closed" | "case.reopened" | "rsk.work_created" | "rsk.work_assigned" | "rsk.work_claimed" | "rsk.work_started" | "rsk.work_resumed" | "rsk.work_waiting" | "rsk.work_scheduled" | "rsk.work_resolved" | "rsk.work_reopened" | "rsk.work_cancelled" | "rsk.work_marked_duplicate" | "outreach.created" | "outreach.assigned" | "outreach.claimed" | "outreach.contact_access_checked" | "outreach.contact_revealed" | "outreach.attempted" | "outreach.response_recorded" | "outreach.follow_up_scheduled" | "outreach.resolved" | "contact.correction_requested" | "alert.delivery_incident_created" | "alert.delivery_incident_triaged" | "alert.delivery_mitigation_started" | "alert.delivery_incident_resolved" | "alert.delivery_incident_reopened" | "alert.delivery_exception_resolved" | "alert.retry_requested" | "alert.alternate_channel_selected" | "alert.provider_noncritical_pause_started" | "assisted.search_attempted" | "assisted.protected_data_accessed" | "assisted.farmer_verified" | "assisted.consent_checked" | "assisted.session_started" | "assisted.session_revoked" | "assisted.mutation_confirmed" | "assisted.receipt_issued" | "assisted.client_data_purged" | "assisted.recovery_locked" | "visit.requested" | "visit.approved" | "visit.scheduled" | "visit.assigned" | "visit.accepted" | "visit.cancelled" | "visit.consent_checked" | "visit.location_accessed" | "visit.pack_issued" | "visit.started" | "visit.observation_recorded" | "visit.farmer_response_recorded" | "visit.saved_offline" | "visit.synced" | "visit.completed" | "visit.outcome_reviewed" | "visit.closed" | "visit.access_revoked" | "visit.client_data_purged" | "sensor.consent_recorded" | "sensor.consent_withdrawn" | "sensor.collection_stopped" | "sensor.location_access_revoked" | "sensor.deassigned" | "sensor.removal_requested" | "sensor.installed" | "sensor.activated" | "sensor.device_registered" | "sensor.calibration_recorded" | "sensor.maintenance_requested" | "sensor.batch_rejected" | "sensor.batch_durably_accepted" | "sensor.observation_received" | "sensor.observation_normalized" | "sensor.trust_interval_created" | "sensor.interval_flagged" | "sensor.issue_created" | "sensor.issue_triaged" | "sensor.issue_mitigation_recorded" | "sensor.issue_resolved" | "sensor.issue_reopened" | "sensor.location_accessed" | "sensor.interval_invalidated" | "sensor.advice_impact_reviewed" | "sensor.maintenance_saved_offline" | "sensor.maintenance_started" | "sensor.maintenance_observation_recorded" | "sensor.maintenance_validation_started" | "sensor.maintenance_completed" | "sensor.maintenance_closed" | "sensor.returned_to_service" | "sensor.maintenance_media_attached" | "sensor.credential_revoked" | "alert.draft_created" | "alert.draft_submitted" | "alert.draft_approved" | "alert.changes_requested" | "alert.draft_rejected" | "alert.draft_expired" | "alert.draft_cancelled" | "alert.publication_started" | "alert.publication_failed" | "alert.draft_published" | "alert.version_created" | "alert.cohort_frozen" | "alert.attempt_queued" | "alert.provider_accepted" | "alert.delivered" | "alert.delivery_failed" | "alert.delivery_unknown" | "alert.attempt_expired" | "alert.recipient_reached" | "alert.opened_or_heard" | "alert.acknowledged" | "alert.response_recorded" | "alert.expired" | "alert.replaced" | "alert.corrected" | "alert.cancelled" | "alert.push_registration_created" | "alert.push_registration_rotated" | "alert.push_registration_revoked" | "market.raw_record_archived" | "market.mapping_requested" | "market.mapping_claimed" | "market.mapping_decided" | "market.mapping_approved" | "market.mapping_rejected" | "market.mapping_superseded" | "market.mapping_rollback_started" | "market.mapping_rolled_back" | "market.reprocessing_started" | "market.reprocessing_completed" | "market.reprocessing_failed" | "market.comparison_replaced" | "market.watch_created" | "market.watch_updated" | "market.watch_paused" | "market.watch_resumed" | "market.watch_completed" | "market.watch_expired" | "market.watch_cancelled" | "market.watch_triggered" | "market.watch_cooldown_started" | "market.watch_rearmed" | "market.support_created" | "market.support_claimed" | "market.support_information_requested" | "market.support_response_issued" | "market.support_follow_up_recorded" | "market.support_resolved" | "market.support_closed" | "market.sale_recorded" | "voice.session_started" | "voice.session_ended" | "voice.intent_recognized" | "voice.clarification_requested" | "voice.proposal_created" | "voice.proposal_cancelled" | "voice.proposal_confirmed" | "voice.proposal_corrected" | "voice.proposal_expired" | "voice.proposal_superseded" | "voice.provider_failed" | "voice.offline_audio_attached" | "voice.offline_audio_transcription_started" | "voice.offline_audio_needs_confirmation" | "voice.offline_audio_declined" | "voice.offline_audio_deleted" | "ai.invocation_started" | "ai.invocation_completed" | "ai.invocation_failed" | "ai.output_validation_failed" | "ai.extraction_accepted" | "ai.extraction_rejected" | "ai.explanation_published" | "model.kill_switch_activated" | "model.alias_rolled_back" | "external.import_started" | "external.import_completed" | "external.import_failed" | "external.raw_artifact_deleted" | "weather.forecast_edition_ingested" | "weather.forecast_edition_expired" | "weather.freshness_changed" | "weather.warning_version_ingested" | "weather.warning_corrected" | "weather.warning_cancelled" | "earth.job_requested" | "earth.job_started" | "earth.job_completed" | "earth.job_failed" | "earth.job_cancelled" | "earth.snapshot_created" | "earth.snapshot_expired" | "earth.snapshot_invalidated" | "earth.location_consent_blocked" | "analytics.candidate_recorded" | "analytics.candidate_corrected" | "analytics.candidate_withdrawn" | "analytics.safe_fact_recorded" | "analytics.safe_fact_corrected" | "analytics.safe_fact_retracted" | "privacy.release_started" | "privacy.release_validated" | "privacy.release_failed" | "privacy.release_signed" | "privacy.release_activated" | "privacy.release_invalidated" | "privacy.release_expired" | "privacy.cell_suppressed" | "mp.aggregate_query_completed" | "mp.aggregate_query_refused" | "mp.safe_rollup_returned" | "mp.briefing_generation_requested" | "mp.briefing_generation_failed" | "mp.briefing_export_requested" | "mp.briefing_draft_created" | "mp.briefing_snapshot_saved" | "mp.briefing_exported" | "mp.briefing_export_refused";
+            readonly eventName: "farmer.setup_saved_local" | "farmer.setup_saved" | "farmer.preferences_changed" | "farmer.setup_completed" | "identity.role_context_created" | "identity.role_context_revoked" | "identity.device_mode_changed" | "consent.decision_recorded" | "farm.created" | "farm.updated" | "plot.created" | "plot.updated" | "soil_record.added" | "water_context.updated" | "farm.crop_history_recorded" | "profile.snapshot_created" | "season.created" | "season.start_confirmed" | "season.activated" | "harvest.window_confirmed" | "harvest.readiness_updated" | "harvest.actual_recorded" | "today.briefing_generated" | "today.briefing_played" | "today.primary_action_selected" | "today.card_opened" | "evidence.validated" | "evidence.snapshot_created" | "evidence.snapshot_finalized" | "evidence.snapshot_invalidated" | "evidence.freshness_changed" | "recommendation.requested" | "recommendation.input_rejected" | "recommendation.generated" | "recommendation.no_safe_result" | "recommendation.review_requested" | "recommendation.accepted" | "recommendation.superseded" | "decision.impact_review_requested" | "decision.impact_review_completed" | "dry_spell.evaluated" | "advisory.evaluated" | "advisory.no_action" | "advisory.review_requested" | "advisory.review_claimed" | "advisory.consent_checked" | "advisory.evidence_accessed" | "advisory.review_decided" | "advisory.issued" | "advisory.publication_started" | "advisory.publication_failed" | "advisory.publication_retried" | "advisory.publication_blocked" | "advisory.published" | "advisory.recalculated" | "advisory.replaced" | "advisory.cancelled" | "advisory.disputed" | "advisory.expired" | "advisory.deduplicated" | "farmer.response_recorded" | "constraint.recorded" | "template.version_created" | "template.submitted" | "template.reviewed" | "template.approved" | "template.changes_requested" | "template.activation_started" | "template.activation_failed" | "template.published" | "template.expired" | "template.retired" | "template.rolled_back" | "calendar.instantiated" | "calendar.task_created" | "calendar.task_changed" | "calendar.task_replaced" | "calendar.task_completed" | "calendar.task_partially_completed" | "calendar.task_blocked" | "calendar.task_cancelled" | "calendar.reminder_scheduled_local" | "calendar.reminder_requested" | "calendar.review_created" | "calendar.review_claimed" | "calendar.review_evidence_requested" | "calendar.review_decided" | "calendar.change_application_started" | "calendar.change_application_failed" | "calendar.change_applied" | "diary.entry_saved_local" | "diary.activity_recorded" | "diary.observation_recorded" | "diary.entry_corrected" | "diary.entry_voided" | "sync.batch_started" | "sync.event_accepted" | "sync.event_already_accepted" | "sync.event_rejected" | "sync.conflict_detected" | "sync.conflict_resolved" | "media.upload_verified" | "diary.media_attached" | "health_media.attached" | "visit.media_attached" | "data.export_requested" | "data.export_retrieved" | "data.export_cancelled" | "data.export_preparation_started" | "data.export_ready" | "data.export_failed" | "data.export_expired" | "data.export_artifact_deleted" | "data.deletion_requested" | "data.deletion_completed" | "data.deletion_started" | "data.deletion_item_completed" | "data.deletion_item_failed" | "data.deletion_ledger_committed" | "data.restore_ledger_verified" | "data.tombstone_created" | "health_report.saved" | "health_media.queued" | "health_report.synced" | "health_report.triage_ready" | "triage.completed" | "triage.escalated" | "triage.escalation_sharing_declined" | "case.created" | "case.contact_access_authorized" | "case.evidence_accessed" | "case.evidence_requested" | "case.care_plan_issued" | "case.visit_scheduled" | "case.follow_up_recorded" | "case.resolved" | "case.closed" | "case.reopened" | "rsk.work_created" | "rsk.work_assigned" | "rsk.work_claimed" | "rsk.work_started" | "rsk.work_resumed" | "rsk.work_waiting" | "rsk.work_scheduled" | "rsk.work_resolved" | "rsk.work_reopened" | "rsk.work_cancelled" | "rsk.work_marked_duplicate" | "outreach.created" | "outreach.assigned" | "outreach.claimed" | "outreach.contact_access_checked" | "outreach.contact_revealed" | "outreach.attempted" | "outreach.response_recorded" | "outreach.follow_up_scheduled" | "outreach.resolved" | "contact.correction_requested" | "alert.delivery_incident_created" | "alert.delivery_incident_triaged" | "alert.delivery_mitigation_started" | "alert.delivery_incident_resolved" | "alert.delivery_incident_reopened" | "alert.delivery_exception_resolved" | "alert.retry_requested" | "alert.alternate_channel_selected" | "alert.provider_noncritical_pause_started" | "assisted.search_attempted" | "assisted.protected_data_accessed" | "assisted.farmer_verified" | "assisted.consent_checked" | "assisted.session_started" | "assisted.session_revoked" | "assisted.mutation_confirmed" | "assisted.receipt_issued" | "assisted.client_data_purged" | "assisted.recovery_locked" | "visit.requested" | "visit.approved" | "visit.scheduled" | "visit.assigned" | "visit.accepted" | "visit.cancelled" | "visit.consent_checked" | "visit.location_accessed" | "visit.pack_issued" | "visit.started" | "visit.observation_recorded" | "visit.farmer_response_recorded" | "visit.saved_offline" | "visit.synced" | "visit.completed" | "visit.outcome_reviewed" | "visit.closed" | "visit.access_revoked" | "visit.client_data_purged" | "sensor.consent_recorded" | "sensor.consent_withdrawn" | "sensor.collection_stopped" | "sensor.location_access_revoked" | "sensor.deassigned" | "sensor.removal_requested" | "sensor.installed" | "sensor.activated" | "sensor.device_registered" | "sensor.calibration_recorded" | "sensor.maintenance_requested" | "sensor.batch_rejected" | "sensor.batch_durably_accepted" | "sensor.observation_received" | "sensor.observation_normalized" | "sensor.trust_interval_created" | "sensor.interval_flagged" | "sensor.issue_created" | "sensor.issue_triaged" | "sensor.issue_mitigation_recorded" | "sensor.issue_resolved" | "sensor.issue_reopened" | "sensor.location_accessed" | "sensor.interval_invalidated" | "sensor.advice_impact_reviewed" | "sensor.maintenance_saved_offline" | "sensor.maintenance_started" | "sensor.maintenance_observation_recorded" | "sensor.maintenance_validation_started" | "sensor.maintenance_completed" | "sensor.maintenance_closed" | "sensor.returned_to_service" | "sensor.maintenance_media_attached" | "sensor.credential_revoked" | "alert.draft_created" | "alert.draft_submitted" | "alert.draft_approved" | "alert.changes_requested" | "alert.draft_rejected" | "alert.draft_expired" | "alert.draft_cancelled" | "alert.publication_started" | "alert.publication_failed" | "alert.draft_published" | "alert.version_created" | "alert.cohort_frozen" | "alert.attempt_queued" | "alert.provider_accepted" | "alert.delivered" | "alert.delivery_failed" | "alert.delivery_unknown" | "alert.attempt_expired" | "alert.recipient_reached" | "alert.opened_or_heard" | "alert.acknowledged" | "alert.response_recorded" | "alert.expired" | "alert.replaced" | "alert.corrected" | "alert.cancelled" | "alert.push_registration_created" | "alert.push_registration_rotated" | "alert.push_registration_revoked" | "market.raw_record_archived" | "market.mapping_requested" | "market.mapping_claimed" | "market.mapping_decided" | "market.mapping_approved" | "market.mapping_rejected" | "market.mapping_superseded" | "market.mapping_rollback_started" | "market.mapping_rolled_back" | "market.reprocessing_started" | "market.reprocessing_completed" | "market.reprocessing_failed" | "market.comparison_replaced" | "market.watch_created" | "market.watch_updated" | "market.watch_paused" | "market.watch_resumed" | "market.watch_completed" | "market.watch_expired" | "market.watch_cancelled" | "market.watch_triggered" | "market.watch_cooldown_started" | "market.watch_rearmed" | "market.support_created" | "market.support_claimed" | "market.support_information_requested" | "market.support_response_issued" | "market.support_follow_up_recorded" | "market.support_resolved" | "market.support_closed" | "market.sale_recorded" | "voice.session_started" | "voice.session_ended" | "voice.intent_recognized" | "voice.clarification_requested" | "voice.proposal_created" | "voice.proposal_cancelled" | "voice.proposal_confirmed" | "voice.proposal_corrected" | "voice.proposal_expired" | "voice.proposal_superseded" | "voice.provider_failed" | "voice.offline_audio_attached" | "voice.offline_audio_transcription_started" | "voice.offline_audio_needs_confirmation" | "voice.offline_audio_declined" | "voice.offline_audio_deleted" | "ai.invocation_started" | "ai.invocation_completed" | "ai.invocation_failed" | "ai.output_validation_failed" | "ai.extraction_accepted" | "ai.extraction_rejected" | "ai.explanation_published" | "model.kill_switch_activated" | "model.alias_rolled_back" | "external.import_started" | "external.import_completed" | "external.import_failed" | "external.raw_artifact_deleted" | "weather.forecast_edition_ingested" | "weather.forecast_edition_expired" | "weather.freshness_changed" | "weather.warning_version_ingested" | "weather.warning_corrected" | "weather.warning_cancelled" | "earth.job_requested" | "earth.job_started" | "earth.job_completed" | "earth.job_failed" | "earth.job_cancelled" | "earth.snapshot_created" | "earth.snapshot_expired" | "earth.snapshot_invalidated" | "earth.location_consent_blocked" | "analytics.candidate_recorded" | "analytics.candidate_corrected" | "analytics.candidate_withdrawn" | "analytics.safe_fact_recorded" | "analytics.safe_fact_corrected" | "analytics.safe_fact_retracted" | "privacy.release_started" | "privacy.release_validated" | "privacy.release_failed" | "privacy.release_signed" | "privacy.release_activated" | "privacy.release_invalidated" | "privacy.release_expired" | "privacy.cell_suppressed" | "mp.aggregate_query_completed" | "mp.aggregate_query_refused" | "mp.safe_rollup_returned" | "mp.briefing_generation_requested" | "mp.briefing_generation_failed" | "mp.briefing_export_requested" | "mp.briefing_draft_created" | "mp.briefing_snapshot_saved" | "mp.briefing_exported" | "mp.briefing_export_refused";
             readonly eventOrdinal: number;
             readonly eventVersion: number;
             /** Format: uuid */
@@ -1492,7 +1660,7 @@ export interface components {
         };
         readonly FarmerBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond")[];
             /** @enum {string} */
             readonly deviceMode: "PERSONAL" | "TRUSTED_FAMILY" | "RSK_ASSISTED";
             /** @enum {string} */
@@ -1558,6 +1726,17 @@ export interface components {
             readonly status: "NOT_STARTED" | "IN_PROGRESS" | "READY_FOR_REVIEW" | "COMPLETE" | "NEEDS_REVIEW";
             /** @enum {string} */
             readonly syncStatus: "SAVED_ON_THIS_PHONE" | "WAITING_FOR_INTERNET" | "SYNCED" | "CONFLICT" | "LOCKED_RECOVERY" | "REJECTED";
+        };
+        readonly FarmerTodayResponse: {
+            readonly cards: readonly components["schemas"]["AdvisoryResultResponse"][];
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: date-time */
+            readonly generatedAt: string;
+            /** @enum {string} */
+            readonly locale: "mr-IN" | "hi-IN" | "en-IN";
+            /** @enum {string} */
+            readonly syncState: "SYNCED" | "OFFLINE_CACHE" | "WAITING_FOR_INTERNET" | "LOCKED_RECOVERY";
         };
         readonly FarmSetup: {
             /** Format: uuid */
@@ -2138,7 +2317,7 @@ export interface components {
         };
         readonly ProblemDetails: {
             /** @enum {string} */
-            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION";
+            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED";
             /** Format: uuid */
             readonly correlationId: string;
             readonly detail?: string;
@@ -2403,6 +2582,37 @@ export interface components {
                 readonly type: "consentDecision";
             };
         };
+        readonly RespondToAdvisoryCommand: {
+            readonly clientContext: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                /** @enum {string} */
+                readonly dataModeClaim: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly timezone: string;
+            };
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly operation: "RespondToAdvisory";
+            readonly payload: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly note?: string;
+                /** @enum {string} */
+                readonly response: "ACKNOWLEDGE" | "SNOOZE" | "MARK_ACTION_COMPLETED" | "CANNOT_DO";
+                /** Format: date-time */
+                readonly snoozeUntil?: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "advisory";
+            };
+        };
         readonly ReturnStateRequest: {
             /** @enum {string} */
             readonly routeKey: "FARMER_HOME" | "RSK_HOME" | "MP_HOME";
@@ -2422,7 +2632,7 @@ export interface components {
         };
         readonly RskBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond")[];
             /** Format: uuid */
             readonly jurisdictionId: string;
             /** Format: uuid */
@@ -2744,7 +2954,7 @@ export interface components {
             /** @constant */
             readonly disposition: "REJECTED";
             /** @enum {string} */
-            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION";
+            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED";
             readonly serverEventIds: readonly string[];
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -2760,12 +2970,12 @@ export interface components {
             /** @constant */
             readonly disposition: "CONFLICT";
             /** @enum {string} */
-            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION";
+            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED";
             readonly serverEventIds: readonly string[];
             /** Format: date-time */
             readonly serverReceivedAt: string;
         };
-        readonly SyncCommandEnvelope: components["schemas"]["SyncConsentCommandEnvelope"] | components["schemas"]["SyncSaveFarmerSetupDraftCommandEnvelope"] | components["schemas"]["SyncCompleteFarmerSetupCommandEnvelope"] | components["schemas"]["SyncUpdateFarmerPreferencesCommandEnvelope"] | components["schemas"]["SyncChangeDeviceModeCommandEnvelope"];
+        readonly SyncCommandEnvelope: components["schemas"]["SyncConsentCommandEnvelope"] | components["schemas"]["SyncSaveFarmerSetupDraftCommandEnvelope"] | components["schemas"]["SyncCompleteFarmerSetupCommandEnvelope"] | components["schemas"]["SyncUpdateFarmerPreferencesCommandEnvelope"] | components["schemas"]["SyncChangeDeviceModeCommandEnvelope"] | components["schemas"]["SyncRespondToAdvisoryCommandEnvelope"];
         readonly SyncCommandEnvelopeV2: {
             readonly causalCommandIds: readonly string[];
             readonly clientEventIds: readonly string[];
@@ -2958,6 +3168,39 @@ export interface components {
             readonly projectionId: string;
             readonly projectionSchemaVersion: number;
             readonly projectionType: string;
+        };
+        readonly SyncRespondToAdvisoryCommandEnvelope: {
+            readonly causalCommandIds: readonly string[];
+            readonly clientEventIds: readonly string[];
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            readonly localSequence: number;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            /** @constant */
+            readonly operation: "RespondToAdvisory";
+            readonly payload: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly note?: string;
+                /** @enum {string} */
+                readonly response: "ACKNOWLEDGE" | "SNOOZE" | "MARK_ACTION_COMPLETED" | "CANNOT_DO";
+                /** Format: date-time */
+                readonly snoozeUntil?: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly requestHash: string;
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "advisory";
+            };
+            readonly timezone: string;
         };
         readonly SyncSaveFarmerSetupDraftCommandEnvelope: {
             readonly causalCommandIds: readonly string[];
@@ -3192,6 +3435,17 @@ export interface components {
                 readonly recommendationId: string;
                 /** @constant */
                 readonly resultType: "RECOMMENDATION_READ";
+                /** Format: date-time */
+                readonly sourceGeneratedAt: string;
+                readonly summary: string;
+            } | {
+                /** Format: uuid */
+                readonly advisoryId: string;
+                /** @enum {string} */
+                readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly openDetailsRoute: string;
+                /** @constant */
+                readonly resultType: "ADVISORY_READ";
                 /** Format: date-time */
                 readonly sourceGeneratedAt: string;
                 readonly summary: string;
@@ -4054,6 +4308,258 @@ export interface operations {
             };
             /** @description Typed request failure */
             readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly listFarmerAdvisories: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["FarmerTodayResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly getFarmerAdvisory: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly advisoryId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["AdvisoryResultResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly respondToFarmerAdvisory: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly advisoryId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["AdvisoryResponseRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["AdvisoryResponseReceipt"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 410: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
                 headers: {
                     readonly [name: string]: unknown;
                 };
@@ -6301,6 +6807,80 @@ export interface operations {
             };
             /** @description A required command precondition is missing */
             readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly getFarmerToday: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["FarmerTodayResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
                 headers: {
                     readonly [name: string]: unknown;
                 };

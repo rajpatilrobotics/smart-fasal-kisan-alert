@@ -299,6 +299,55 @@ describe('Farmer offline partition', () => {
     restarted.close();
   });
 
+  it('saves an advisory response locally as the canonical offline sync command', async () => {
+    const binding = '10000000-0000-4000-8000-000000000012';
+    const { store } = await open(binding);
+    const advisoryId = '10000000-0000-4000-8000-000000000112';
+    const receipt = await store.saveAdvisoryResponse({
+      eventId: '10000000-0000-7000-8000-000000000012',
+      commandId: '20000000-0000-4000-8000-000000000012',
+      advisoryId,
+      expectedRevision: 3,
+      response: 'SNOOZE',
+      snoozeUntil: '2026-07-14T12:30:00.000Z',
+      clientRecordedAt: '2026-07-14T09:30:00.000Z',
+      timezone: 'Asia/Kolkata',
+      actorRef: IDS.actor,
+      deviceRef: binding,
+      localSequence: 1,
+      correlationId: IDS.correlation,
+      dataMode: 'LIVE',
+    });
+    expect(receipt).toMatchObject({
+      commandId: '20000000-0000-4000-8000-000000000012',
+      state: 'SAVED_ON_THIS_PHONE',
+    });
+    await expect(store.listPendingCommands()).resolves.toMatchObject([
+      {
+        operation: 'RespondToAdvisory',
+        target: { type: 'advisory', id: advisoryId },
+        expectedRevision: 3,
+        payload: {
+          response: 'SNOOZE',
+          snoozeUntil: '2026-07-14T12:30:00.000Z',
+          clientRecordedAt: '2026-07-14T09:30:00.000Z',
+          timezone: 'Asia/Kolkata',
+        },
+      },
+    ]);
+    await expect(
+      store.getProjection('farmer.advisory.response', advisoryId),
+    ).resolves.toMatchObject({
+      authorityState: 'CURRENT_LOCAL',
+      payload: {
+        advisoryId,
+        status: 'SAVED_ON_THIS_PHONE',
+        response: 'SNOOZE',
+      },
+    });
+    store.close();
+  });
+
   it('rolls back earlier writes when the outbox insert fails', async () => {
     const binding = '10000000-0000-4000-8000-000000000010';
     const { store } = await open(binding);

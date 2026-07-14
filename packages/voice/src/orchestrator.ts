@@ -46,14 +46,23 @@ export interface VoiceTurnOutput {
     'HELP' | 'UNAVAILABLE' | 'NEEDS_CLARIFICATION' | 'PROPOSAL_PENDING' | 'RESULT_READY';
   readonly messageKey: string;
   readonly proposalId?: string;
-  readonly result?: {
-    readonly resultType: 'RECOMMENDATION_READ';
-    readonly recommendationId: string;
-    readonly summary: string;
-    readonly openDetailsRoute: string;
-    readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
-    readonly sourceGeneratedAt: string;
-  };
+  readonly result?:
+    | {
+        readonly resultType: 'RECOMMENDATION_READ';
+        readonly recommendationId: string;
+        readonly summary: string;
+        readonly openDetailsRoute: string;
+        readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+        readonly sourceGeneratedAt: string;
+      }
+    | {
+        readonly resultType: 'ADVISORY_READ';
+        readonly advisoryId: string;
+        readonly summary: string;
+        readonly openDetailsRoute: string;
+        readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+        readonly sourceGeneratedAt: string;
+      };
   readonly serverSequence: number;
   readonly acknowledgedClientSequence: number;
 }
@@ -72,6 +81,7 @@ export interface VoiceProvider {
     readonly generation: number;
     readonly input: VoiceTurnInput['input'];
     readonly language: VoiceTicketBinding['language'];
+    readonly principal: VoicePrincipal;
     readonly sanitizedContextIds: readonly string[];
     readonly sessionId: string;
   }): Promise<ProviderInterpretation>;
@@ -315,6 +325,7 @@ export class VoiceTransportService {
           generation,
           input: turn.input,
           language: session.binding.language,
+          principal,
           sanitizedContextIds: session.binding.contextIds,
           sessionId,
         });
@@ -330,7 +341,8 @@ export class VoiceTransportService {
         } else if (
           interpretation.kind === 'VALIDATED_RESULT' &&
           interpretation.result !== undefined &&
-          interpretation.toolKey === 'farmer.recommendation.read' &&
+          (interpretation.toolKey === 'farmer.recommendation.read' ||
+            interpretation.toolKey === 'farmer.advisory.read') &&
           this.#registeredToolKeys.has(interpretation.toolKey)
         ) {
           state = 'RESULT_READY';

@@ -350,6 +350,18 @@
       "status": "reserved"
     },
     {
+      "name": "advisory.expired",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
+      "name": "advisory.deduplicated",
+      "eventClass": "DOMAIN",
+      "version": 1,
+      "status": "reserved"
+    },
+    {
       "name": "farmer.response_recorded",
       "eventClass": "DOMAIN",
       "version": 1,

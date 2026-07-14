@@ -1,12 +1,18 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  AdvisoryRejectedError,
+  AdvisoryService,
   EvidenceService,
   FarmerSetupService,
+  InMemoryAdvisoryRepository,
   InMemoryEvidenceRepository,
   InMemoryRecommendationRepository,
   RecommendationRejectedError,
   RecommendationService,
+  RecordedRaigadAdvisoryEvidenceProvider,
+  type AdvisoryEvidenceProvider,
+  type AdvisoryRepository,
   type EvidenceRepository,
   type FarmerSetupOwner,
   type FarmerSetupRepository,
@@ -14,6 +20,7 @@ import {
   type RecommendationRepository,
 } from '@smart-fasal/application';
 import {
+  AdvisoryResponseRequestSchema,
   ChangeDeviceModeCommandSchema,
   CompleteFarmerSetupCommandSchema,
   CreateSoilRecordRequestSchema,
@@ -84,13 +91,16 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
   readonly #service: FarmerSetupService;
   readonly #evidence: EvidenceService;
   readonly #recommendations: RecommendationService;
+  readonly #advisories: AdvisoryService;
 
   constructor(
     repository: FarmerSetupRepository = new MemoryFarmerSetupRepository(),
     evidenceRepository: EvidenceRepository = new InMemoryEvidenceRepository(),
     recommendationRepository: RecommendationRepository = new InMemoryRecommendationRepository(),
+    advisoryRepository: AdvisoryRepository = new InMemoryAdvisoryRepository(),
     now?: () => Date,
     recommendationEvidenceProvider?: RecommendationEvidenceProvider,
+    advisoryEvidenceProvider?: AdvisoryEvidenceProvider,
   ) {
     this.#service = new FarmerSetupService(repository, now);
     this.#evidence = new EvidenceService(evidenceRepository, repository, now);
@@ -100,6 +110,13 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
       now,
       randomUUID,
       recommendationEvidenceProvider,
+    );
+    this.#advisories = new AdvisoryService(
+      repository,
+      advisoryRepository,
+      now,
+      randomUUID,
+      advisoryEvidenceProvider ?? new RecordedRaigadAdvisoryEvidenceProvider(),
     );
   }
 
@@ -115,6 +132,13 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
         return this.#farmResource(request);
       case 'getFarmerPlotEvidenceSummary':
         return this.#evidenceSummary(request);
+      case 'getFarmerToday':
+      case 'listFarmerAdvisories':
+        return this.#today(request);
+      case 'getFarmerAdvisory':
+        return this.#advisory(request);
+      case 'respondToFarmerAdvisory':
+        return this.#respondToAdvisory(request);
       case 'getFarmerRecommendationReadiness':
         return this.#recommendationReadiness(request);
       case 'createFarmerRecommendationRun':
@@ -231,6 +255,39 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
     }
   }
 
+  async #today(request: DomainOperationRequest) {
+    return this.#translateAdvisoryError(() => this.#advisories.today(ownerFor(request.boundary)));
+  }
+
+  async #advisory(request: DomainOperationRequest) {
+    const advisoryId = request.params?.['advisoryId'];
+    if (advisoryId === undefined) throw dependencyUnavailable();
+    return this.#translateAdvisoryError(() =>
+      this.#advisories.advisory(ownerFor(request.boundary), advisoryId),
+    );
+  }
+
+  async #respondToAdvisory(request: DomainOperationRequest) {
+    const advisoryId = request.params?.['advisoryId'];
+    if (advisoryId === undefined) throw dependencyUnavailable();
+    const body = AdvisoryResponseRequestSchema.parse(request.body);
+    return this.#translateAdvisoryError(() =>
+      this.#advisories.respond({
+        owner: ownerFor(request.boundary),
+        advisoryId,
+        request: {
+          commandId: request.boundary.idempotencyKey ?? body.commandId,
+          expectedRevision: body.expectedRevision,
+          response: body.response,
+          clientRecordedAt: body.clientRecordedAt,
+          timezone: body.timezone,
+          ...(body.snoozeUntil === undefined ? {} : { snoozeUntil: body.snoozeUntil }),
+          ...(body.note === undefined ? {} : { note: body.note }),
+        },
+      }),
+    );
+  }
+
   async #recommendationReadiness(request: DomainOperationRequest) {
     const plotId = request.params?.['plotId'];
     if (plotId === undefined) throw dependencyUnavailable();
@@ -335,6 +392,38 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
           code: 'INVALID_STATE_TRANSITION',
           status: 409,
           title: 'The Recommendation command cannot be applied in the current state.',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async #translateAdvisoryError<Result>(work: () => Promise<Result>): Promise<Result> {
+    try {
+      return await work();
+    } catch (error) {
+      if (error instanceof AdvisoryRejectedError && error.code === 'AUTHORIZATION_DENIED') {
+        throw new ApiBoundaryProblem({
+          code: 'AUTHORIZATION_DENIED',
+          status: 404,
+          title: 'The requested Advisory resource is not available to this Farmer.',
+        });
+      }
+      if (error instanceof AdvisoryRejectedError && error.code === 'ADVISORY_EXPIRED') {
+        throw new ApiBoundaryProblem({
+          code: 'ADVISORY_EXPIRED',
+          status: 410,
+          title: 'The Advisory can no longer be changed.',
+        });
+      }
+      if (
+        error instanceof AdvisoryRejectedError &&
+        error.code === 'INVALID_STATE_TRANSITION'
+      ) {
+        throw new ApiBoundaryProblem({
+          code: 'INVALID_STATE_TRANSITION',
+          status: 409,
+          title: 'The Advisory command cannot be applied in the current state.',
         });
       }
       throw error;

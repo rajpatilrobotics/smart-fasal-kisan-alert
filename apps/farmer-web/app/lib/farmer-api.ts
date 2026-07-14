@@ -1,5 +1,9 @@
 import { createFarmerClient } from '@smart-fasal/contracts/clients/farmer';
 import type {
+  AdvisoryResponseReceipt,
+  AdvisoryResponseRequest,
+  AdvisoryResultResponse,
+  FarmerTodayResponse,
   RecommendationAcceptanceRequest,
   RecommendationAcceptanceResponse,
   RecommendationReadinessResponse,
@@ -31,6 +35,7 @@ export type FarmerShellState =
       readonly firstFarmId?: string;
       readonly firstPlotId?: string;
       readonly evidenceSummary?: FarmerEvidenceSummary;
+      readonly today?: FarmerTodayResponse;
     };
 
 export interface FarmerEvidenceSummary {
@@ -273,6 +278,19 @@ export async function loadFarmerShell(
         evidenceSummary = evidenceResult.data as unknown as FarmerEvidenceSummary;
       }
     }
+    let today: FarmerTodayResponse | undefined;
+    try {
+      const todayResult = await client.GET('/v1/farmer/today', {
+        params: { header: headers },
+        signal: options.signal,
+      });
+      today =
+        todayResult.data && !todayResult.error
+          ? (todayResult.data as unknown as FarmerTodayResponse)
+          : undefined;
+    } catch {
+      today = undefined;
+    }
 
     return {
       kind: 'ready',
@@ -285,6 +303,7 @@ export async function loadFarmerShell(
       ...(myFarm?.farms?.[0]?.farmId === undefined ? {} : { firstFarmId: myFarm.farms[0].farmId }),
       ...(firstPlotId === undefined ? {} : { firstPlotId }),
       ...(evidenceSummary === undefined ? {} : { evidenceSummary }),
+      ...(today === undefined ? {} : { today }),
     };
   } catch (error) {
     if (options.signal?.aborted) throw error;
@@ -327,6 +346,71 @@ function etagRevision(revision: number): string {
 
 function failRecommendationRequest(errorCode: string | undefined, status: number): never {
   throw new Error(errorCode ?? `RECOMMENDATION_REQUEST_${status}`);
+}
+
+export async function loadFarmerToday(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  options: ApiOptions = {},
+): Promise<FarmerTodayResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/today', {
+    params: { header: protectedHeaders(installationId, roleContextId) },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as FarmerTodayResponse;
+}
+
+export async function loadFarmerAdvisory(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  advisoryId: string,
+  options: ApiOptions = {},
+): Promise<AdvisoryResultResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/advisories/{advisoryId}', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { advisoryId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as AdvisoryResultResponse;
+}
+
+export async function respondToFarmerAdvisory(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  advisoryId: string,
+  request: AdvisoryResponseRequest,
+  options: ApiOptions = {},
+): Promise<AdvisoryResponseReceipt> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/advisories/{advisoryId}/responses', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { advisoryId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as AdvisoryResponseReceipt;
 }
 
 export async function loadRecommendationReadiness(

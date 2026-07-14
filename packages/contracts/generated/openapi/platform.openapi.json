@@ -87,6 +87,478 @@
       }
     },
     "schemas": {
+      "AdvisoryAction": {
+        "additionalProperties": false,
+        "properties": {
+          "actionKind": {
+            "enum": [
+              "IRRIGATE",
+              "DELAY_IRRIGATION",
+              "MONITOR",
+              "PROTECT_CROP",
+              "CHECK_SENSOR",
+              "CONSULT_RSK",
+              "APPLY_NUTRIENT_WITH_CAUTION"
+            ],
+            "type": "string"
+          },
+          "cannotDoAlternative": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 180,
+            "minLength": 1,
+            "type": "string"
+          },
+          "timingLabel": {
+            "maxLength": 180,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "actionKind",
+          "label",
+          "timingLabel"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AdvisoryAlertProjection": {
+        "additionalProperties": false,
+        "properties": {
+          "alertId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "channel": {
+            "const": "IN_APP",
+            "type": "string"
+          },
+          "lastInteractionAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ACKNOWLEDGED",
+              "SNOOZED",
+              "RESOLVED",
+              "EXPIRED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "alertId",
+          "lifecycleState",
+          "channel"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AdvisoryEvidenceRef": {
+        "additionalProperties": false,
+        "properties": {
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "evidenceId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "freshness": {
+            "enum": [
+              "CURRENT",
+              "DATA_IS_OLD",
+              "NO_RECENT_DATA",
+              "UNAVAILABLE"
+            ],
+            "type": "string"
+          },
+          "limitation": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "metricKey": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "observedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "quality": {
+            "enum": [
+              "TRUSTED",
+              "USE_WITH_CAUTION",
+              "TREND_ONLY",
+              "DO_NOT_USE"
+            ],
+            "type": "string"
+          },
+          "sourceName": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidenceId",
+          "metricKey",
+          "sourceName",
+          "freshness",
+          "quality",
+          "dataMode"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AdvisoryReason": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "contribution": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "label": {
+            "maxLength": 180,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "contribution"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AdvisoryResponseReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "advisoryId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "ACCEPTED",
+              "ALREADY_ACCEPTED"
+            ],
+            "type": "string"
+          },
+          "eventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 1,
+            "type": "array"
+          },
+          "lifecycleState": {
+            "enum": [
+              "GENERATED",
+              "ACTIVE",
+              "ACKNOWLEDGED",
+              "SNOOZED",
+              "RESOLVED",
+              "EXPIRED",
+              "DEDUPLICATED"
+            ],
+            "type": "string"
+          },
+          "serverReceivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "disposition",
+          "advisoryId",
+          "lifecycleState",
+          "eventIds",
+          "serverReceivedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AdvisoryResponseRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "clientRecordedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "note": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "response": {
+            "enum": [
+              "ACKNOWLEDGE",
+              "SNOOZE",
+              "MARK_ACTION_COMPLETED",
+              "CANNOT_DO"
+            ],
+            "type": "string"
+          },
+          "snoozeUntil": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "timezone": {
+            "const": "Asia/Kolkata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "expectedRevision",
+          "response",
+          "clientRecordedAt",
+          "timezone"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AdvisoryResultResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "activeFrom": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "advisoryId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "alert": {
+            "$ref": "#/components/schemas/AdvisoryAlertProjection"
+          },
+          "confidenceScore": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "deduplicationKey": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "etagRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "evidenceRefs": {
+            "items": {
+              "$ref": "#/components/schemas/AdvisoryEvidenceRef"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "DRY_SPELL_RISK",
+              "IRRIGATION_NEEDED",
+              "IRRIGATION_DELAY_RAIN_EXPECTED",
+              "HEAVY_RAIN_WATERLOGGING_RISK",
+              "HEAT_HUMIDITY_WEATHER_RISK",
+              "LOW_SOIL_MOISTURE",
+              "NUTRIENT_PH_GUIDANCE",
+              "SENSOR_EVIDENCE_PROBLEM"
+            ],
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "GENERATED",
+              "ACTIVE",
+              "ACKNOWLEDGED",
+              "SNOOZED",
+              "RESOLVED",
+              "EXPIRED",
+              "DEDUPLICATED"
+            ],
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "recommendedAction": {
+            "$ref": "#/components/schemas/AdvisoryAction"
+          },
+          "resultVersion": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "riskScore": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          "ruleSetVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "INFO",
+              "WATCH",
+              "ACTION",
+              "URGENT"
+            ],
+            "type": "string"
+          },
+          "snapshotChecksum": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 280,
+            "minLength": 1,
+            "type": "string"
+          },
+          "supersedesAdvisoryId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "taskId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "urgency": {
+            "enum": [
+              "TODAY",
+              "NEXT_24_HOURS",
+              "NEXT_2_TO_3_DAYS",
+              "WHEN_POSSIBLE"
+            ],
+            "type": "string"
+          },
+          "why": {
+            "items": {
+              "$ref": "#/components/schemas/AdvisoryReason"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "advisoryId",
+          "plotId",
+          "kind",
+          "lifecycleState",
+          "severity",
+          "urgency",
+          "generatedAt",
+          "activeFrom",
+          "expiresAt",
+          "dataMode",
+          "resultVersion",
+          "etagRevision",
+          "snapshotChecksum",
+          "ruleSetVersion",
+          "riskScore",
+          "confidenceScore",
+          "title",
+          "summary",
+          "recommendedAction",
+          "why",
+          "evidenceRefs",
+          "limitations",
+          "deduplicationKey"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "AttachOfflineAudioRequest": {
         "additionalProperties": false,
         "properties": {
@@ -234,11 +706,14 @@
                 "farmer.recommendation.review_request",
                 "farmer.recommendation.accept",
                 "farmer.season.start_confirm",
-                "farmer.calendar.read"
+                "farmer.calendar.read",
+                "farmer.today.read",
+                "farmer.advisory.read",
+                "farmer.advisory.respond"
               ],
               "type": "string"
             },
-            "maxItems": 57,
+            "maxItems": 60,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -465,6 +940,9 @@
           },
           {
             "$ref": "#/components/schemas/ChangeDeviceModeCommand"
+          },
+          {
+            "$ref": "#/components/schemas/RespondToAdvisoryCommand"
           }
         ],
         "x-data-classification": "C2"
@@ -491,6 +969,9 @@
           },
           {
             "$ref": "#/components/schemas/ChangeDeviceModeCommand"
+          },
+          {
+            "$ref": "#/components/schemas/RespondToAdvisoryCommand"
           }
         ],
         "x-data-classification": "C2"
@@ -543,7 +1024,8 @@
                   "farmerSetupDraft",
                   "farmerSetup",
                   "farmerPreferences",
-                  "deviceMode"
+                  "deviceMode",
+                  "advisory"
                 ],
                 "type": "string"
               }
@@ -1920,6 +2402,8 @@
               "advisory.replaced",
               "advisory.cancelled",
               "advisory.disputed",
+              "advisory.expired",
+              "advisory.deduplicated",
               "farmer.response_recorded",
               "constraint.recorded",
               "template.version_created",
@@ -2724,7 +3208,10 @@
                 "farmer.recommendation.review_request",
                 "farmer.recommendation.accept",
                 "farmer.season.start_confirm",
-                "farmer.calendar.read"
+                "farmer.calendar.read",
+                "farmer.today.read",
+                "farmer.advisory.read",
+                "farmer.advisory.respond"
               ],
               "type": "string"
             },
@@ -3022,6 +3509,57 @@
           "status",
           "conflictCount",
           "syncStatus"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "FarmerTodayResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/AdvisoryResultResponse"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "mr-IN",
+              "hi-IN",
+              "en-IN"
+            ],
+            "type": "string"
+          },
+          "syncState": {
+            "enum": [
+              "SYNCED",
+              "OFFLINE_CACHE",
+              "WAITING_FOR_INTERNET",
+              "LOCKED_RECOVERY"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "generatedAt",
+          "locale",
+          "dataMode",
+          "cards",
+          "syncState"
         ],
         "type": "object",
         "x-data-classification": "C3"
@@ -5578,7 +6116,10 @@
               "REPLAY_DETECTED",
               "CHALLENGE_EXPIRED",
               "SOURCE_RIGHTS_OR_VERSION_INVALID",
-              "NO_SAFE_RECOMMENDATION"
+              "NO_SAFE_RECOMMENDATION",
+              "ADVISORY_EXPIRED",
+              "ADVISORY_DEDUPLICATED",
+              "ALERT_DELIVERY_DISABLED"
             ],
             "type": "string"
           },
@@ -6779,6 +7320,121 @@
         "type": "object",
         "x-data-classification": "C2"
       },
+      "RespondToAdvisoryCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "RespondToAdvisory",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "note": {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              "response": {
+                "enum": [
+                  "ACKNOWLEDGE",
+                  "SNOOZE",
+                  "MARK_ACTION_COMPLETED",
+                  "CANNOT_DO"
+                ],
+                "type": "string"
+              },
+              "snoozeUntil": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "response",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "advisory",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "ReturnStateRequest": {
         "additionalProperties": false,
         "properties": {
@@ -6910,7 +7566,10 @@
                 "farmer.recommendation.review_request",
                 "farmer.recommendation.accept",
                 "farmer.season.start_confirm",
-                "farmer.calendar.read"
+                "farmer.calendar.read",
+                "farmer.today.read",
+                "farmer.advisory.read",
+                "farmer.advisory.respond"
               ],
               "type": "string"
             },
@@ -8325,7 +8984,10 @@
                   "REPLAY_DETECTED",
                   "CHALLENGE_EXPIRED",
                   "SOURCE_RIGHTS_OR_VERSION_INVALID",
-                  "NO_SAFE_RECOMMENDATION"
+                  "NO_SAFE_RECOMMENDATION",
+                  "ADVISORY_EXPIRED",
+                  "ADVISORY_DEDUPLICATED",
+                  "ALERT_DELIVERY_DISABLED"
                 ],
                 "type": "string"
               },
@@ -8436,7 +9098,10 @@
                   "REPLAY_DETECTED",
                   "CHALLENGE_EXPIRED",
                   "SOURCE_RIGHTS_OR_VERSION_INVALID",
-                  "NO_SAFE_RECOMMENDATION"
+                  "NO_SAFE_RECOMMENDATION",
+                  "ADVISORY_EXPIRED",
+                  "ADVISORY_DEDUPLICATED",
+                  "ALERT_DELIVERY_DISABLED"
                 ],
                 "type": "string"
               },
@@ -8487,6 +9152,9 @@
           },
           {
             "$ref": "#/components/schemas/SyncChangeDeviceModeCommandEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/SyncRespondToAdvisoryCommandEnvelope"
           }
         ],
         "x-data-classification": "C3"
@@ -9367,6 +10035,141 @@
         ],
         "type": "object",
         "x-data-classification": "C2"
+      },
+      "SyncRespondToAdvisoryCommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "causalCommandIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "clientEventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "localSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "operation": {
+            "const": "RespondToAdvisory",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "note": {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              "response": {
+                "enum": [
+                  "ACKNOWLEDGE",
+                  "SNOOZE",
+                  "MARK_ACTION_COMPLETED",
+                  "CANNOT_DO"
+                ],
+                "type": "string"
+              },
+              "snoozeUntil": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "response",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "requestHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "advisory",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "clientEventIds",
+          "commandSchemaVersion",
+          "expectedRevision",
+          "occurredAt",
+          "timezone",
+          "localSequence",
+          "causalCommandIds",
+          "requestHash",
+          "operation",
+          "target",
+          "payload"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
       },
       "SyncSaveFarmerSetupDraftCommandEnvelope": {
         "additionalProperties": false,
@@ -10335,51 +11138,102 @@
             "type": "string"
           },
           "result": {
-            "additionalProperties": false,
-            "properties": {
-              "dataMode": {
-                "enum": [
-                  "LIVE",
-                  "RECORDED",
-                  "SIMULATED"
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "openDetailsRoute": {
+                    "maxLength": 240,
+                    "minLength": 1,
+                    "pattern": "^\\/",
+                    "type": "string"
+                  },
+                  "recommendationId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "const": "RECOMMENDATION_READ",
+                    "type": "string"
+                  },
+                  "sourceGeneratedAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "maxLength": 600,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultType",
+                  "recommendationId",
+                  "summary",
+                  "openDetailsRoute",
+                  "dataMode",
+                  "sourceGeneratedAt"
                 ],
-                "type": "string"
+                "type": "object"
               },
-              "openDetailsRoute": {
-                "maxLength": 240,
-                "minLength": 1,
-                "pattern": "^\\/",
-                "type": "string"
-              },
-              "recommendationId": {
-                "format": "uuid",
-                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
-                "type": "string"
-              },
-              "resultType": {
-                "const": "RECOMMENDATION_READ",
-                "type": "string"
-              },
-              "sourceGeneratedAt": {
-                "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                "type": "string"
-              },
-              "summary": {
-                "maxLength": 600,
-                "minLength": 1,
-                "type": "string"
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "advisoryId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "openDetailsRoute": {
+                    "maxLength": 240,
+                    "minLength": 1,
+                    "pattern": "^\\/",
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "const": "ADVISORY_READ",
+                    "type": "string"
+                  },
+                  "sourceGeneratedAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "maxLength": 600,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultType",
+                  "advisoryId",
+                  "summary",
+                  "openDetailsRoute",
+                  "dataMode",
+                  "sourceGeneratedAt"
+                ],
+                "type": "object"
               }
-            },
-            "required": [
-              "resultType",
-              "recommendationId",
-              "summary",
-              "openDetailsRoute",
-              "dataMode",
-              "sourceGeneratedAt"
-            ],
-            "type": "object"
+            ]
           },
           "serverSequence": {
             "exclusiveMinimum": 0,
@@ -11923,6 +12777,441 @@
           "AUTHORIZATION_DENIED",
           "DEPENDENCY_UNAVAILABLE",
           "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/advisories": {
+      "get": {
+        "operationId": "listFarmerAdvisories",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerTodayResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.advisory.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/advisories/{advisoryId}": {
+      "get": {
+        "operationId": "getFarmerAdvisory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "advisoryId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvisoryResultResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.advisory.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/advisories/{advisoryId}/responses": {
+      "post": {
+        "operationId": "respondToFarmerAdvisory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          },
+          {
+            "in": "path",
+            "name": "advisoryId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdvisoryResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvisoryResponseReceipt"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "EXPECTED_REVISION_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "410": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "ADVISORY_EXPIRED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "advisory-response",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.advisory.respond",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "EXPECTED_REVISION_MISMATCH",
+          "ADVISORY_EXPIRED",
+          "IDEMPOTENCY_KEY_REUSED"
         ]
       }
     },
@@ -15878,6 +17167,126 @@
           "EXPECTED_REVISION_MISMATCH",
           "SETUP_INCOMPLETE",
           "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/farmer/today": {
+      "get": {
+        "operationId": "getFarmerToday",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerTodayResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.today.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
         ]
       }
     },
@@ -19841,7 +21250,10 @@
     "farmer.recommendation.review_request",
     "farmer.recommendation.accept",
     "farmer.season.start_confirm",
-    "farmer.calendar.read"
+    "farmer.calendar.read",
+    "farmer.today.read",
+    "farmer.advisory.read",
+    "farmer.advisory.respond"
   ],
   "x-smart-fasal-consent-scope-registry": [
     "location.processing",

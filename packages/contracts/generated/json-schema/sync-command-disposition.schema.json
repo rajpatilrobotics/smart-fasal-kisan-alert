@@ -195,7 +195,10 @@
             "REPLAY_DETECTED",
             "CHALLENGE_EXPIRED",
             "SOURCE_RIGHTS_OR_VERSION_INVALID",
-            "NO_SAFE_RECOMMENDATION"
+            "NO_SAFE_RECOMMENDATION",
+            "ADVISORY_EXPIRED",
+            "ADVISORY_DEDUPLICATED",
+            "ALERT_DELIVERY_DISABLED"
           ],
           "type": "string"
         },
@@ -306,7 +309,10 @@
             "REPLAY_DETECTED",
             "CHALLENGE_EXPIRED",
             "SOURCE_RIGHTS_OR_VERSION_INVALID",
-            "NO_SAFE_RECOMMENDATION"
+            "NO_SAFE_RECOMMENDATION",
+            "ADVISORY_EXPIRED",
+            "ADVISORY_DEDUPLICATED",
+            "ALERT_DELIVERY_DISABLED"
           ],
           "type": "string"
         },

@@ -47,7 +47,8 @@
             "farmerSetupDraft",
             "farmerSetup",
             "farmerPreferences",
-            "deviceMode"
+            "deviceMode",
+            "advisory"
           ],
           "type": "string"
         }

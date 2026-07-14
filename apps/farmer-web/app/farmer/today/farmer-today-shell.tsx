@@ -9,6 +9,7 @@ import { messages } from '@smart-fasal/i18n';
 import { useAuthMemory } from '../../auth/auth-memory';
 import {
   loadFarmerShell,
+  respondToFarmerAdvisory,
   revokeFarmerRoleContext,
   type FarmerShellState,
   type ShellIssue,
@@ -77,6 +78,7 @@ export function FarmerTodayShell({
   const [signOutFailure, setSignOutFailure] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [state, setState] = useState<RenderState>({ kind: 'loading' });
+  const [advisoryStatus, setAdvisoryStatus] = useState<string | undefined>(undefined);
   const copy = messages[locale];
 
   useEffect(() => {
@@ -149,6 +151,36 @@ export function FarmerTodayShell({
     }
   }
 
+  async function handleAdvisoryResponse(
+    advisoryId: string,
+    expectedRevision: number,
+    response: 'ACKNOWLEDGE' | 'SNOOZE' | 'MARK_ACTION_COMPLETED',
+  ) {
+    if (!credentials || !roleContextId) return;
+    setAdvisoryStatus('जतन करत आहे…');
+    try {
+      await respondToFarmerAdvisory(credentials, installationId, roleContextId, advisoryId, {
+        commandId: globalThis.crypto.randomUUID(),
+        expectedRevision,
+        response,
+        ...(response === 'SNOOZE'
+          ? { snoozeUntil: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString() }
+          : {}),
+        clientRecordedAt: new Date().toISOString(),
+        timezone: 'Asia/Kolkata',
+      });
+      setAdvisoryStatus(
+        response === 'ACKNOWLEDGE'
+          ? 'सूचना मान्य केली.'
+          : response === 'SNOOZE'
+            ? 'सूचना थोड्या वेळासाठी पुढे ढकलली.'
+            : 'काम पूर्ण म्हणून नोंदवले.',
+      );
+    } catch {
+      setAdvisoryStatus('समक्रमण उपलब्ध नाही. पुन्हा प्रयत्न करा.');
+    }
+  }
+
   const viewState: RenderState = credentials
     ? roleContextId
       ? state
@@ -218,6 +250,115 @@ export function FarmerTodayShell({
               <p>{copy.farmerContextUnavailable}</p>
               <p className="technical-state">{viewState.farmContextState}</p>
             </section>
+            {viewState.today?.cards[0] ? (
+              <section className="evidence-panel" aria-labelledby="today-advisory-title">
+                <div className="section-heading-row">
+                  <div>
+                    <p className="eyebrow">Milestone 6 · Real-Time Advisory</p>
+                    <h2 id="today-advisory-title">आजची सूचना</h2>
+                  </div>
+                  <span className="source-pill">{viewState.today.cards[0].dataMode}</span>
+                </div>
+                <article className="evidence-card">
+                  <div className="evidence-card-header">
+                    <h3>{viewState.today.cards[0].title}</h3>
+                    <span
+                      className={`state-chip state-chip-${viewState.today.cards[0].severity.toLowerCase()}`}
+                    >
+                      {viewState.today.cards[0].severity} · {viewState.today.cards[0].urgency}
+                    </span>
+                  </div>
+                  <p className="lead">{viewState.today.cards[0].summary}</p>
+                  <dl className="evidence-meta">
+                    <div>
+                      <dt>करायची कृती</dt>
+                      <dd>{viewState.today.cards[0].recommendedAction.label}</dd>
+                    </div>
+                    <div>
+                      <dt>वेळ</dt>
+                      <dd>{viewState.today.cards[0].recommendedAction.timingLabel}</dd>
+                    </div>
+                    <div>
+                      <dt>विश्वास</dt>
+                      <dd>{viewState.today.cards[0].confidenceScore}%</dd>
+                    </div>
+                    <div>
+                      <dt>ताजेपणा</dt>
+                      <dd>
+                        {viewState.today.cards[0].evidenceRefs[0]?.freshness ?? 'UNAVAILABLE'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>समक्रमण</dt>
+                      <dd>{viewState.today.syncState}</dd>
+                    </div>
+                  </dl>
+                  <details className="evidence-note">
+                    <summary>ही सूचना का आली?</summary>
+                    <ul>
+                      {viewState.today.cards[0].why.map((reason) => (
+                        <li key={reason.code}>{reason.label}</li>
+                      ))}
+                    </ul>
+                    <p>
+                      Source:{' '}
+                      {viewState.today.cards[0].evidenceRefs[0]?.sourceName ?? 'Unavailable'} ·{' '}
+                      {viewState.today.cards[0].evidenceRefs[0]?.dataMode ??
+                        viewState.today.cards[0].dataMode}
+                    </p>
+                    {viewState.today.cards[0].limitations[0] ? (
+                      <p>{viewState.today.cards[0].limitations[0]}</p>
+                    ) : null}
+                  </details>
+                  <div className="action-row" aria-label="Advisory actions">
+                    <button
+                      className="primary-button"
+                      onClick={() =>
+                        handleAdvisoryResponse(
+                          viewState.today!.cards[0]!.advisoryId,
+                          viewState.today!.cards[0]!.etagRevision,
+                          'ACKNOWLEDGE',
+                        )
+                      }
+                      type="button"
+                    >
+                      समजले
+                    </button>
+                    <button
+                      className="text-button"
+                      onClick={() =>
+                        handleAdvisoryResponse(
+                          viewState.today!.cards[0]!.advisoryId,
+                          viewState.today!.cards[0]!.etagRevision,
+                          'SNOOZE',
+                        )
+                      }
+                      type="button"
+                    >
+                      नंतर आठवण
+                    </button>
+                    <button
+                      className="text-button"
+                      onClick={() =>
+                        handleAdvisoryResponse(
+                          viewState.today!.cards[0]!.advisoryId,
+                          viewState.today!.cards[0]!.etagRevision,
+                          'MARK_ACTION_COMPLETED',
+                        )
+                      }
+                      type="button"
+                    >
+                      काम पूर्ण
+                    </button>
+                  </div>
+                  {advisoryStatus ? (
+                    <p className="technical-state" role="status">
+                      {advisoryStatus}
+                    </p>
+                  ) : null}
+                </article>
+              </section>
+            ) : null}
             {viewState.evidenceSummary ? (
               <section className="evidence-panel" aria-labelledby="evidence-title">
                 <div className="section-heading-row">

@@ -67,11 +67,14 @@
               "farmer.recommendation.review_request",
               "farmer.recommendation.accept",
               "farmer.season.start_confirm",
-              "farmer.calendar.read"
+              "farmer.calendar.read",
+              "farmer.today.read",
+              "farmer.advisory.read",
+              "farmer.advisory.respond"
             ],
             "type": "string"
           },
-          "maxItems": 57,
+          "maxItems": 60,
           "type": "array"
         },
         "capabilitySetVersion": {

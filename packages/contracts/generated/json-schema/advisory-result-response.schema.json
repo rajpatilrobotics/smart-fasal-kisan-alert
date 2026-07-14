@@ -1,0 +1,364 @@
+{
+  "$defs": {
+    "AdvisoryAction": {
+      "additionalProperties": false,
+      "properties": {
+        "actionKind": {
+          "enum": [
+            "IRRIGATE",
+            "DELAY_IRRIGATION",
+            "MONITOR",
+            "PROTECT_CROP",
+            "CHECK_SENSOR",
+            "CONSULT_RSK",
+            "APPLY_NUTRIENT_WITH_CAUTION"
+          ],
+          "type": "string"
+        },
+        "cannotDoAlternative": {
+          "maxLength": 220,
+          "minLength": 1,
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 180,
+          "minLength": 1,
+          "type": "string"
+        },
+        "timingLabel": {
+          "maxLength": 180,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "actionKind",
+        "label",
+        "timingLabel"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "AdvisoryAlertProjection": {
+      "additionalProperties": false,
+      "properties": {
+        "alertId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "channel": {
+          "const": "IN_APP",
+          "type": "string"
+        },
+        "lastInteractionAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "lifecycleState": {
+          "enum": [
+            "ACTIVE",
+            "ACKNOWLEDGED",
+            "SNOOZED",
+            "RESOLVED",
+            "EXPIRED"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "alertId",
+        "lifecycleState",
+        "channel"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "AdvisoryEvidenceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "dataMode": {
+          "enum": [
+            "LIVE",
+            "RECORDED",
+            "SIMULATED"
+          ],
+          "type": "string"
+        },
+        "evidenceId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        },
+        "freshness": {
+          "enum": [
+            "CURRENT",
+            "DATA_IS_OLD",
+            "NO_RECENT_DATA",
+            "UNAVAILABLE"
+          ],
+          "type": "string"
+        },
+        "limitation": {
+          "maxLength": 220,
+          "minLength": 1,
+          "type": "string"
+        },
+        "metricKey": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "observedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+          "type": "string"
+        },
+        "quality": {
+          "enum": [
+            "TRUSTED",
+            "USE_WITH_CAUTION",
+            "TREND_ONLY",
+            "DO_NOT_USE"
+          ],
+          "type": "string"
+        },
+        "sourceName": {
+          "maxLength": 160,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidenceId",
+        "metricKey",
+        "sourceName",
+        "freshness",
+        "quality",
+        "dataMode"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "AdvisoryReason": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "contribution": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "label": {
+          "maxLength": 180,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "label",
+        "contribution"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "activeFrom": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "advisoryId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "alert": {
+      "$ref": "#/$defs/AdvisoryAlertProjection"
+    },
+    "confidenceScore": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "dataMode": {
+      "enum": [
+        "LIVE",
+        "RECORDED",
+        "SIMULATED"
+      ],
+      "type": "string"
+    },
+    "deduplicationKey": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "etagRevision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "evidenceRefs": {
+      "items": {
+        "$ref": "#/$defs/AdvisoryEvidenceRef"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "type": "array"
+    },
+    "expiresAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "generatedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "DRY_SPELL_RISK",
+        "IRRIGATION_NEEDED",
+        "IRRIGATION_DELAY_RAIN_EXPECTED",
+        "HEAVY_RAIN_WATERLOGGING_RISK",
+        "HEAT_HUMIDITY_WEATHER_RISK",
+        "LOW_SOIL_MOISTURE",
+        "NUTRIENT_PH_GUIDANCE",
+        "SENSOR_EVIDENCE_PROBLEM"
+      ],
+      "type": "string"
+    },
+    "lifecycleState": {
+      "enum": [
+        "GENERATED",
+        "ACTIVE",
+        "ACKNOWLEDGED",
+        "SNOOZED",
+        "RESOLVED",
+        "EXPIRED",
+        "DEDUPLICATED"
+      ],
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 8,
+      "type": "array"
+    },
+    "plotId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "recommendedAction": {
+      "$ref": "#/$defs/AdvisoryAction"
+    },
+    "resultVersion": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "riskScore": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "ruleSetVersion": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "severity": {
+      "enum": [
+        "INFO",
+        "WATCH",
+        "ACTION",
+        "URGENT"
+      ],
+      "type": "string"
+    },
+    "snapshotChecksum": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 280,
+      "minLength": 1,
+      "type": "string"
+    },
+    "supersedesAdvisoryId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "taskId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    },
+    "urgency": {
+      "enum": [
+        "TODAY",
+        "NEXT_24_HOURS",
+        "NEXT_2_TO_3_DAYS",
+        "WHEN_POSSIBLE"
+      ],
+      "type": "string"
+    },
+    "why": {
+      "items": {
+        "$ref": "#/$defs/AdvisoryReason"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "advisoryId",
+    "plotId",
+    "kind",
+    "lifecycleState",
+    "severity",
+    "urgency",
+    "generatedAt",
+    "activeFrom",
+    "expiresAt",
+    "dataMode",
+    "resultVersion",
+    "etagRevision",
+    "snapshotChecksum",
+    "ruleSetVersion",
+    "riskScore",
+    "confidenceScore",
+    "title",
+    "summary",
+    "recommendedAction",
+    "why",
+    "evidenceRefs",
+    "limitations",
+    "deduplicationKey"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

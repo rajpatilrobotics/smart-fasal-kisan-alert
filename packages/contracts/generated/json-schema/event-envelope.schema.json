@@ -139,6 +139,8 @@
         "advisory.replaced",
         "advisory.cancelled",
         "advisory.disputed",
+        "advisory.expired",
+        "advisory.deduplicated",
         "farmer.response_recorded",
         "constraint.recorded",
         "template.version_created",

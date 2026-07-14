@@ -111,6 +111,9 @@ export const CAPABILITY_KEYS = [
   'farmer.recommendation.accept',
   'farmer.season.start_confirm',
   'farmer.calendar.read',
+  'farmer.today.read',
+  'farmer.advisory.read',
+  'farmer.advisory.respond',
 ] as const;
 
 export const PROBLEM_CODES = [
@@ -157,6 +160,9 @@ export const PROBLEM_CODES = [
   'CHALLENGE_EXPIRED',
   'SOURCE_RIGHTS_OR_VERSION_INVALID',
   'NO_SAFE_RECOMMENDATION',
+  'ADVISORY_EXPIRED',
+  'ADVISORY_DEDUPLICATED',
+  'ALERT_DELIVERY_DISABLED',
 ] as const;
 
 export const CONSENT_STATES = ['MISSING', 'ALLOWED', 'DENIED', 'EXPIRED', 'WITHDRAWN'] as const;

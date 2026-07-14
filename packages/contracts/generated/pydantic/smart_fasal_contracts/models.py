@@ -11,6 +11,199 @@ from uuid import UUID
 from pydantic import AnyUrl, AwareDatetime, BaseModel, ConfigDict, Field, RootModel
 
 
+class ActionKind(StrEnum):
+    IRRIGATE = 'IRRIGATE'
+    DELAY_IRRIGATION = 'DELAY_IRRIGATION'
+    MONITOR = 'MONITOR'
+    PROTECT_CROP = 'PROTECT_CROP'
+    CHECK_SENSOR = 'CHECK_SENSOR'
+    CONSULT_RSK = 'CONSULT_RSK'
+    APPLY_NUTRIENT_WITH_CAUTION = 'APPLY_NUTRIENT_WITH_CAUTION'
+
+
+class AdvisoryAction(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    actionKind: ActionKind
+    cannotDoAlternative: Annotated[str | None, Field(max_length=220, min_length=1)] = (
+        None
+    )
+    label: Annotated[str, Field(max_length=180, min_length=1)]
+    timingLabel: Annotated[str, Field(max_length=180, min_length=1)]
+
+
+class LifecycleState(StrEnum):
+    ACTIVE = 'ACTIVE'
+    ACKNOWLEDGED = 'ACKNOWLEDGED'
+    SNOOZED = 'SNOOZED'
+    RESOLVED = 'RESOLVED'
+    EXPIRED = 'EXPIRED'
+
+
+class AdvisoryAlertProjection(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    alertId: UUID
+    channel: Literal['IN_APP']
+    lastInteractionAt: AwareDatetime | None = None
+    lifecycleState: LifecycleState
+
+
+class DataMode(StrEnum):
+    LIVE = 'LIVE'
+    RECORDED = 'RECORDED'
+    SIMULATED = 'SIMULATED'
+
+
+class Freshness(StrEnum):
+    CURRENT = 'CURRENT'
+    DATA_IS_OLD = 'DATA_IS_OLD'
+    NO_RECENT_DATA = 'NO_RECENT_DATA'
+    UNAVAILABLE = 'UNAVAILABLE'
+
+
+class Quality(StrEnum):
+    TRUSTED = 'TRUSTED'
+    USE_WITH_CAUTION = 'USE_WITH_CAUTION'
+    TREND_ONLY = 'TREND_ONLY'
+    DO_NOT_USE = 'DO_NOT_USE'
+
+
+class AdvisoryEvidenceRef(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    dataMode: DataMode
+    evidenceId: UUID
+    freshness: Freshness
+    limitation: Annotated[str | None, Field(max_length=220, min_length=1)] = None
+    metricKey: Annotated[str, Field(max_length=120, min_length=1)]
+    observedAt: AwareDatetime | None = None
+    quality: Quality
+    sourceName: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class AdvisoryReason(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    code: Annotated[str, Field(max_length=80, min_length=1)]
+    contribution: Annotated[float, Field(ge=0.0, le=1.0)]
+    label: Annotated[str, Field(max_length=180, min_length=1)]
+
+
+class Disposition(StrEnum):
+    ACCEPTED = 'ACCEPTED'
+    ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
+
+
+class LifecycleState1(StrEnum):
+    GENERATED = 'GENERATED'
+    ACTIVE = 'ACTIVE'
+    ACKNOWLEDGED = 'ACKNOWLEDGED'
+    SNOOZED = 'SNOOZED'
+    RESOLVED = 'RESOLVED'
+    EXPIRED = 'EXPIRED'
+    DEDUPLICATED = 'DEDUPLICATED'
+
+
+class AdvisoryResponseReceipt(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    advisoryId: UUID
+    commandId: UUID
+    disposition: Disposition
+    eventIds: Annotated[list[UUID], Field(max_length=4, min_length=1)]
+    lifecycleState: LifecycleState1
+    serverReceivedAt: AwareDatetime
+
+
+class Response(StrEnum):
+    ACKNOWLEDGE = 'ACKNOWLEDGE'
+    SNOOZE = 'SNOOZE'
+    MARK_ACTION_COMPLETED = 'MARK_ACTION_COMPLETED'
+    CANNOT_DO = 'CANNOT_DO'
+
+
+class AdvisoryResponseRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    commandId: UUID
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    note: Annotated[str | None, Field(max_length=500, min_length=1)] = None
+    response: Response
+    snoozeUntil: AwareDatetime | None = None
+    timezone: Literal['Asia/Kolkata']
+
+
+class Kind(StrEnum):
+    DRY_SPELL_RISK = 'DRY_SPELL_RISK'
+    IRRIGATION_NEEDED = 'IRRIGATION_NEEDED'
+    IRRIGATION_DELAY_RAIN_EXPECTED = 'IRRIGATION_DELAY_RAIN_EXPECTED'
+    HEAVY_RAIN_WATERLOGGING_RISK = 'HEAVY_RAIN_WATERLOGGING_RISK'
+    HEAT_HUMIDITY_WEATHER_RISK = 'HEAT_HUMIDITY_WEATHER_RISK'
+    LOW_SOIL_MOISTURE = 'LOW_SOIL_MOISTURE'
+    NUTRIENT_PH_GUIDANCE = 'NUTRIENT_PH_GUIDANCE'
+    SENSOR_EVIDENCE_PROBLEM = 'SENSOR_EVIDENCE_PROBLEM'
+
+
+class Limitation(RootModel[str]):
+    root: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class Severity(StrEnum):
+    INFO = 'INFO'
+    WATCH = 'WATCH'
+    ACTION = 'ACTION'
+    URGENT = 'URGENT'
+
+
+class Urgency(StrEnum):
+    TODAY = 'TODAY'
+    NEXT_24_HOURS = 'NEXT_24_HOURS'
+    NEXT_2_TO_3_DAYS = 'NEXT_2_TO_3_DAYS'
+    WHEN_POSSIBLE = 'WHEN_POSSIBLE'
+
+
+class AdvisoryResultResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    activeFrom: AwareDatetime
+    advisoryId: UUID
+    alert: AdvisoryAlertProjection | None = None
+    confidenceScore: Annotated[float, Field(ge=0.0, le=100.0)]
+    dataMode: DataMode
+    deduplicationKey: Annotated[str, Field(max_length=160, min_length=1)]
+    etagRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    evidenceRefs: Annotated[
+        list[AdvisoryEvidenceRef], Field(max_length=16, min_length=1)
+    ]
+    expiresAt: AwareDatetime
+    generatedAt: AwareDatetime
+    kind: Kind
+    lifecycleState: LifecycleState1
+    limitations: Annotated[list[Limitation], Field(max_length=8)]
+    plotId: UUID
+    recommendedAction: AdvisoryAction
+    resultVersion: Annotated[int, Field(ge=0, le=9007199254740991)]
+    riskScore: Annotated[float, Field(ge=0.0, le=100.0)]
+    ruleSetVersion: Annotated[str, Field(max_length=120, min_length=1)]
+    severity: Severity
+    snapshotChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    summary: Annotated[str, Field(max_length=280, min_length=1)]
+    supersedesAdvisoryId: UUID | None = None
+    taskId: UUID | None = None
+    title: Annotated[str, Field(max_length=160, min_length=1)]
+    urgency: Urgency
+    why: Annotated[list[AdvisoryReason], Field(max_length=8, min_length=1)]
+
+
 class Language(StrEnum):
     mr = 'mr'
     hi = 'hi'
@@ -97,6 +290,9 @@ class Capability(StrEnum):
     farmer_recommendation_accept = 'farmer.recommendation.accept'
     farmer_season_start_confirm = 'farmer.season.start_confirm'
     farmer_calendar_read = 'farmer.calendar.read'
+    farmer_today_read = 'farmer.today.read'
+    farmer_advisory_read = 'farmer.advisory.read'
+    farmer_advisory_respond = 'farmer.advisory.respond'
 
 
 class Environment(StrEnum):
@@ -129,7 +325,7 @@ class AuthorizationContext(BaseModel):
         extra='forbid',
     )
     authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
-    capabilities: Annotated[list[Capability], Field(max_length=57)]
+    capabilities: Annotated[list[Capability], Field(max_length=60)]
     capabilitySetVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     environment: Environment
     jurisdictionId: UUID | None = None
@@ -181,7 +377,7 @@ class Target(BaseModel):
     type: Literal['deviceMode']
 
 
-class Disposition(StrEnum):
+class Disposition1(StrEnum):
     ACCEPTED = 'ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
     REJECTED = 'REJECTED'
@@ -197,6 +393,7 @@ class Type(StrEnum):
     farmerSetup = 'farmerSetup'
     farmerPreferences = 'farmerPreferences'
     deviceMode = 'deviceMode'
+    advisory = 'advisory'
 
 
 class Result(BaseModel):
@@ -213,7 +410,7 @@ class CommandResult(BaseModel):
         extra='forbid',
     )
     commandId: UUID
-    disposition: Disposition
+    disposition: Disposition1
     eventIds: Annotated[list[UUID], Field(max_length=20)]
     result: Result | None = None
     serverReceivedAt: AwareDatetime
@@ -668,10 +865,6 @@ class EarthJobExecuteRequest(BaseModel):
     windowStart: AwareDatetime
 
 
-class Limitation(RootModel[str]):
-    root: Annotated[str, Field(max_length=220, min_length=1)]
-
-
 class State3(StrEnum):
     PROPOSED = 'PROPOSED'
     UNAVAILABLE = 'UNAVAILABLE'
@@ -685,12 +878,6 @@ class ActorType(StrEnum):
     SYSTEM = 'SYSTEM'
     DEVICE = 'DEVICE'
     PROVIDER = 'PROVIDER'
-
-
-class DataMode(StrEnum):
-    LIVE = 'LIVE'
-    RECORDED = 'RECORDED'
-    SIMULATED = 'SIMULATED'
 
 
 class EventName(StrEnum):
@@ -752,6 +939,8 @@ class EventName(StrEnum):
     advisory_replaced = 'advisory.replaced'
     advisory_cancelled = 'advisory.cancelled'
     advisory_disputed = 'advisory.disputed'
+    advisory_expired = 'advisory.expired'
+    advisory_deduplicated = 'advisory.deduplicated'
     farmer_response_recorded = 'farmer.response_recorded'
     constraint_recorded = 'constraint.recorded'
     template_version_created = 'template.version_created'
@@ -1079,14 +1268,7 @@ class ProvenanceType(StrEnum):
     DERIVED = 'DERIVED'
 
 
-class Freshness(StrEnum):
-    CURRENT = 'CURRENT'
-    DATA_IS_OLD = 'DATA_IS_OLD'
-    NO_RECENT_DATA = 'NO_RECENT_DATA'
-    UNAVAILABLE = 'UNAVAILABLE'
-
-
-class Kind(StrEnum):
+class Kind1(StrEnum):
     WEATHER_FORECAST = 'WEATHER_FORECAST'
     WEATHER_HISTORY = 'WEATHER_HISTORY'
     EARTH_OBSERVATION = 'EARTH_OBSERVATION'
@@ -1095,7 +1277,7 @@ class Kind(StrEnum):
     DEVICE_HEALTH = 'DEVICE_HEALTH'
 
 
-class Quality(StrEnum):
+class Quality1(StrEnum):
     TRUSTED = 'TRUSTED'
     USE_WITH_CAUTION = 'USE_WITH_CAUTION'
     TREND_ONLY = 'TREND_ONLY'
@@ -1241,6 +1423,30 @@ class SyncStatus(StrEnum):
     CONFLICT = 'CONFLICT'
     LOCKED_RECOVERY = 'LOCKED_RECOVERY'
     REJECTED = 'REJECTED'
+
+
+class Locale1(StrEnum):
+    mr_IN = 'mr-IN'
+    hi_IN = 'hi-IN'
+    en_IN = 'en-IN'
+
+
+class SyncState(StrEnum):
+    SYNCED = 'SYNCED'
+    OFFLINE_CACHE = 'OFFLINE_CACHE'
+    WAITING_FOR_INTERNET = 'WAITING_FOR_INTERNET'
+    LOCKED_RECOVERY = 'LOCKED_RECOVERY'
+
+
+class FarmerTodayResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cards: Annotated[list[AdvisoryResultResponse], Field(max_length=12)]
+    dataMode: DataMode
+    generatedAt: AwareDatetime
+    locale: Locale1
+    syncState: SyncState
 
 
 class FarmingMethod(StrEnum):
@@ -1622,7 +1828,7 @@ class EventName2(StrEnum):
     sync_conflict_resolved = 'sync.conflict_resolved'
 
 
-class Disposition1(StrEnum):
+class Disposition2(StrEnum):
     ACCEPTED = 'ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
     REJECTED = 'REJECTED'
@@ -1636,7 +1842,7 @@ class Payload5(BaseModel):
     batchId: UUID | None = None
     commandId: UUID | None = None
     conflictId: UUID | None = None
-    disposition: Disposition1 | None = None
+    disposition: Disposition2 | None = None
     streamId: UUID
 
 
@@ -1868,7 +2074,7 @@ class GpsPermission(StrEnum):
     UNKNOWN = 'UNKNOWN'
 
 
-class Kind1(StrEnum):
+class Kind2(StrEnum):
     NONE = 'NONE'
     POINT = 'POINT'
     POLYGON = 'POLYGON'
@@ -1883,7 +2089,7 @@ class PlotGeometrySummary(BaseModel):
     geometryVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     gpsPermission: GpsPermission
     hasExactServerGeometry: bool
-    kind: Kind1
+    kind: Kind2
     recordedAt: AwareDatetime
 
 
@@ -1961,6 +2167,9 @@ class Code(StrEnum):
     CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED'
     SOURCE_RIGHTS_OR_VERSION_INVALID = 'SOURCE_RIGHTS_OR_VERSION_INVALID'
     NO_SAFE_RECOMMENDATION = 'NO_SAFE_RECOMMENDATION'
+    ADVISORY_EXPIRED = 'ADVISORY_EXPIRED'
+    ADVISORY_DEDUPLICATED = 'ADVISORY_DEDUPLICATED'
+    ALERT_DELIVERY_DISABLED = 'ALERT_DELIVERY_DISABLED'
 
 
 class FieldError(BaseModel):
@@ -2024,7 +2233,7 @@ class RaigadLocation(BaseModel):
     village: Annotated[str, Field(max_length=160, min_length=1)]
 
 
-class Kind2(StrEnum):
+class Kind3(StrEnum):
     SOWING = 'SOWING'
     TRANSPLANTING = 'TRANSPLANTING'
 
@@ -2044,7 +2253,7 @@ class Start(BaseModel):
             pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
         ),
     ]
-    kind: Kind2
+    kind: Kind3
     mode: Mode1
     timezone: Literal['Asia/Kolkata']
 
@@ -2059,7 +2268,7 @@ class RecommendationAcceptanceRequest(BaseModel):
     start: Start
 
 
-class Disposition2(StrEnum):
+class Disposition3(StrEnum):
     ACCEPTED = 'ACCEPTED'
     ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
 
@@ -2076,7 +2285,7 @@ class RecommendationAcceptanceResponse(BaseModel):
     acceptanceId: UUID
     calendarId: UUID
     commandId: UUID
-    disposition: Disposition2
+    disposition: Disposition3
     seasonId: UUID
     seasonState: SeasonState
     serverReceivedAt: AwareDatetime
@@ -2095,7 +2304,7 @@ class Warning(RootModel[str]):
     root: Annotated[str, Field(max_length=220, min_length=1)]
 
 
-class Quality1(StrEnum):
+class Quality2(StrEnum):
     TRUSTED = 'TRUSTED'
     USE_WITH_CAUTION = 'USE_WITH_CAUTION'
     TREND_ONLY = 'TREND_ONLY'
@@ -2110,7 +2319,7 @@ class RecommendationEvidenceRef(BaseModel):
     evidenceId: UUID
     freshness: Freshness
     metricKey: Annotated[str, Field(max_length=120, min_length=1)]
-    quality: Quality1
+    quality: Quality2
     sourceName: Annotated[str, Field(max_length=160, min_length=1)]
 
 
@@ -2234,7 +2443,7 @@ class ProposedStartWindow(BaseModel):
             pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
         ),
     ]
-    kind: Kind2
+    kind: Kind3
     latestDate: Annotated[
         date_aliased,
         Field(
@@ -2361,6 +2570,46 @@ class RecordConsentDecisionCommand(BaseModel):
     target: Target3
 
 
+class ClientContext5(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    dataModeClaim: DataModeClaim
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class Payload9(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    note: Annotated[str | None, Field(max_length=500, min_length=1)] = None
+    response: Response
+    snoozeUntil: AwareDatetime | None = None
+    timezone: Literal['Asia/Kolkata']
+
+
+class Target4(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['advisory']
+
+
+class RespondToAdvisoryCommand(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientContext: ClientContext5
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    operation: Literal['RespondToAdvisory']
+    payload: Payload9
+    target: Target4
+
+
 class RouteKey(StrEnum):
     FARMER_HOME = 'FARMER_HOME'
     RSK_HOME = 'RSK_HOME'
@@ -2403,7 +2652,7 @@ class RskBootstrapResponse(BaseModel):
     workState: Literal['UNAVAILABLE_UNTIL_WORK_MILESTONE']
 
 
-class ClientContext5(BaseModel):
+class ClientContext6(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2412,7 +2661,7 @@ class ClientContext5(BaseModel):
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
-class Target4(BaseModel):
+class Target5(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2485,7 +2734,7 @@ class SeasonStartConfirmationRequest(BaseModel):
     timezone: Literal['Asia/Kolkata']
 
 
-class ClientContext6(BaseModel):
+class ClientContext7(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2494,7 +2743,7 @@ class ClientContext6(BaseModel):
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
-class Payload9(BaseModel):
+class Payload10(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2503,7 +2752,7 @@ class Payload9(BaseModel):
     roleGrantId: UUID
 
 
-class Target5(BaseModel):
+class Target6(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2515,12 +2764,12 @@ class SelectRoleContextCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext6
+    clientContext: ClientContext7
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['SelectRoleContext']
-    payload: Payload9
-    target: Target5
+    payload: Payload10
+    target: Target6
 
 
 class DeviceBindingState(StrEnum):
@@ -2640,7 +2889,7 @@ class SoilRecordResponse(BaseModel):
         extra='forbid',
     )
     commandId: UUID
-    disposition: Disposition2
+    disposition: Disposition3
     evidenceIds: Annotated[list[UUID], Field(max_length=8, min_length=1)]
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
     serverReceivedAt: AwareDatetime
@@ -2675,7 +2924,7 @@ class Tombstone(BaseModel):
     projectionType: Annotated[str, Field(max_length=80, min_length=1)]
 
 
-class Target6(BaseModel):
+class Target7(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2697,7 +2946,7 @@ class SyncChangeDeviceModeCommandEnvelope(BaseModel):
     operation: Literal['ChangeDeviceMode']
     payload: DeviceModeChangePayload
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target6
+    target: Target7
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -2771,6 +3020,9 @@ class ProblemCode(StrEnum):
     CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED'
     SOURCE_RIGHTS_OR_VERSION_INVALID = 'SOURCE_RIGHTS_OR_VERSION_INVALID'
     NO_SAFE_RECOMMENDATION = 'NO_SAFE_RECOMMENDATION'
+    ADVISORY_EXPIRED = 'ADVISORY_EXPIRED'
+    ADVISORY_DEDUPLICATED = 'ADVISORY_DEDUPLICATED'
+    ALERT_DELIVERY_DISABLED = 'ALERT_DELIVERY_DISABLED'
 
 
 class SyncCommandDisposition3(BaseModel):
@@ -2840,7 +3092,7 @@ class ScopeKey4(StrEnum):
     market_private_fields = 'market.private_fields'
 
 
-class Payload10(BaseModel):
+class Payload11(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2853,7 +3105,7 @@ class Payload10(BaseModel):
     targetKind: TargetKind
 
 
-class Target7(BaseModel):
+class Target8(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2873,9 +3125,9 @@ class SyncCommandEnvelopeV2(BaseModel):
     localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     occurredAt: AwareDatetime
     operation: Literal['RecordConsentDecision']
-    payload: Payload10
+    payload: Payload11
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target7
+    target: Target8
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -2886,7 +3138,7 @@ class SyncCommandStatusResponse(BaseModel):
     command: SyncCommandDisposition
 
 
-class Target8(BaseModel):
+class Target9(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2908,7 +3160,7 @@ class SyncCompleteFarmerSetupCommandEnvelope(BaseModel):
     operation: Literal['CompleteFarmerSetup']
     payload: CompleteFarmerSetupPayload
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target8
+    target: Target9
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -2985,7 +3237,7 @@ class SyncConflictResolutionRequest(BaseModel):
     resolutionSchemaVersion: Literal[1]
 
 
-class Payload11(BaseModel):
+class Payload12(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -2998,7 +3250,7 @@ class Payload11(BaseModel):
     targetKind: TargetKind
 
 
-class Target9(BaseModel):
+class Target10(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -3018,9 +3270,9 @@ class SyncConsentCommandEnvelope(BaseModel):
     localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     occurredAt: AwareDatetime
     operation: Literal['RecordConsentDecision']
-    payload: Payload11
+    payload: Payload12
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target9
+    target: Target10
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -3051,7 +3303,44 @@ class SyncProjectionDelta(BaseModel):
     projectionType: Annotated[str, Field(max_length=80, min_length=1)]
 
 
-class Target10(BaseModel):
+class Payload13(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    clientRecordedAt: AwareDatetime
+    note: Annotated[str | None, Field(max_length=500, min_length=1)] = None
+    response: Response
+    snoozeUntil: AwareDatetime | None = None
+    timezone: Literal['Asia/Kolkata']
+
+
+class Target11(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: UUID
+    type: Literal['advisory']
+
+
+class SyncRespondToAdvisoryCommandEnvelope(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    causalCommandIds: Annotated[list[UUID], Field(max_length=100)]
+    clientEventIds: Annotated[list[UUID], Field(max_length=100, min_length=1)]
+    commandId: UUID
+    commandSchemaVersion: Literal[1]
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    localSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
+    occurredAt: AwareDatetime
+    operation: Literal['RespondToAdvisory']
+    payload: Payload13
+    requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    target: Target11
+    timezone: Annotated[str, Field(max_length=64, min_length=1)]
+
+
+class Target12(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -3161,7 +3450,7 @@ class SyncStreamOpenResponse(BaseModel):
     subjectDeviceBindingId: UUID
 
 
-class Target11(BaseModel):
+class Target13(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -3179,7 +3468,7 @@ class Unavailable(BaseModel):
     state: Literal['UNAVAILABLE']
 
 
-class ClientContext7(BaseModel):
+class ClientContext8(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -3351,6 +3640,20 @@ class Result1(BaseModel):
     summary: Annotated[str, Field(max_length=600, min_length=1)]
 
 
+class Result2(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    advisoryId: UUID
+    dataMode: DataMode
+    openDetailsRoute: Annotated[
+        str, Field(max_length=240, min_length=1, pattern='^\\/')
+    ]
+    resultType: Literal['ADVISORY_READ']
+    sourceGeneratedAt: AwareDatetime
+    summary: Annotated[str, Field(max_length=600, min_length=1)]
+
+
 class State16(StrEnum):
     HELP = 'HELP'
     UNAVAILABLE = 'UNAVAILABLE'
@@ -3366,7 +3669,7 @@ class VoiceTurnResponse(BaseModel):
     acknowledgedClientSequence: Annotated[int, Field(ge=0, le=9007199254740991)]
     messageKey: Annotated[str, Field(max_length=120, min_length=1)]
     proposalId: UUID | None = None
-    result: Result1 | None = None
+    result: Result1 | Result2 | None = None
     serverSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     sessionId: UUID
     state: State16
@@ -3519,13 +3822,13 @@ class EvidenceRecord(BaseModel):
     forecastFor: AwareDatetime | None = None
     freshness: Freshness
     invalidatedAt: AwareDatetime | None = None
-    kind: Kind
+    kind: Kind1
     limitations: Annotated[list[Limitation], Field(max_length=12)]
     metricKey: Annotated[str, Field(max_length=120, min_length=1)]
     observedAt: AwareDatetime | None = None
     plotId: UUID
     policyVersion: Annotated[str, Field(max_length=120, min_length=1)]
-    quality: Quality
+    quality: Quality1
     receivedAt: AwareDatetime
     source: EvidenceSource
     value: EvidenceValue
@@ -3712,7 +4015,7 @@ class SyncSaveFarmerSetupDraftCommandEnvelope(BaseModel):
     operation: Literal['SaveFarmerSetupDraft']
     payload: SaveFarmerSetupDraftPayload
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target10
+    target: Target12
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -3730,7 +4033,7 @@ class SyncUpdateFarmerPreferencesCommandEnvelope(BaseModel):
     operation: Literal['UpdateFarmerPreferences']
     payload: UpdateFarmerPreferencesPayload
     requestHash: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
-    target: Target11
+    target: Target13
     timezone: Annotated[str, Field(max_length=64, min_length=1)]
 
 
@@ -3738,12 +4041,12 @@ class UpdateFarmerPreferencesCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext7
+    clientContext: ClientContext8
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['UpdateFarmerPreferences']
     payload: UpdateFarmerPreferencesPayload
-    target: Target11
+    target: Target13
 
 
 class EarthJobExecuteResponse(BaseModel):
@@ -3807,12 +4110,12 @@ class SaveFarmerSetupDraftCommand(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    clientContext: ClientContext5
+    clientContext: ClientContext6
     commandSchemaVersion: Literal[1]
     expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     operation: Literal['SaveFarmerSetupDraft']
     payload: SaveFarmerSetupDraftPayload
-    target: Target4
+    target: Target5
 
 
 class SetupVoiceReadResponse(BaseModel):
@@ -3859,6 +4162,7 @@ class SyncCommandEnvelope(
         | SyncCompleteFarmerSetupCommandEnvelope
         | SyncUpdateFarmerPreferencesCommandEnvelope
         | SyncChangeDeviceModeCommandEnvelope
+        | SyncRespondToAdvisoryCommandEnvelope
     ]
 ):
     root: (
@@ -3867,6 +4171,7 @@ class SyncCommandEnvelope(
         | SyncCompleteFarmerSetupCommandEnvelope
         | SyncUpdateFarmerPreferencesCommandEnvelope
         | SyncChangeDeviceModeCommandEnvelope
+        | SyncRespondToAdvisoryCommandEnvelope
     )
 
 
@@ -3879,6 +4184,7 @@ class Command(
         | CompleteFarmerSetupCommand
         | UpdateFarmerPreferencesCommand
         | ChangeDeviceModeCommand
+        | RespondToAdvisoryCommand
     ]
 ):
     root: (
@@ -3889,6 +4195,7 @@ class Command(
         | CompleteFarmerSetupCommand
         | UpdateFarmerPreferencesCommand
         | ChangeDeviceModeCommand
+        | RespondToAdvisoryCommand
     )
 
 
@@ -3901,6 +4208,7 @@ class CommandEnvelope(
         | CompleteFarmerSetupCommand
         | UpdateFarmerPreferencesCommand
         | ChangeDeviceModeCommand
+        | RespondToAdvisoryCommand
     ]
 ):
     root: (
@@ -3911,6 +4219,7 @@ class CommandEnvelope(
         | CompleteFarmerSetupCommand
         | UpdateFarmerPreferencesCommand
         | ChangeDeviceModeCommand
+        | RespondToAdvisoryCommand
     )
 
 

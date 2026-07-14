@@ -93,15 +93,28 @@ export const VoiceTurnResponseSchema = z
     messageKey: z.string().min(1).max(120),
     proposalId: UuidSchema.optional(),
     result: z
-      .object({
-        resultType: z.literal('RECOMMENDATION_READ'),
-        recommendationId: UuidSchema,
-        summary: z.string().min(1).max(600),
-        openDetailsRoute: z.string().min(1).max(240).regex(/^\//),
-        dataMode: z.enum(['LIVE', 'RECORDED', 'SIMULATED']),
-        sourceGeneratedAt: TimestampSchema,
-      })
-      .strict()
+      .discriminatedUnion('resultType', [
+        z
+          .object({
+            resultType: z.literal('RECOMMENDATION_READ'),
+            recommendationId: UuidSchema,
+            summary: z.string().min(1).max(600),
+            openDetailsRoute: z.string().min(1).max(240).regex(/^\//),
+            dataMode: z.enum(['LIVE', 'RECORDED', 'SIMULATED']),
+            sourceGeneratedAt: TimestampSchema,
+          })
+          .strict(),
+        z
+          .object({
+            resultType: z.literal('ADVISORY_READ'),
+            advisoryId: UuidSchema,
+            summary: z.string().min(1).max(600),
+            openDetailsRoute: z.string().min(1).max(240).regex(/^\//),
+            dataMode: z.enum(['LIVE', 'RECORDED', 'SIMULATED']),
+            sourceGeneratedAt: TimestampSchema,
+          })
+          .strict(),
+      ])
       .optional(),
     serverSequence: z.int().positive(),
     acknowledgedClientSequence: z.int().nonnegative(),
