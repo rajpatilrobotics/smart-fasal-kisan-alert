@@ -227,6 +227,31 @@ describe('foundation migration', () => {
     expect(migration).toContain('calendar_payload jsonb');
   });
 
+  it('adds the Milestone 6 advisory, in-app alert and diary persistence shape', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0009_milestone_6_realtime_advisory_alerts.sql'),
+      'utf8',
+    );
+    for (const relation of [
+      'agronomy.advisory_evaluation',
+      'agronomy.advisory',
+      'agronomy.advisory_evidence_ref',
+      'agronomy.shadow_prediction',
+      'alert.policy_alert',
+      'agronomy.advisory_response',
+      'workflow.diary_entry',
+    ]) {
+      expect(migration).toContain(`create table ${relation}`);
+    }
+    expect(migration).toContain("source in ('RECOMMENDATION_ACCEPTANCE', 'ADVISORY_ACTION')");
+    expect(migration).toContain("channel text not null check (channel = 'IN_APP')");
+    expect(migration).toContain('production_decision_used boolean not null default false');
+    expect(migration).toContain('check (production_decision_used = false)');
+    expect(migration).toContain('force row level security');
+    expect(migration).toContain('advisory_one_active_deduplication_key_idx');
+    expect(migration).toContain('Push, SMS and WhatsApp delivery adapters remain disabled');
+  });
+
   it('seeds a synthetic Milestone 5 Raigad recommendation demo without private data', async () => {
     const seed = await readFile(resolve(import.meta.dirname, './seed-synthetic.ts'), 'utf8');
     expect(seed).toContain('synthetic-milestone-5-raigad-recommendation');

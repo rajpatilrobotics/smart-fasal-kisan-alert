@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "actionKind": {
+      "enum": [
+        "IRRIGATE",
+        "DELAY_IRRIGATION",
+        "MONITOR",
+        "PROTECT_CROP",
+        "CHECK_SENSOR",
+        "CONSULT_RSK",
+        "APPLY_NUTRIENT_WITH_CAUTION"
+      ],
+      "type": "string"
+    },
+    "cannotDoAlternative": {
+      "maxLength": 220,
+      "minLength": 1,
+      "type": "string"
+    },
+    "label": {
+      "maxLength": 180,
+      "minLength": 1,
+      "type": "string"
+    },
+    "timingLabel": {
+      "maxLength": 180,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "actionKind",
+    "label",
+    "timingLabel"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

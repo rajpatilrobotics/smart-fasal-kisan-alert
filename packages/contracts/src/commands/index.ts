@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { AdvisoryResponseRequestSchema } from '../advisory/index.js';
 import {
   CompleteFarmerSetupPayloadSchema,
   DeviceModeChangePayloadSchema,
@@ -33,6 +34,7 @@ export const CommandTargetSchema = z
       'farmerSetup',
       'farmerPreferences',
       'deviceMode',
+      'advisory',
     ]),
     id: UuidSchema,
   })
@@ -64,6 +66,10 @@ export const FarmerPreferencesCommandTargetSchema = CommandTargetSchema.extend({
 
 export const DeviceModeCommandTargetSchema = CommandTargetSchema.extend({
   type: z.literal('deviceMode'),
+}).strict();
+
+export const AdvisoryCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('advisory'),
 }).strict();
 
 export const SelectRoleContextPayloadSchema = z
@@ -156,6 +162,12 @@ export const ChangeDeviceModeCommandSchema = commandEnvelope(
   DeviceModeChangePayloadSchema,
 ).meta({ id: 'ChangeDeviceModeCommand', 'x-data-classification': 'C2' });
 
+export const RespondToAdvisoryCommandSchema = commandEnvelope(
+  'RespondToAdvisory',
+  AdvisoryCommandTargetSchema,
+  AdvisoryResponseRequestSchema.omit({ commandId: true, expectedRevision: true }),
+).meta({ id: 'RespondToAdvisoryCommand', 'x-data-classification': 'C3' });
+
 export const CommandEnvelopeSchema = z
   .discriminatedUnion('operation', [
     SelectRoleContextCommandSchema,
@@ -165,6 +177,7 @@ export const CommandEnvelopeSchema = z
     CompleteFarmerSetupCommandSchema,
     UpdateFarmerPreferencesCommandSchema,
     ChangeDeviceModeCommandSchema,
+    RespondToAdvisoryCommandSchema,
   ])
   .meta({ id: 'CommandEnvelope', 'x-data-classification': 'C2' });
 
@@ -187,6 +200,7 @@ export const CommandResultSchema = z
           'farmerSetup',
           'farmerPreferences',
           'deviceMode',
+          'advisory',
         ]),
         id: UuidSchema,
         revision: RevisionSchema,

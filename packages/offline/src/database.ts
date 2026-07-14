@@ -4,7 +4,7 @@ import type { DeviceMode } from '@smart-fasal/contracts/schemas';
 
 import type { EncryptedEnvelope } from './crypto.js';
 
-export const LOCAL_DATABASE_SCHEMA_VERSION = 4;
+export const LOCAL_DATABASE_SCHEMA_VERSION = 5;
 
 export interface LocalEventRow {
   eventId: string;
@@ -150,6 +150,17 @@ export interface RecommendationResultCacheRow {
   encrypted: EncryptedEnvelope;
 }
 
+export interface AdvisoryCacheRow {
+  advisoryId: string;
+  plotId: string;
+  status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+  generatedAt: string;
+  urgency: string;
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
 const VERSION_ONE_STORES = {
   localEvents: '&eventId,commandId,localSequence,eventSchemaVersion',
   projections: '&projectionKey,projectionType,projectionId,authorityState,projectionSchemaVersion',
@@ -181,6 +192,7 @@ export class FarmerOfflineDatabase extends Dexie {
   evidenceCache!: Table<EvidenceCacheRow, string>;
   recommendationDrafts!: Table<RecommendationDraftRow, string>;
   recommendationResults!: Table<RecommendationResultCacheRow, string>;
+  advisoryCache!: Table<AdvisoryCacheRow, string>;
 
   constructor(databaseName: string) {
     super(databaseName);
@@ -196,6 +208,7 @@ export class FarmerOfflineDatabase extends Dexie {
         recommendationDrafts:
           '&draftId,plotId,status,commandId,payloadHash,contextRevision,updatedAt',
         recommendationResults: '&recommendationId,plotId,status,dataMode,generatedAt,updatedAt',
+        advisoryCache: '&advisoryId,plotId,status,dataMode,urgency,generatedAt,updatedAt',
       })
       .upgrade(async (transaction) => {
         await transaction.table<CacheMetadataRow>('cacheMetadata').put({

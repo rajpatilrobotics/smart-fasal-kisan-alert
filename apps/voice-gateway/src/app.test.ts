@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import {
   InMemoryVoiceProposalStore,
   InMemoryVoiceTicketStore,
+  type VoiceProvider,
   VoiceTransportService,
   type VoicePrincipal,
   type VoiceTicketBinding,
@@ -36,6 +37,8 @@ function fixture(
     realtimeAuthorized?: boolean;
     offlineAuthorized?: boolean;
     invalidDerivedBinding?: boolean;
+    provider?: VoiceProvider;
+    registeredToolKeys?: readonly string[];
   } = {},
 ) {
   let id = 10;
@@ -52,6 +55,8 @@ function fixture(
     tickets,
     proposals,
     randomId,
+    ...(options.provider === undefined ? {} : { provider: options.provider }),
+    registeredToolKeys: options.registeredToolKeys ?? [],
     offlineAudioPolicy: {
       attachVerified: vi.fn().mockImplementation((input: unknown) => {
         if (options.offlineAuthorized === false) throw new Error('DENIED');
@@ -212,6 +217,61 @@ describe('voice gateway HTTPS boundary', () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toMatchObject({ state: 'TRANSCRIPTION_PENDING' });
     expect(execute).not.toHaveBeenCalled();
+  });
+
+  it('returns advisory reads through the registered Farmer advisory tool path', async () => {
+    const interpret = vi.fn<VoiceProvider['interpret']>().mockResolvedValue({
+      kind: 'VALIDATED_RESULT',
+      messageKey: 'voice.advisory.ready',
+      toolKey: 'farmer.advisory.read',
+      result: {
+        resultType: 'ADVISORY_READ',
+        advisoryId: '019f5678-1234-7000-8000-000000000083',
+        summary: 'मातीतील ओलावा कमी आहे, म्हणून आज पाणी द्या.',
+        openDetailsRoute: '/farmer/advisories/019f5678-1234-7000-8000-000000000083',
+        dataMode: 'RECORDED',
+        sourceGeneratedAt: '2026-07-14T09:00:00.000Z',
+      },
+    });
+    const provider: VoiceProvider = {
+      cancel: vi.fn().mockResolvedValue(undefined),
+      interpret,
+    };
+    const { gateway } = fixture({
+      provider,
+      registeredToolKeys: ['farmer.advisory.read'],
+    });
+    const app = await buildVoiceGatewayApp(gateway);
+    apps.push(app);
+    const session = await createSession(app);
+    const turn = await app.inject({
+      method: 'POST',
+      url: `/v1/voice/sessions/${session.sessionId}/turns`,
+      headers: { 'idempotency-key': '019f5678-1234-7000-8000-000000000093' },
+      payload: {
+        turnId: '019f5678-1234-7000-8000-000000000093',
+        input: { type: 'TEXT', text: 'आज पाणी द्यावे का?' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      },
+    });
+    expect(turn.statusCode).toBe(200);
+    expect(turn.json()).toMatchObject({
+      state: 'RESULT_READY',
+      messageKey: 'voice.advisory.ready',
+      result: {
+        resultType: 'ADVISORY_READ',
+        advisoryId: '019f5678-1234-7000-8000-000000000083',
+        dataMode: 'RECORDED',
+      },
+    });
+    expect(interpret).toHaveBeenCalledWith(
+      expect.objectContaining({
+        principal,
+        language: 'mr',
+        sanitizedContextIds: [],
+      }),
+    );
   });
 });
 

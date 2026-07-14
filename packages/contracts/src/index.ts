@@ -1,3 +1,4 @@
+export * from './advisory/index.js';
 export * from './commands/index.js';
 export * from './device/index.js';
 export * from './evidence/index.js';

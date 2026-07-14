@@ -1714,6 +1714,10 @@ export function createProductionDomainComposition(
         case 'createFarmerPlot':
         case 'getFarmerPlot':
         case 'getFarmerPlotEvidenceSummary':
+        case 'getFarmerToday':
+        case 'listFarmerAdvisories':
+        case 'getFarmerAdvisory':
+        case 'respondToFarmerAdvisory':
         case 'getFarmerRecommendationReadiness':
         case 'createFarmerRecommendationRun':
         case 'getFarmerRecommendationRun':

@@ -280,4 +280,57 @@ describe('bounded voice transport', () => {
       result: { dataMode: 'RECORDED', resultType: 'RECOMMENDATION_READ' },
     });
   });
+
+  it('returns a Marathi advisory read result only through the registered advisory read tool', async () => {
+    const provider: VoiceProvider = {
+      cancel: vi.fn().mockResolvedValue(undefined),
+      interpret: vi.fn().mockResolvedValue({
+        kind: 'VALIDATED_RESULT',
+        messageKey: 'voice.advisory.ready',
+        toolKey: 'farmer.advisory.read',
+        result: {
+          resultType: 'ADVISORY_READ',
+          advisoryId: '019f5678-1234-7000-8000-000000000083',
+          summary: 'मातीतील ओलावा कमी आहे आणि पुढील दोन दिवस पाऊस कमी आहे, म्हणून आज पाणी द्या.',
+          openDetailsRoute: '/farmer/advisories/019f5678-1234-7000-8000-000000000083',
+          dataMode: 'RECORDED',
+          sourceGeneratedAt: '2026-07-14T09:00:00.000+05:30',
+        },
+      }),
+    };
+    const disabled = createService(provider).service;
+    const disabledSession = disabled.createSession(binding).session;
+    await expect(
+      disabled.processTurn(disabledSession.sessionId, principal, {
+        turnId: '019f5678-1234-7000-8000-000000000084',
+        input: { type: 'TEXT', text: 'आज पाणी द्यावे का आणि का?' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      }),
+    ).resolves.toMatchObject({ state: 'UNAVAILABLE' });
+
+    const enabled = new VoiceTransportService({
+      proposals: new InMemoryVoiceProposalStore({
+        executor: { execute: vi.fn() },
+        policy: { reauthorize: vi.fn().mockResolvedValue(true) },
+        registeredToolKeys: [],
+      }),
+      provider,
+      randomId: () => randomUUIDForTest(),
+      registeredToolKeys: ['farmer.advisory.read'],
+      tickets: new InMemoryVoiceTicketStore({ randomId: () => randomUUIDForTest() }),
+    });
+    const enabledSession = enabled.createSession(binding).session;
+    await expect(
+      enabled.processTurn(enabledSession.sessionId, principal, {
+        turnId: '019f5678-1234-7000-8000-000000000085',
+        input: { type: 'TEXT', text: 'आज पाणी द्यावे का आणि का?' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      }),
+    ).resolves.toMatchObject({
+      state: 'RESULT_READY',
+      result: { dataMode: 'RECORDED', resultType: 'ADVISORY_READ' },
+    });
+  });
 });

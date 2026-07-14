@@ -158,6 +158,7 @@ function isNullableContextUuid(value: string): boolean {
   return value === NIL_UUID || isUuid(value);
 }
 
+export { PostgresAdvisoryRepository, AdvisorySql } from './advisory-repository';
 export { PostgresRecommendationRepository, RecommendationSql } from './recommendation-repository';
 
 export class InMemoryFarmerSetupRepository implements FarmerSetupRepository {

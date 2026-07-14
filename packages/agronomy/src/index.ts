@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 import type {
+  AdvisoryResultResponse,
   RecommendationCandidate,
   RecommendationResultResponse,
 } from '@smart-fasal/contracts/schemas';
@@ -356,4 +357,408 @@ export function validateModelExplanation(input: ExplanationValidationInput): boo
         })),
       )
   );
+}
+
+export interface AdvisoryEvidence extends AgronomyEvidence {
+  numericValue?: number;
+  observedAt?: string;
+  limitation?: string;
+}
+
+export interface AdvisoryCropContext {
+  cropName: string;
+  cropStage: 'GERMINATION' | 'VEGETATIVE' | 'FLOWERING' | 'FRUITING' | 'HARVEST' | 'UNKNOWN';
+  sowingDate: string;
+  irrigationAvailable: boolean;
+  recentIrrigationAt?: string;
+}
+
+export interface AdvisoryInput {
+  advisoryId: string;
+  alertId: string;
+  taskId?: string;
+  plotId: string;
+  generatedAt: string;
+  activeFrom: string;
+  expiresAt: string;
+  ruleSetVersion: string;
+  evidence: readonly AdvisoryEvidence[];
+  crop: AdvisoryCropContext;
+  previousActiveAdvisory?: Pick<AdvisoryResultResponse, 'advisoryId' | 'deduplicationKey'>;
+  shadowRiskScore?: { modelVersion: string; score: number };
+}
+
+type AdvisorySignalKey =
+  | 'rainfallForecast48hMm'
+  | 'rainfallHistory7dMm'
+  | 'drySpellDays'
+  | 'soilMoisturePct'
+  | 'npkDeficitScore'
+  | 'phStressScore'
+  | 'heatIndexC'
+  | 'humidityPct'
+  | 'windKmph'
+  | 'waterloggingIndex'
+  | 'sensorAgeHours'
+  | 'vegetationStressIndex';
+
+function signal(input: AdvisoryInput, key: AdvisorySignalKey): AdvisoryEvidence | undefined {
+  return input.evidence.find(
+    (record) =>
+      record.metricKey === key &&
+      record.decisionEligible &&
+      record.rights === 'MODEL_INPUT_ALLOWED' &&
+      record.quality !== 'DO_NOT_USE' &&
+      record.state !== 'DO_NOT_USE' &&
+      record.numericValue !== undefined,
+  );
+}
+
+function signalValue(input: AdvisoryInput, key: AdvisorySignalKey): number | undefined {
+  return signal(input, key)?.numericValue;
+}
+
+function deriveAdvisoryMode(evidence: readonly AdvisoryEvidence[]): DataMode {
+  if (evidence.some((record) => record.dataMode === 'SIMULATED')) return 'SIMULATED';
+  if (evidence.some((record) => record.dataMode === 'RECORDED')) return 'RECORDED';
+  return 'LIVE';
+}
+
+function clampScore(value: number): number {
+  return Math.round(Math.max(0, Math.min(100, value)) * 100) / 100;
+}
+
+function advisoryChecksum(input: AdvisoryInput): `sha256:${string}` {
+  return `sha256:${createHash('sha256').update(JSON.stringify(input)).digest('hex')}`;
+}
+
+function advisoryEvidenceRefs(input: AdvisoryInput): AdvisoryResultResponse['evidenceRefs'] {
+  return input.evidence
+    .filter((record) => record.decisionEligible)
+    .slice(0, 16)
+    .map((record) => ({
+      evidenceId: record.evidenceId,
+      metricKey: record.metricKey,
+      sourceName: record.sourceName,
+      freshness: record.freshness,
+      quality: record.quality,
+      dataMode: record.dataMode,
+      ...(record.observedAt === undefined ? {} : { observedAt: record.observedAt }),
+      ...(record.limitation === undefined ? {} : { limitation: record.limitation }),
+    }));
+}
+
+function evidenceConfidence(evidence: readonly AdvisoryEvidence[]): number {
+  const usable = evidence.filter((record) => record.decisionEligible);
+  if (usable.length === 0) return 0;
+  const freshness =
+    usable.filter((record) => record.freshness === 'CURRENT').length / usable.length;
+  const trusted = usable.filter((record) => record.quality === 'TRUSTED').length / usable.length;
+  const modePenalty = usable.some((record) => record.dataMode === 'SIMULATED')
+    ? 10
+    : usable.some((record) => record.dataMode === 'RECORDED')
+      ? 4
+      : 0;
+  return clampScore(freshness * 45 + trusted * 45 + Math.min(usable.length, 6) * 4 - modePenalty);
+}
+
+function limitations(input: AdvisoryInput): string[] {
+  const output = input.evidence
+    .filter(
+      (record) =>
+        record.freshness !== 'CURRENT' ||
+        record.quality !== 'TRUSTED' ||
+        record.state === 'MISSING' ||
+        record.state === 'UNKNOWN',
+    )
+    .map((record) => record.limitation ?? `${record.sourceName} is ${record.freshness}.`);
+  if (input.shadowRiskScore !== undefined) {
+    output.push(
+      `Shadow ML score ${input.shadowRiskScore.modelVersion} was logged for review and did not drive the decision.`,
+    );
+  }
+  return [...new Set(output)].slice(0, 8);
+}
+
+function baseAdvisory(
+  input: AdvisoryInput,
+  selected: Omit<
+    AdvisoryResultResponse,
+    | 'advisoryId'
+    | 'plotId'
+    | 'lifecycleState'
+    | 'generatedAt'
+    | 'activeFrom'
+    | 'expiresAt'
+    | 'dataMode'
+    | 'resultVersion'
+    | 'etagRevision'
+    | 'snapshotChecksum'
+    | 'ruleSetVersion'
+    | 'evidenceRefs'
+    | 'limitations'
+    | 'deduplicationKey'
+    | 'alert'
+    | 'taskId'
+  >,
+): AdvisoryResultResponse {
+  const deduplicationKey = `${input.plotId}:${selected.kind}:${selected.severity}:${selected.recommendedAction.actionKind}`;
+  const lifecycleState =
+    input.previousActiveAdvisory?.deduplicationKey === deduplicationKey ? 'DEDUPLICATED' : 'ACTIVE';
+  return {
+    advisoryId: input.advisoryId,
+    plotId: input.plotId,
+    lifecycleState,
+    generatedAt: input.generatedAt,
+    activeFrom: input.activeFrom,
+    expiresAt: input.expiresAt,
+    dataMode: deriveAdvisoryMode(input.evidence),
+    resultVersion: 1,
+    etagRevision: 1,
+    snapshotChecksum: advisoryChecksum(input),
+    ruleSetVersion: input.ruleSetVersion,
+    evidenceRefs: advisoryEvidenceRefs(input),
+    limitations: limitations(input),
+    deduplicationKey,
+    ...(input.previousActiveAdvisory?.deduplicationKey === deduplicationKey
+      ? { supersedesAdvisoryId: input.previousActiveAdvisory.advisoryId }
+      : {}),
+    ...(input.taskId === undefined ? {} : { taskId: input.taskId }),
+    alert: {
+      alertId: input.alertId,
+      lifecycleState: lifecycleState === 'DEDUPLICATED' ? 'RESOLVED' : 'ACTIVE',
+      channel: 'IN_APP',
+    },
+    ...selected,
+  };
+}
+
+export function evaluateAdvisory(input: AdvisoryInput): AdvisoryResultResponse {
+  const rain48 = signalValue(input, 'rainfallForecast48hMm');
+  const rain7 = signalValue(input, 'rainfallHistory7dMm');
+  const dryDays = signalValue(input, 'drySpellDays');
+  const moisture = signalValue(input, 'soilMoisturePct');
+  const heat = signalValue(input, 'heatIndexC');
+  const humidity = signalValue(input, 'humidityPct');
+  const wind = signalValue(input, 'windKmph');
+  const waterlogging = signalValue(input, 'waterloggingIndex');
+  const npk = signalValue(input, 'npkDeficitScore');
+  const ph = signalValue(input, 'phStressScore');
+  const sensorAge = signalValue(input, 'sensorAgeHours');
+  const vegetationStress = signalValue(input, 'vegetationStressIndex');
+  const confidenceScore = evidenceConfidence(input.evidence);
+
+  if (sensorAge !== undefined && sensorAge >= 24) {
+    return baseAdvisory(input, {
+      kind: 'SENSOR_EVIDENCE_PROBLEM',
+      severity: sensorAge >= 72 ? 'ACTION' : 'WATCH',
+      urgency: 'TODAY',
+      riskScore: clampScore(Math.min(100, 45 + sensorAge / 2)),
+      confidenceScore,
+      title: 'Live sensor evidence is unavailable',
+      summary: 'Recent live sensor readings are stale, so irrigation advice should be checked.',
+      recommendedAction: {
+        actionKind: 'CHECK_SENSOR',
+        label: 'Check the sensor or use recorded/manual evidence',
+        timingLabel: 'Today',
+        cannotDoAlternative: 'Use the weather and soil record labels with caution.',
+      },
+      why: [
+        {
+          code: 'SENSOR_STALE',
+          label: `Latest sensor signal is ${String(sensorAge)} hours old.`,
+          contribution: 0.7,
+        },
+        {
+          code: 'LIVE_UNAVAILABLE',
+          label: 'LIVE evidence is not decision-current.',
+          contribution: 0.3,
+        },
+      ],
+    });
+  }
+
+  if (rain48 !== undefined && rain48 >= 18 && moisture !== undefined && moisture >= 22) {
+    return baseAdvisory(input, {
+      kind: 'IRRIGATION_DELAY_RAIN_EXPECTED',
+      severity: 'WATCH',
+      urgency: 'NEXT_24_HOURS',
+      riskScore: clampScore(55 + rain48),
+      confidenceScore,
+      title: 'Rain is expected, delay irrigation',
+      summary: 'The plot has enough moisture now and rain is expected soon.',
+      recommendedAction: {
+        actionKind: 'DELAY_IRRIGATION',
+        label: 'Delay irrigation and review after rainfall',
+        timingLabel: 'Wait for the next 24 to 48 hours',
+      },
+      why: [
+        {
+          code: 'RAIN_EXPECTED',
+          label: `${String(rain48)} mm rain forecast in 48 hours.`,
+          contribution: 0.55,
+        },
+        {
+          code: 'MOISTURE_NOT_LOW',
+          label: `Soil moisture is ${String(moisture)}%.`,
+          contribution: 0.45,
+        },
+      ],
+    });
+  }
+
+  const dryRisk =
+    ((dryDays ?? 0) >= 5 ? 30 : 0) +
+    ((rain7 ?? 0) <= 8 ? 18 : 0) +
+    ((rain48 ?? 0) <= 5 ? 20 : 0) +
+    ((moisture ?? 100) < 18 ? 24 : 0) +
+    ((heat ?? 0) >= 38 ? 8 : 0);
+  if (dryRisk >= 50 && moisture !== undefined) {
+    return baseAdvisory(input, {
+      kind: moisture < 18 ? 'IRRIGATION_NEEDED' : 'DRY_SPELL_RISK',
+      severity: dryRisk >= 75 ? 'ACTION' : 'WATCH',
+      urgency: dryRisk >= 75 ? 'TODAY' : 'NEXT_24_HOURS',
+      riskScore: clampScore(dryRisk),
+      confidenceScore,
+      title: moisture < 18 ? 'Irrigation is needed' : 'Dry spell risk is rising',
+      summary:
+        moisture < 18
+          ? 'Low soil moisture and a dry forecast point to irrigation need.'
+          : 'Rainfall signals show a developing dry spell.',
+      recommendedAction: {
+        actionKind: 'IRRIGATE',
+        label: input.crop.irrigationAvailable
+          ? 'Irrigate the plot carefully'
+          : 'Arrange water or ask RSK for local options',
+        timingLabel: dryRisk >= 75 ? 'Today, preferably morning or evening' : 'Within 24 hours',
+        cannotDoAlternative: 'If water is not available, mulch and monitor crop stress.',
+      },
+      why: [
+        {
+          code: 'DRY_SPELL_DAYS',
+          label: `${String(dryDays ?? 0)} dry-spell days detected.`,
+          contribution: 0.3,
+        },
+        {
+          code: 'LOW_FORECAST_RAIN',
+          label: `${String(rain48 ?? 0)} mm rain forecast in 48 hours.`,
+          contribution: 0.25,
+        },
+        {
+          code: 'LOW_SOIL_MOISTURE',
+          label: `Soil moisture is ${String(moisture)}%.`,
+          contribution: 0.35,
+        },
+        {
+          code: 'CROP_STAGE',
+          label: `${input.crop.cropName} is at ${input.crop.cropStage} stage.`,
+          contribution: 0.1,
+        },
+      ],
+    });
+  }
+
+  if ((waterlogging ?? 0) >= 60 || (rain48 !== undefined && rain48 >= 65)) {
+    return baseAdvisory(input, {
+      kind: 'HEAVY_RAIN_WATERLOGGING_RISK',
+      severity: 'URGENT',
+      urgency: 'TODAY',
+      riskScore: clampScore(Math.max(waterlogging ?? 0, rain48 ?? 0)),
+      confidenceScore,
+      title: 'Heavy rain and waterlogging risk',
+      summary: 'Forecast or Earth observation signals show waterlogging risk for this plot.',
+      recommendedAction: {
+        actionKind: 'PROTECT_CROP',
+        label: 'Clear drainage and avoid irrigation',
+        timingLabel: 'Before the next heavy shower',
+      },
+      why: [
+        {
+          code: 'HEAVY_RAIN',
+          label: `${String(rain48 ?? 0)} mm rain forecast in 48 hours.`,
+          contribution: 0.55,
+        },
+        {
+          code: 'WATERLOGGING_SIGNAL',
+          label: `Waterlogging index is ${String(waterlogging ?? 0)}.`,
+          contribution: 0.45,
+        },
+      ],
+    });
+  }
+
+  if ((heat ?? 0) >= 40 || (humidity !== undefined && humidity >= 88) || (wind ?? 0) >= 45) {
+    return baseAdvisory(input, {
+      kind: 'HEAT_HUMIDITY_WEATHER_RISK',
+      severity: (heat ?? 0) >= 42 || (wind ?? 0) >= 55 ? 'URGENT' : 'WATCH',
+      urgency: 'TODAY',
+      riskScore: clampScore(Math.max((heat ?? 0) * 1.7, humidity ?? 0, wind ?? 0)),
+      confidenceScore,
+      title: 'Weather stress risk',
+      summary: 'Heat, humidity or strong weather can stress the crop and field work.',
+      recommendedAction: {
+        actionKind: 'MONITOR',
+        label: 'Avoid field work in peak heat and monitor crop stress',
+        timingLabel: 'Today',
+      },
+      why: [
+        {
+          code: 'HEAT_INDEX',
+          label: `Heat index is ${String(heat ?? 0)}°C.`,
+          contribution: 0.45,
+        },
+        { code: 'HUMIDITY', label: `Humidity is ${String(humidity ?? 0)}%.`, contribution: 0.3 },
+        { code: 'WIND', label: `Wind signal is ${String(wind ?? 0)} km/h.`, contribution: 0.25 },
+      ],
+    });
+  }
+
+  if ((npk ?? 0) >= 55 || (ph ?? 0) >= 55) {
+    return baseAdvisory(input, {
+      kind: 'NUTRIENT_PH_GUIDANCE',
+      severity: 'WATCH',
+      urgency: 'NEXT_2_TO_3_DAYS',
+      riskScore: clampScore(Math.max(npk ?? 0, ph ?? 0, vegetationStress ?? 0)),
+      confidenceScore,
+      title: 'Cautious nutrient guidance',
+      summary: 'Soil and crop-stage signals suggest checking nutrient or pH correction timing.',
+      recommendedAction: {
+        actionKind: 'APPLY_NUTRIENT_WITH_CAUTION',
+        label: 'Use only locally reviewed nutrient guidance',
+        timingLabel: 'After checking soil record and crop stage',
+        cannotDoAlternative: 'Ask RSK before applying any exact quantity.',
+      },
+      why: [
+        {
+          code: 'NPK_TREND',
+          label: `NPK deficit trend score is ${String(npk ?? 0)}.`,
+          contribution: 0.45,
+        },
+        { code: 'PH_STRESS', label: `pH stress score is ${String(ph ?? 0)}.`, contribution: 0.35 },
+        {
+          code: 'STAGE_SAFE',
+          label: `${input.crop.cropStage} stage allows cautious review.`,
+          contribution: 0.2,
+        },
+      ],
+    });
+  }
+
+  return baseAdvisory(input, {
+    kind: 'DRY_SPELL_RISK',
+    severity: 'INFO',
+    urgency: 'WHEN_POSSIBLE',
+    riskScore: clampScore(Math.max(dryRisk, vegetationStress ?? 0)),
+    confidenceScore,
+    title: 'No urgent advisory',
+    summary: 'Current evidence does not cross an action threshold.',
+    recommendedAction: {
+      actionKind: 'MONITOR',
+      label: 'Continue monitoring plot conditions',
+      timingLabel: 'Review tomorrow',
+    },
+    why: [
+      { code: 'BELOW_THRESHOLD', label: 'Signals are below action threshold.', contribution: 1 },
+    ],
+  });
 }

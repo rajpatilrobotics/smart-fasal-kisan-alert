@@ -2,12 +2,14 @@ import { z } from 'zod';
 
 import {
   ConsentDecisionCommandTargetSchema,
+  AdvisoryCommandTargetSchema,
   ConsentDecisionPayloadSchema,
   FarmerSetupDraftCommandTargetSchema,
   FarmerSetupCommandTargetSchema,
   FarmerPreferencesCommandTargetSchema,
   DeviceModeCommandTargetSchema,
 } from '../commands/index.js';
+import { AdvisoryResponseRequestSchema } from '../advisory/index.js';
 import { MilestoneOneEventSchema, MilestoneTwoEventSchema } from '../events/index.js';
 import {
   CompleteFarmerSetupPayloadSchema,
@@ -127,6 +129,14 @@ export const SyncChangeDeviceModeCommandEnvelopeSchema = SyncCommandBaseSchema.e
   .strict()
   .meta({ id: 'SyncChangeDeviceModeCommandEnvelope', 'x-data-classification': 'C2' });
 
+export const SyncRespondToAdvisoryCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('RespondToAdvisory'),
+  target: AdvisoryCommandTargetSchema,
+  payload: AdvisoryResponseRequestSchema.omit({ commandId: true, expectedRevision: true }),
+})
+  .strict()
+  .meta({ id: 'SyncRespondToAdvisoryCommandEnvelope', 'x-data-classification': 'C3' });
+
 export const SyncCommandEnvelopeSchema = z
   .discriminatedUnion('operation', [
     SyncConsentCommandEnvelopeSchema,
@@ -134,6 +144,7 @@ export const SyncCommandEnvelopeSchema = z
     SyncCompleteFarmerSetupCommandEnvelopeSchema,
     SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
     SyncChangeDeviceModeCommandEnvelopeSchema,
+    SyncRespondToAdvisoryCommandEnvelopeSchema,
   ])
   .meta({ id: 'SyncCommandEnvelope', 'x-data-classification': 'C3' });
 

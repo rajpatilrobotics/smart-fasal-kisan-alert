@@ -1,0 +1,57 @@
+{
+  "scenarioSetId": "synthetic-milestone-6-raigad-advisory",
+  "version": "m6-v1",
+  "containsPersonalData": false,
+  "district": "Raigad",
+  "timezone": "Asia/Kolkata",
+  "defaultMode": "RECORDED",
+  "scenarios": [
+    {
+      "scenarioId": "low-soil-moisture-dry-forecast-irrigate",
+      "dataMode": "RECORDED",
+      "plotLabel": "Raigad demo plot 1",
+      "expectedAdvisoryKind": "IRRIGATION_NEEDED",
+      "expectedAction": "IRRIGATE",
+      "evidence": [
+        { "metricKey": "soilMoisturePct", "value": 12, "sourceLabel": "Recorded soil telemetry" },
+        { "metricKey": "drySpellDays", "value": 6, "sourceLabel": "Recorded weather history" },
+        { "metricKey": "rainfallForecast48hMm", "value": 1, "sourceLabel": "Recorded forecast" }
+      ]
+    },
+    {
+      "scenarioId": "rain-expected-delay-irrigation",
+      "dataMode": "RECORDED",
+      "plotLabel": "Raigad demo plot 1",
+      "expectedAdvisoryKind": "IRRIGATION_DELAY_RAIN_EXPECTED",
+      "expectedAction": "DELAY_IRRIGATION",
+      "evidence": [
+        { "metricKey": "rainfallForecast48hMm", "value": 30, "sourceLabel": "Recorded forecast" },
+        { "metricKey": "soilMoisturePct", "value": 32, "sourceLabel": "Recorded soil telemetry" }
+      ]
+    },
+    {
+      "scenarioId": "nutrient-deficiency-cautious-guidance",
+      "dataMode": "RECORDED",
+      "plotLabel": "Raigad demo plot 1",
+      "expectedAdvisoryKind": "NUTRIENT_PH_GUIDANCE",
+      "expectedAction": "APPLY_NUTRIENT_WITH_CAUTION",
+      "guardrail": "No exact fertilizer quantity may be produced from low-cost NPK or AI."
+    },
+    {
+      "scenarioId": "stale-sensor-live-unavailable",
+      "dataMode": "LIVE",
+      "plotLabel": "Raigad demo plot 1",
+      "expectedAdvisoryKind": "SENSOR_EVIDENCE_PROBLEM",
+      "expectedAction": "CHECK_SENSOR",
+      "evidence": [
+        {
+          "metricKey": "sensorAgeHours",
+          "value": 80,
+          "freshness": "DATA_IS_OLD",
+          "sourceLabel": "Stale live sensor packet"
+        }
+      ],
+      "requiredCopy": "LIVE evidence is unavailable for this decision."
+    }
+  ]
+}

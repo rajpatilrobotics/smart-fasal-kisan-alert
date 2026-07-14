@@ -1,7 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 import {
+  evaluateAdvisory,
   recommendCrops,
+  type AdvisoryInput,
   type AgronomyEvidence,
   type CropProfile,
   type RecommendationInput,
@@ -1142,6 +1144,202 @@ export interface RecommendationRecord {
   plotId: string;
 }
 
+export interface AdvisoryRecord {
+  advisory: ReturnType<typeof evaluateAdvisory>;
+  owner: FarmerSetupOwner;
+  plotId: string;
+}
+
+export interface AdvisoryResponseInput {
+  commandId: string;
+  expectedRevision: number;
+  response: 'ACKNOWLEDGE' | 'SNOOZE' | 'MARK_ACTION_COMPLETED' | 'CANNOT_DO';
+  snoozeUntil?: string;
+  note?: string;
+  clientRecordedAt: string;
+  timezone: 'Asia/Kolkata';
+}
+
+export interface AdvisoryResponseReceipt {
+  commandId: string;
+  disposition: 'ACCEPTED' | 'ALREADY_ACCEPTED';
+  advisoryId: string;
+  lifecycleState: ReturnType<typeof evaluateAdvisory>['lifecycleState'];
+  eventIds: readonly string[];
+  serverReceivedAt: string;
+}
+
+export interface AdvisoryEvidenceProvider {
+  buildInput(input: {
+    readonly owner: FarmerSetupOwner;
+    readonly plotId: string;
+    readonly generatedAt: string;
+    readonly id: () => string;
+  }): Promise<Omit<AdvisoryInput, 'advisoryId' | 'alertId' | 'taskId' | 'previousActiveAdvisory'>>;
+}
+
+export interface AdvisoryRepository {
+  loadAdvisory(owner: FarmerSetupOwner, advisoryId: string): Promise<AdvisoryRecord | undefined>;
+  listAdvisories(owner: FarmerSetupOwner): Promise<readonly AdvisoryRecord[]>;
+  loadByDeduplicationKey(
+    owner: FarmerSetupOwner,
+    deduplicationKey: string,
+  ): Promise<AdvisoryRecord | undefined>;
+  saveAdvisory(record: AdvisoryRecord): Promise<void>;
+  loadResponse(
+    owner: FarmerSetupOwner,
+    commandId: string,
+  ): Promise<AdvisoryResponseReceipt | undefined>;
+  saveResponse(owner: FarmerSetupOwner, receipt: AdvisoryResponseReceipt): Promise<void>;
+}
+
+export class AdvisoryRejectedError extends Error {
+  constructor(
+    readonly code: 'AUTHORIZATION_DENIED' | 'ADVISORY_EXPIRED' | 'INVALID_STATE_TRANSITION',
+  ) {
+    super(code);
+    this.name = 'AdvisoryRejectedError';
+  }
+}
+
+export class AdvisoryService {
+  constructor(
+    private readonly setupRepository: FarmerSetupRepository,
+    private readonly advisoryRepository: AdvisoryRepository,
+    private readonly now: () => Date = () => new Date(),
+    private readonly id: () => string = randomUUID,
+    private readonly evidenceProvider: AdvisoryEvidenceProvider = new RecordedRaigadAdvisoryEvidenceProvider(),
+  ) {}
+
+  async today(owner: FarmerSetupOwner) {
+    const record = await this.setupRepository.load(owner);
+    const plotId = record?.draft?.farms[0]?.plots[0]?.plotId;
+    if (plotId === undefined) {
+      return {
+        generatedAt: this.now().toISOString(),
+        locale: record?.draft?.profile.preferredLocale ?? 'mr-IN',
+        dataMode: 'SIMULATED' as const,
+        cards: [],
+        syncState: 'SYNCED' as const,
+      };
+    }
+    const generated = await this.evaluatePlot(owner, plotId);
+    const cards = (await this.advisoryRepository.listAdvisories(owner))
+      .map((item) => item.advisory)
+      .filter((item) => item.lifecycleState === 'ACTIVE' || item.lifecycleState === 'DEDUPLICATED')
+      .sort((left, right) => right.riskScore - left.riskScore)
+      .slice(0, 12);
+    return {
+      generatedAt: generated.generatedAt,
+      locale: record?.draft?.profile.preferredLocale ?? 'mr-IN',
+      dataMode: generated.dataMode,
+      cards,
+      syncState: 'SYNCED' as const,
+    };
+  }
+
+  async evaluatePlot(owner: FarmerSetupOwner, plotId: string) {
+    await this.assertPlotOwned(owner, plotId);
+    const generatedAt = this.now().toISOString();
+    const advisoryId = this.id();
+    const alertId = this.id();
+    const taskId = this.id();
+    const base = await this.evidenceProvider.buildInput({
+      owner,
+      plotId,
+      generatedAt,
+      id: this.id,
+    });
+    const probe = evaluateAdvisory({ ...base, advisoryId, alertId, taskId });
+    const previous = await this.advisoryRepository.loadByDeduplicationKey(
+      owner,
+      probe.deduplicationKey,
+    );
+    const advisory =
+      previous === undefined
+        ? probe
+        : evaluateAdvisory({
+            ...base,
+            advisoryId,
+            alertId,
+            taskId,
+            previousActiveAdvisory: previous.advisory,
+          });
+    await this.advisoryRepository.saveAdvisory({ advisory, owner, plotId });
+    return advisory;
+  }
+
+  async advisory(owner: FarmerSetupOwner, advisoryId: string) {
+    const record = await this.advisoryRepository.loadAdvisory(owner, advisoryId);
+    if (record === undefined) throw new AdvisoryRejectedError('AUTHORIZATION_DENIED');
+    await this.assertPlotOwned(owner, record.plotId);
+    return record.advisory;
+  }
+
+  async respond(input: {
+    owner: FarmerSetupOwner;
+    advisoryId: string;
+    request: AdvisoryResponseInput;
+  }): Promise<AdvisoryResponseReceipt> {
+    const replay = await this.advisoryRepository.loadResponse(input.owner, input.request.commandId);
+    if (replay !== undefined) return { ...replay, disposition: 'ALREADY_ACCEPTED' };
+
+    const record = await this.advisoryRepository.loadAdvisory(input.owner, input.advisoryId);
+    if (record === undefined) throw new AdvisoryRejectedError('AUTHORIZATION_DENIED');
+    if (record.advisory.etagRevision !== input.request.expectedRevision) {
+      throw new AdvisoryRejectedError('INVALID_STATE_TRANSITION');
+    }
+    if (Date.parse(record.advisory.expiresAt) <= this.now().getTime()) {
+      throw new AdvisoryRejectedError('ADVISORY_EXPIRED');
+    }
+
+    const lifecycleState: AdvisoryResponseReceipt['lifecycleState'] =
+      input.request.response === 'ACKNOWLEDGE'
+        ? 'ACKNOWLEDGED'
+        : input.request.response === 'SNOOZE'
+          ? 'SNOOZED'
+          : input.request.response === 'MARK_ACTION_COMPLETED'
+            ? 'RESOLVED'
+            : 'ACTIVE';
+    const updated = {
+      ...record.advisory,
+      lifecycleState,
+      etagRevision: record.advisory.etagRevision + 1,
+      alert: record.advisory.alert
+        ? {
+            ...record.advisory.alert,
+            lifecycleState:
+              lifecycleState === 'ACKNOWLEDGED' ||
+              lifecycleState === 'SNOOZED' ||
+              lifecycleState === 'RESOLVED'
+                ? lifecycleState
+                : record.advisory.alert.lifecycleState,
+            lastInteractionAt: this.now().toISOString(),
+          }
+        : undefined,
+    };
+    await this.advisoryRepository.saveAdvisory({ ...record, advisory: updated });
+    const receipt: AdvisoryResponseReceipt = {
+      commandId: input.request.commandId,
+      disposition: 'ACCEPTED',
+      advisoryId: input.advisoryId,
+      lifecycleState,
+      eventIds: [this.id()],
+      serverReceivedAt: this.now().toISOString(),
+    };
+    await this.advisoryRepository.saveResponse(input.owner, receipt);
+    return receipt;
+  }
+
+  private async assertPlotOwned(owner: FarmerSetupOwner, plotId: string): Promise<void> {
+    const record = await this.setupRepository.load(owner);
+    const ownsPlot = record?.draft?.farms.some((farm) =>
+      farm.plots.some((plot) => plot.plotId === plotId),
+    );
+    if (!ownsPlot) throw new AdvisoryRejectedError('AUTHORIZATION_DENIED');
+  }
+}
+
 export interface RecommendationEvidencePackage {
   readonly evidence: readonly AgronomyEvidence[];
   readonly cropProfiles: readonly CropProfile[];
@@ -1460,8 +1658,134 @@ export class InMemoryRecommendationRepository implements RecommendationRepositor
   }
 }
 
+export class InMemoryAdvisoryRepository implements AdvisoryRepository {
+  readonly #advisories = new Map<string, AdvisoryRecord>();
+  readonly #responses = new Map<string, AdvisoryResponseReceipt>();
+
+  async loadAdvisory(owner: FarmerSetupOwner, advisoryId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#advisories.get(key(owner, advisoryId)));
+  }
+
+  async listAdvisories(owner: FarmerSetupOwner) {
+    await Promise.resolve();
+    return [...this.#advisories.values()]
+      .filter(
+        (record) =>
+          record.owner.environment === owner.environment &&
+          record.owner.subjectId === owner.subjectId,
+      )
+      .map((record) => cloneJson(record));
+  }
+
+  async loadByDeduplicationKey(owner: FarmerSetupOwner, deduplicationKey: string) {
+    await Promise.resolve();
+    const record = [...this.#advisories.values()].find(
+      (item) =>
+        item.owner.environment === owner.environment &&
+        item.owner.subjectId === owner.subjectId &&
+        item.advisory.deduplicationKey === deduplicationKey &&
+        item.advisory.lifecycleState === 'ACTIVE',
+    );
+    return cloneJson(record);
+  }
+
+  async saveAdvisory(record: AdvisoryRecord) {
+    await Promise.resolve();
+    this.#advisories.set(key(record.owner, record.advisory.advisoryId), cloneJson(record));
+  }
+
+  async loadResponse(owner: FarmerSetupOwner, commandId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#responses.get(key(owner, commandId)));
+  }
+
+  async saveResponse(owner: FarmerSetupOwner, receipt: AdvisoryResponseReceipt) {
+    await Promise.resolve();
+    this.#responses.set(key(owner, receipt.commandId), cloneJson(receipt));
+  }
+}
+
+export class RecordedRaigadAdvisoryEvidenceProvider implements AdvisoryEvidenceProvider {
+  constructor(
+    private readonly scenario:
+      | 'LOW_MOISTURE_DRY_FORECAST'
+      | 'RAIN_EXPECTED_DELAY'
+      | 'NUTRIENT_DEFICIENCY'
+      | 'STALE_SENSOR' = 'LOW_MOISTURE_DRY_FORECAST',
+  ) {}
+
+  async buildInput(input: {
+    readonly plotId: string;
+    readonly generatedAt: string;
+    readonly id: () => string;
+  }): Promise<Omit<AdvisoryInput, 'advisoryId' | 'alertId' | 'taskId' | 'previousActiveAdvisory'>> {
+    await Promise.resolve();
+    return {
+      plotId: input.plotId,
+      generatedAt: input.generatedAt,
+      activeFrom: input.generatedAt,
+      expiresAt: new Date(Date.parse(input.generatedAt) + 24 * 60 * 60 * 1000).toISOString(),
+      ruleSetVersion: 'raigad-advisory-rules-v1',
+      crop: {
+        cropName: 'Rice',
+        cropStage: 'VEGETATIVE',
+        sowingDate: '2026-06-20',
+        irrigationAvailable: true,
+      },
+      evidence: recordedAdvisoryEvidence(this.scenario, input.id),
+      shadowRiskScore: { modelVersion: 'shadow-risk-v0', score: 51 },
+    };
+  }
+}
+
 function key(owner: FarmerSetupOwner, id: string): string {
   return `${owner.environment}:${owner.subjectId}:${id}`;
+}
+
+function recordedAdvisoryEvidence(
+  scenario: ConstructorParameters<typeof RecordedRaigadAdvisoryEvidenceProvider>[0],
+  id: () => string,
+): AdvisoryInput['evidence'] {
+  const base = (
+    metricKey: string,
+    numericValue: number,
+    extra: Partial<AdvisoryInput['evidence'][number]> = {},
+  ) => ({
+    evidenceId: id(),
+    metricKey,
+    numericValue,
+    state: 'KNOWN' as const,
+    dataMode: 'RECORDED' as const,
+    quality: 'TRUSTED' as const,
+    freshness: 'CURRENT' as const,
+    sourceName: 'Raigad recorded Milestone 6 scenario',
+    decisionEligible: true,
+    rights: 'MODEL_INPUT_ALLOWED' as const,
+    observedAt: '2026-07-14T08:30:00.000+05:30',
+    ...extra,
+  });
+  if (scenario === 'RAIN_EXPECTED_DELAY') {
+    return [base('rainfallForecast48hMm', 30), base('soilMoisturePct', 32)];
+  }
+  if (scenario === 'NUTRIENT_DEFICIENCY') {
+    return [base('npkDeficitScore', 72), base('phStressScore', 48)];
+  }
+  if (scenario === 'STALE_SENSOR') {
+    return [
+      base('sensorAgeHours', 80, {
+        dataMode: 'LIVE',
+        freshness: 'DATA_IS_OLD',
+        limitation: 'Sensor packet is stale; LIVE evidence is unavailable for this decision.',
+      }),
+    ];
+  }
+  return [
+    base('drySpellDays', 6),
+    base('rainfallHistory7dMm', 2),
+    base('rainfallForecast48hMm', 1),
+    base('soilMoisturePct', 12),
+  ];
 }
 
 function recommendationEngineInput(input: {

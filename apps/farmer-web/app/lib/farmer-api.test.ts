@@ -376,6 +376,7 @@ describe('Farmer API boundary', () => {
     expect(requests.map((request) => request.url.pathname)).toEqual([
       '/v1/auth/session',
       '/v1/farmer/bootstrap',
+      '/v1/farmer/today',
     ]);
     for (const request of requests) {
       expectRequiredHeaders(request);
