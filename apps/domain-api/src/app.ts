@@ -19,6 +19,14 @@ import {
   ProblemDetailsSchema,
   ProtectedDisclosureRequestSchema,
   ProtectedDisclosureResponseSchema,
+  RecommendationAcceptanceRequestSchema,
+  RecommendationAcceptanceResponseSchema,
+  RecommendationReadinessResponseSchema,
+  RecommendationRequestSchema,
+  RecommendationResultResponseSchema,
+  RecommendationReviewRequestSchema,
+  RecommendationRunAcceptedResponseSchema,
+  RecommendationRunStatusResponseSchema,
   RecordConsentDecisionCommandSchema,
   ReturnStateRequestSchema,
   ReturnStateResponseSchema,
@@ -26,6 +34,8 @@ import {
   MyFarmResponseSchema,
   PlotEvidenceSummarySchema,
   SaveFarmerSetupDraftCommandSchema,
+  SeasonCalendarResponseSchema,
+  SeasonStartConfirmationRequestSchema,
   SelectRoleContextCommandSchema,
   SessionResponseSchema,
   SyncBatchResponseV2Schema,
@@ -1023,6 +1033,175 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
       const plotId = parseContract(UuidSchema, request.params.plotId);
       return execute('getFarmerPlotEvidenceSummary', boundary, PlotEvidenceSummarySchema, {
         params: { plotId },
+      });
+    },
+  );
+
+  app.get<{ Params: { plotId: string } }>(
+    '/v1/farmer/plots/:plotId/recommendation-readiness',
+    async (request) => {
+      const route = identityRoute('getFarmerRecommendationReadiness', {
+        surface: 'farmer',
+        capability: 'farmer.recommendation.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const plotId = parseContract(UuidSchema, request.params.plotId);
+      return execute(
+        'getFarmerRecommendationReadiness',
+        boundary,
+        RecommendationReadinessResponseSchema,
+        {
+          params: { plotId },
+        },
+      );
+    },
+  );
+
+  app.post<{ Params: { plotId: string } }>(
+    '/v1/farmer/plots/:plotId/recommendation-runs',
+    async (request, reply) => {
+      const route = farmerCommandRoute(
+        'createFarmerRecommendationRun',
+        'farmer.recommendation.run',
+      );
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(RecommendationRequestSchema, request.body);
+      if (body.planningContextRevision !== boundary.expectedRevision) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const plotId = parseContract(UuidSchema, request.params.plotId);
+      const response = await execute(
+        'createFarmerRecommendationRun',
+        boundary,
+        RecommendationRunAcceptedResponseSchema,
+        { body, params: { plotId } },
+      );
+      reply.code(202);
+      return response;
+    },
+  );
+
+  app.get<{ Params: { operationId: string } }>(
+    '/v1/farmer/recommendation-runs/:operationId',
+    async (request) => {
+      const route = identityRoute('getFarmerRecommendationRun', {
+        surface: 'farmer',
+        capability: 'farmer.recommendation.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const operationId = parseContract(UuidSchema, request.params.operationId);
+      return execute(
+        'getFarmerRecommendationRun',
+        boundary,
+        RecommendationRunStatusResponseSchema,
+        {
+          params: { operationId },
+        },
+      );
+    },
+  );
+
+  app.get<{ Params: { recommendationId: string } }>(
+    '/v1/farmer/recommendations/:recommendationId',
+    async (request) => {
+      const route = identityRoute('getFarmerRecommendation', {
+        surface: 'farmer',
+        capability: 'farmer.recommendation.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const recommendationId = parseContract(UuidSchema, request.params.recommendationId);
+      return execute('getFarmerRecommendation', boundary, RecommendationResultResponseSchema, {
+        params: { recommendationId },
+      });
+    },
+  );
+
+  app.post<{ Params: { recommendationId: string } }>(
+    '/v1/farmer/recommendations/:recommendationId/review-requests',
+    async (request) => {
+      const route = farmerCommandRoute(
+        'createFarmerRecommendationReviewRequest',
+        'farmer.recommendation.review_request',
+      );
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(RecommendationReviewRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const recommendationId = parseContract(UuidSchema, request.params.recommendationId);
+      return execute('createFarmerRecommendationReviewRequest', boundary, CommandResultSchema, {
+        body,
+        params: { recommendationId },
+      });
+    },
+  );
+
+  app.post<{ Params: { recommendationId: string } }>(
+    '/v1/farmer/recommendations/:recommendationId/acceptances',
+    async (request) => {
+      const route = farmerCommandRoute(
+        'acceptFarmerRecommendation',
+        'farmer.recommendation.accept',
+      );
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(RecommendationAcceptanceRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const recommendationId = parseContract(UuidSchema, request.params.recommendationId);
+      return execute(
+        'acceptFarmerRecommendation',
+        boundary,
+        RecommendationAcceptanceResponseSchema,
+        {
+          body,
+          params: { recommendationId },
+        },
+      );
+    },
+  );
+
+  app.post<{ Params: { seasonId: string } }>(
+    '/v1/farmer/seasons/:seasonId/start-confirmations',
+    async (request) => {
+      const route = farmerCommandRoute('confirmFarmerSeasonStart', 'farmer.season.start_confirm');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(SeasonStartConfirmationRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const seasonId = parseContract(UuidSchema, request.params.seasonId);
+      return execute('confirmFarmerSeasonStart', boundary, CommandResultSchema, {
+        body,
+        params: { seasonId },
+      });
+    },
+  );
+
+  app.get<{ Params: { seasonId: string } }>(
+    '/v1/farmer/seasons/:seasonId/calendar',
+    async (request) => {
+      const route = identityRoute('getFarmerSeasonCalendar', {
+        surface: 'farmer',
+        capability: 'farmer.calendar.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const seasonId = parseContract(UuidSchema, request.params.seasonId);
+      return execute('getFarmerSeasonCalendar', boundary, SeasonCalendarResponseSchema, {
+        params: { seasonId },
       });
     },
   );

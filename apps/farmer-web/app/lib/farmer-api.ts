@@ -1,4 +1,16 @@
 import { createFarmerClient } from '@smart-fasal/contracts/clients/farmer';
+import type {
+  RecommendationAcceptanceRequest,
+  RecommendationAcceptanceResponse,
+  RecommendationReadinessResponse,
+  RecommendationRequest,
+  RecommendationResultResponse,
+  RecommendationReviewRequest,
+  RecommendationRunAcceptedResponse,
+  RecommendationRunStatusResponse,
+  SeasonCalendarResponse,
+  SeasonStartConfirmationRequest,
+} from '@smart-fasal/contracts/schemas';
 
 import type { InMemoryCredentials } from '../auth/auth-memory';
 
@@ -16,6 +28,8 @@ export type FarmerShellState =
       readonly authorizationVersion: number;
       readonly onboardingState: string;
       readonly farmContextState: 'UNAVAILABLE_UNTIL_SETUP' | 'AVAILABLE';
+      readonly firstFarmId?: string;
+      readonly firstPlotId?: string;
       readonly evidenceSummary?: FarmerEvidenceSummary;
     };
 
@@ -243,6 +257,7 @@ export async function loadFarmerShell(
     const myFarm = bootstrap.myFarm as
       | {
           farms?: readonly {
+            farmId?: string;
             plots?: readonly { plotId?: string }[];
           }[];
         }
@@ -267,6 +282,8 @@ export async function loadFarmerShell(
       authorizationVersion: context.authorizationVersion,
       onboardingState: bootstrap.onboardingState,
       farmContextState: bootstrap.farmContextState,
+      ...(myFarm?.farms?.[0]?.farmId === undefined ? {} : { firstFarmId: myFarm.farms[0].farmId }),
+      ...(firstPlotId === undefined ? {} : { firstPlotId }),
       ...(evidenceSummary === undefined ? {} : { evidenceSummary }),
     };
   } catch (error) {
@@ -302,4 +319,208 @@ export async function revokeFarmerRoleContext(
   } catch {
     return false;
   }
+}
+
+function etagRevision(revision: number): string {
+  return `"rev:${revision}"`;
+}
+
+function failRecommendationRequest(errorCode: string | undefined, status: number): never {
+  throw new Error(errorCode ?? `RECOMMENDATION_REQUEST_${status}`);
+}
+
+export async function loadRecommendationReadiness(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  plotId: string,
+  options: ApiOptions = {},
+): Promise<RecommendationReadinessResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/plots/{plotId}/recommendation-readiness', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { plotId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as RecommendationReadinessResponse;
+}
+
+export async function createRecommendationRun(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  plotId: string,
+  request: RecommendationRequest,
+  options: ApiOptions & { readonly commandId?: string } = {},
+): Promise<RecommendationRunAcceptedResponse> {
+  const commandId = options.commandId ?? globalThis.crypto.randomUUID();
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/plots/{plotId}/recommendation-runs', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': commandId,
+        'If-Match': etagRevision(request.planningContextRevision),
+      },
+      path: { plotId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as RecommendationRunAcceptedResponse;
+}
+
+export async function loadRecommendationRun(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  operationId: string,
+  options: ApiOptions = {},
+): Promise<RecommendationRunStatusResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/recommendation-runs/{operationId}', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { operationId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as RecommendationRunStatusResponse;
+}
+
+export async function loadRecommendationResult(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  recommendationId: string,
+  options: ApiOptions = {},
+): Promise<RecommendationResultResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/recommendations/{recommendationId}', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { recommendationId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as RecommendationResultResponse;
+}
+
+export async function requestRecommendationReview(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  recommendationId: string,
+  request: RecommendationReviewRequest,
+  options: ApiOptions = {},
+): Promise<boolean> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST(
+    '/v1/farmer/recommendations/{recommendationId}/review-requests',
+    {
+      body: request,
+      params: {
+        header: {
+          ...protectedHeaders(installationId, roleContextId),
+          'Idempotency-Key': request.commandId,
+          'If-Match': etagRevision(request.expectedRevision),
+        },
+        path: { recommendationId },
+      },
+      signal: options.signal,
+    },
+  );
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return ['ACCEPTED', 'ALREADY_ACCEPTED'].includes(result.data.disposition);
+}
+
+export async function acceptRecommendation(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  recommendationId: string,
+  request: RecommendationAcceptanceRequest,
+  options: ApiOptions = {},
+): Promise<RecommendationAcceptanceResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/recommendations/{recommendationId}/acceptances', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { recommendationId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as RecommendationAcceptanceResponse;
+}
+
+export async function confirmSeasonStart(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  seasonId: string,
+  request: SeasonStartConfirmationRequest,
+  options: ApiOptions = {},
+): Promise<boolean> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/seasons/{seasonId}/start-confirmations', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { seasonId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return ['ACCEPTED', 'ALREADY_ACCEPTED'].includes(result.data.disposition);
+}
+
+export async function loadSeasonCalendar(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  seasonId: string,
+  options: ApiOptions = {},
+): Promise<SeasonCalendarResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/seasons/{seasonId}/calendar', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { seasonId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as SeasonCalendarResponse;
 }

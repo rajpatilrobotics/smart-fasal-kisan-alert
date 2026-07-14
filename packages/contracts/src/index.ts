@@ -8,6 +8,7 @@ export * from './http/common.js';
 export * from './http/routes.js';
 export * from './media/index.js';
 export * from './privacy/index.js';
+export * from './recommendation/index.js';
 export * from './sync/index.js';
 export * from './vocabulary.js';
 export * from './voice/index.js';

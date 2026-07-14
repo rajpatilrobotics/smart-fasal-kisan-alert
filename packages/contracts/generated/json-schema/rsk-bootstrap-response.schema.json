@@ -60,7 +60,13 @@
           "farmer.plot.write",
           "farmer.evidence.read",
           "farmer.soil.write",
-          "farmer.voice.setup"
+          "farmer.voice.setup",
+          "farmer.recommendation.read",
+          "farmer.recommendation.run",
+          "farmer.recommendation.review_request",
+          "farmer.recommendation.accept",
+          "farmer.season.start_confirm",
+          "farmer.calendar.read"
         ],
         "type": "string"
       },

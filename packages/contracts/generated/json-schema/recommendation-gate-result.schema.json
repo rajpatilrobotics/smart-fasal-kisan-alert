@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cropProfileId": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "gateKey": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "outcome": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN_BLOCKING",
+        "NOT_APPLICABLE"
+      ],
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 220,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "cropProfileId",
+    "gateKey",
+    "outcome",
+    "reason"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

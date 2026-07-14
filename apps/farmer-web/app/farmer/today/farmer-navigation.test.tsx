@@ -90,6 +90,39 @@ describe('Farmer contextual Speak shell', () => {
     await waitFor(() => expect(opener).toHaveFocus());
   });
 
+  it('shows a multilingual recommendation result from the voice tool with an details link', async () => {
+    const submitText = vi.fn().mockResolvedValue({
+      kind: 'recommendation-result',
+      recommendationId: '00000000-0000-4000-8000-000000000903',
+      summary: 'Rice is the top crop because the Raigad kharif water context is suitable.',
+      openDetailsRoute: '/farmer/recommendations/00000000-0000-4000-8000-000000000903',
+      dataMode: 'RECORDED',
+      sourceGeneratedAt: '2026-07-14T09:00:00.000+05:30',
+    });
+    render(
+      <FarmerNavigation
+        currentRoute="/farmer/today"
+        locale="mr"
+        submitText={submitText}
+        transportConfigured
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'बोला' }));
+    fireEvent.change(screen.getByLabelText('तुमचा प्रश्न लिहा'), {
+      target: { value: 'माझ्या शेतात कोणते पीक घ्यावे आणि का?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'मजकूर पाठवा' }));
+
+    expect(await screen.findAllByText('पीक शिफारस निकाल तयार आहे.')).toHaveLength(2);
+    expect(screen.getByText(/Rice is the top crop/)).toBeInTheDocument();
+    expect(screen.getByText('RECORDED')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open details' })).toHaveAttribute(
+      'href',
+      '/farmer/recommendations/00000000-0000-4000-8000-000000000903',
+    );
+  });
+
   it('does not send or queue text while offline', () => {
     Object.defineProperty(window.navigator, 'onLine', { configurable: true, value: false });
     const submitText = vi.fn();
@@ -128,7 +161,9 @@ describe('Farmer contextual Speak shell', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send text' }));
 
-    expect(await screen.findByText(/provider is not configured or could not be reached/iu)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/provider is not configured or could not be reached/iu),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Send text' })).toBeEnabled();
   });
 });

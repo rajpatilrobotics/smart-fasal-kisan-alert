@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "dataMode": {
+      "enum": [
+        "LIVE",
+        "RECORDED",
+        "SIMULATED"
+      ],
+      "type": "string"
+    },
+    "evidenceId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "freshness": {
+      "enum": [
+        "CURRENT",
+        "DATA_IS_OLD",
+        "NO_RECENT_DATA",
+        "UNAVAILABLE"
+      ],
+      "type": "string"
+    },
+    "metricKey": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "quality": {
+      "enum": [
+        "TRUSTED",
+        "USE_WITH_CAUTION",
+        "TREND_ONLY",
+        "DO_NOT_USE"
+      ],
+      "type": "string"
+    },
+    "sourceName": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidenceId",
+    "metricKey",
+    "sourceName",
+    "freshness",
+    "quality",
+    "dataMode"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

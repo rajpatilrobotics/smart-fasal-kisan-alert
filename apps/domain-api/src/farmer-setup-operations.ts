@@ -4,14 +4,23 @@ import {
   EvidenceService,
   FarmerSetupService,
   InMemoryEvidenceRepository,
+  InMemoryRecommendationRepository,
+  RecommendationRejectedError,
+  RecommendationService,
   type EvidenceRepository,
   type FarmerSetupOwner,
   type FarmerSetupRepository,
+  type RecommendationEvidenceProvider,
+  type RecommendationRepository,
 } from '@smart-fasal/application';
 import {
   ChangeDeviceModeCommandSchema,
   CompleteFarmerSetupCommandSchema,
   CreateSoilRecordRequestSchema,
+  RecommendationAcceptanceRequestSchema,
+  RecommendationRequestSchema,
+  RecommendationReviewRequestSchema,
+  SeasonStartConfirmationRequestSchema,
   SaveFarmerSetupDraftCommandSchema,
   UpdateFarmerPreferencesCommandSchema,
 } from '@smart-fasal/contracts/schemas';
@@ -74,14 +83,24 @@ function conflict(code: 'EXPECTED_REVISION_MISMATCH' | 'SETUP_INCOMPLETE'): neve
 export class FarmerSetupOperations implements DomainOperationAdapter {
   readonly #service: FarmerSetupService;
   readonly #evidence: EvidenceService;
+  readonly #recommendations: RecommendationService;
 
   constructor(
     repository: FarmerSetupRepository = new MemoryFarmerSetupRepository(),
     evidenceRepository: EvidenceRepository = new InMemoryEvidenceRepository(),
+    recommendationRepository: RecommendationRepository = new InMemoryRecommendationRepository(),
     now?: () => Date,
+    recommendationEvidenceProvider?: RecommendationEvidenceProvider,
   ) {
     this.#service = new FarmerSetupService(repository, now);
     this.#evidence = new EvidenceService(evidenceRepository, repository, now);
+    this.#recommendations = new RecommendationService(
+      repository,
+      recommendationRepository,
+      now,
+      randomUUID,
+      recommendationEvidenceProvider,
+    );
   }
 
   async execute(request: DomainOperationRequest): Promise<unknown> {
@@ -96,6 +115,22 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
         return this.#farmResource(request);
       case 'getFarmerPlotEvidenceSummary':
         return this.#evidenceSummary(request);
+      case 'getFarmerRecommendationReadiness':
+        return this.#recommendationReadiness(request);
+      case 'createFarmerRecommendationRun':
+        return this.#createRecommendationRun(request);
+      case 'getFarmerRecommendationRun':
+        return this.#recommendationRun(request);
+      case 'getFarmerRecommendation':
+        return this.#recommendation(request);
+      case 'createFarmerRecommendationReviewRequest':
+        return this.#recommendationReview(request);
+      case 'acceptFarmerRecommendation':
+        return this.#acceptRecommendation(request);
+      case 'confirmFarmerSeasonStart':
+        return this.#confirmSeasonStart(request);
+      case 'getFarmerSeasonCalendar':
+        return this.#calendar(request);
       case 'createFarmerSoilRecord':
         return this.#soilRecord(request);
       case 'saveFarmerSetupDraft':
@@ -190,6 +225,116 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
           code: 'AUTHORIZATION_DENIED',
           status: 404,
           title: 'The requested Plot evidence is not available to this Farmer.',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async #recommendationReadiness(request: DomainOperationRequest) {
+    const plotId = request.params?.['plotId'];
+    if (plotId === undefined) throw dependencyUnavailable();
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.readiness(ownerFor(request.boundary), plotId),
+    );
+  }
+
+  async #createRecommendationRun(request: DomainOperationRequest) {
+    const plotId = request.params?.['plotId'];
+    if (plotId === undefined) throw dependencyUnavailable();
+    const body = RecommendationRequestSchema.parse(request.body);
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.createRun({
+        owner: ownerFor(request.boundary),
+        operationId: request.boundary.idempotencyKey ?? body.confirmedAreaRef.plotId,
+        plotId,
+        request: body,
+      }),
+    );
+  }
+
+  async #recommendationRun(request: DomainOperationRequest) {
+    const operationId = request.params?.['operationId'];
+    if (operationId === undefined) throw dependencyUnavailable();
+    return this.#recommendations.runStatus(ownerFor(request.boundary), operationId);
+  }
+
+  async #recommendation(request: DomainOperationRequest) {
+    const recommendationId = request.params?.['recommendationId'];
+    if (recommendationId === undefined) throw dependencyUnavailable();
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.recommendation(ownerFor(request.boundary), recommendationId),
+    );
+  }
+
+  async #recommendationReview(request: DomainOperationRequest) {
+    const recommendationId = request.params?.['recommendationId'];
+    if (recommendationId === undefined) throw dependencyUnavailable();
+    const body = RecommendationReviewRequestSchema.parse(request.body);
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.requestReview({
+        owner: ownerFor(request.boundary),
+        recommendationId,
+        commandId: request.boundary.idempotencyKey ?? body.commandId,
+        expectedRevision: body.expectedRevision,
+      }),
+    );
+  }
+
+  async #acceptRecommendation(request: DomainOperationRequest) {
+    const recommendationId = request.params?.['recommendationId'];
+    if (recommendationId === undefined) throw dependencyUnavailable();
+    const body = RecommendationAcceptanceRequestSchema.parse(request.body);
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.accept({
+        owner: ownerFor(request.boundary),
+        recommendationId,
+        request: { ...body, commandId: request.boundary.idempotencyKey ?? body.commandId },
+      }),
+    );
+  }
+
+  async #confirmSeasonStart(request: DomainOperationRequest) {
+    const seasonId = request.params?.['seasonId'];
+    if (seasonId === undefined) throw dependencyUnavailable();
+    const body = SeasonStartConfirmationRequestSchema.parse(request.body);
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.confirmSeasonStart({
+        owner: ownerFor(request.boundary),
+        seasonId,
+        commandId: request.boundary.idempotencyKey ?? body.commandId,
+        expectedRevision: body.expectedRevision,
+      }),
+    );
+  }
+
+  async #calendar(request: DomainOperationRequest) {
+    const seasonId = request.params?.['seasonId'];
+    if (seasonId === undefined) throw dependencyUnavailable();
+    return this.#translateRecommendationError(() =>
+      this.#recommendations.calendar(ownerFor(request.boundary), seasonId),
+    );
+  }
+
+  async #translateRecommendationError<Result>(work: () => Promise<Result>): Promise<Result> {
+    try {
+      return await work();
+    } catch (error) {
+      if (error instanceof RecommendationRejectedError && error.code === 'AUTHORIZATION_DENIED') {
+        throw new ApiBoundaryProblem({
+          code: 'AUTHORIZATION_DENIED',
+          status: 404,
+          title: 'The requested Recommendation resource is not available to this Farmer.',
+        });
+      }
+      if (
+        error instanceof RecommendationRejectedError &&
+        error.code === 'INVALID_STATE_TRANSITION'
+      ) {
+        throw new ApiBoundaryProblem({
+          code: 'INVALID_STATE_TRANSITION',
+          status: 409,
+          title: 'The Recommendation command cannot be applied in the current state.',
         });
       }
       throw error;

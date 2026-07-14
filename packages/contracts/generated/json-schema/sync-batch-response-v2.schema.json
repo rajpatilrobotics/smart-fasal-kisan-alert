@@ -1770,7 +1770,9 @@
                 "PAYLOAD_TOO_LARGE",
                 "SIGNATURE_INVALID",
                 "REPLAY_DETECTED",
-                "CHALLENGE_EXPIRED"
+                "CHALLENGE_EXPIRED",
+                "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                "NO_SAFE_RECOMMENDATION"
               ],
               "type": "string"
             },
@@ -1879,7 +1881,9 @@
                 "PAYLOAD_TOO_LARGE",
                 "SIGNATURE_INVALID",
                 "REPLAY_DETECTED",
-                "CHALLENGE_EXPIRED"
+                "CHALLENGE_EXPIRED",
+                "SOURCE_RIGHTS_OR_VERSION_INVALID",
+                "NO_SAFE_RECOMMENDATION"
               ],
               "type": "string"
             },

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "confirmedAreaRef": {
+      "additionalProperties": false,
+      "properties": {
+        "areaRevision": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "plotId": {
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "plotId",
+        "areaRevision"
+      ],
+      "type": "object"
+    },
+    "cultivationMethod": {
+      "enum": [
+        "TRADITIONAL",
+        "ORGANIC",
+        "MIXED",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "farmerConstraintRefs": {
+      "items": {
+        "maxLength": 120,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 20,
+      "type": "array"
+    },
+    "landAvailabilityWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "availableFrom": {
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "type": "string"
+        },
+        "availableUntil": {
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "availableFrom",
+        "availableUntil"
+      ],
+      "type": "object"
+    },
+    "planningContextRevision": {
+      "maximum": 9007199254740991,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "planningSeasonKey": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": "string"
+    },
+    "planningSeasonVersion": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": "string"
+    },
+    "proposedStartWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "earliestDate": {
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "SOWING",
+            "TRANSPLANTING"
+          ],
+          "type": "string"
+        },
+        "latestDate": {
+          "format": "date",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+          "type": "string"
+        },
+        "timezone": {
+          "const": "Asia/Kolkata",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "earliestDate",
+        "latestDate",
+        "timezone"
+      ],
+      "type": "object"
+    },
+    "schemaVersion": {
+      "const": "recommendation-request-v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "planningSeasonKey",
+    "planningSeasonVersion",
+    "proposedStartWindow",
+    "cultivationMethod",
+    "landAvailabilityWindow",
+    "confirmedAreaRef",
+    "farmerConstraintRefs",
+    "planningContextRevision"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date as date_aliased
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 from uuid import UUID
@@ -91,6 +91,12 @@ class Capability(StrEnum):
     farmer_evidence_read = 'farmer.evidence.read'
     farmer_soil_write = 'farmer.soil.write'
     farmer_voice_setup = 'farmer.voice.setup'
+    farmer_recommendation_read = 'farmer.recommendation.read'
+    farmer_recommendation_run = 'farmer.recommendation.run'
+    farmer_recommendation_review_request = 'farmer.recommendation.review_request'
+    farmer_recommendation_accept = 'farmer.recommendation.accept'
+    farmer_season_start_confirm = 'farmer.season.start_confirm'
+    farmer_calendar_read = 'farmer.calendar.read'
 
 
 class Environment(StrEnum):
@@ -123,7 +129,7 @@ class AuthorizationContext(BaseModel):
         extra='forbid',
     )
     authorizationVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
-    capabilities: Annotated[list[Capability], Field(max_length=51)]
+    capabilities: Annotated[list[Capability], Field(max_length=57)]
     capabilitySetVersion: Annotated[int, Field(gt=0, le=9007199254740991)]
     environment: Environment
     jurisdictionId: UUID | None = None
@@ -495,7 +501,7 @@ class CropDeclaration(BaseModel):
     cropName: Annotated[str, Field(max_length=120, min_length=1)]
     planned: bool
     sowingOrTransplantDate: Annotated[
-        date | None,
+        date_aliased | None,
         Field(
             pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
         ),
@@ -1953,6 +1959,8 @@ class Code(StrEnum):
     SIGNATURE_INVALID = 'SIGNATURE_INVALID'
     REPLAY_DETECTED = 'REPLAY_DETECTED'
     CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED'
+    SOURCE_RIGHTS_OR_VERSION_INVALID = 'SOURCE_RIGHTS_OR_VERSION_INVALID'
+    NO_SAFE_RECOMMENDATION = 'NO_SAFE_RECOMMENDATION'
 
 
 class FieldError(BaseModel):
@@ -2014,6 +2022,301 @@ class RaigadLocation(BaseModel):
     landmark: Annotated[str | None, Field(max_length=240, min_length=1)] = None
     taluka: Annotated[str, Field(max_length=120, min_length=1)]
     village: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class Kind2(StrEnum):
+    SOWING = 'SOWING'
+    TRANSPLANTING = 'TRANSPLANTING'
+
+
+class Mode1(StrEnum):
+    PROPOSED = 'PROPOSED'
+    ACTUAL = 'ACTUAL'
+
+
+class Start(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    date: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+    kind: Kind2
+    mode: Mode1
+    timezone: Literal['Asia/Kolkata']
+
+
+class RecommendationAcceptanceRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    candidateId: UUID
+    commandId: UUID
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    start: Start
+
+
+class Disposition2(StrEnum):
+    ACCEPTED = 'ACCEPTED'
+    ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
+
+
+class SeasonState(StrEnum):
+    PLANNED_AWAITING_START = 'PLANNED_AWAITING_START'
+    ACTIVE = 'ACTIVE'
+
+
+class RecommendationAcceptanceResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acceptanceId: UUID
+    calendarId: UUID
+    commandId: UUID
+    disposition: Disposition2
+    seasonId: UUID
+    seasonState: SeasonState
+    serverReceivedAt: AwareDatetime
+    taskIds: Annotated[list[UUID], Field(max_length=20, min_length=1)]
+
+
+class Reason(RootModel[str]):
+    root: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class Risk(RootModel[str]):
+    root: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class Warning(RootModel[str]):
+    root: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class Quality1(StrEnum):
+    TRUSTED = 'TRUSTED'
+    USE_WITH_CAUTION = 'USE_WITH_CAUTION'
+    TREND_ONLY = 'TREND_ONLY'
+    DO_NOT_USE = 'DO_NOT_USE'
+
+
+class RecommendationEvidenceRef(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    dataMode: DataMode
+    evidenceId: UUID
+    freshness: Freshness
+    metricKey: Annotated[str, Field(max_length=120, min_length=1)]
+    quality: Quality1
+    sourceName: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class Outcome(StrEnum):
+    PASS = 'PASS'
+    FAIL = 'FAIL'
+    UNKNOWN_BLOCKING = 'UNKNOWN_BLOCKING'
+    NOT_APPLICABLE = 'NOT_APPLICABLE'
+
+
+class RecommendationGateResult(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    cropProfileId: Annotated[str, Field(max_length=120, min_length=1)]
+    gateKey: Annotated[str, Field(max_length=120, min_length=1)]
+    outcome: Outcome
+    reason: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class State6(StrEnum):
+    CONFIRMED = 'CONFIRMED'
+    UNKNOWN = 'UNKNOWN'
+    NEEDS_REVIEW = 'NEEDS_REVIEW'
+    STALE = 'STALE'
+    PROXY = 'PROXY'
+    NOT_APPLICABLE = 'NOT_APPLICABLE'
+
+
+class NeedsAttentionItem(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    action: Annotated[str, Field(max_length=220, min_length=1)]
+    key: Annotated[str, Field(max_length=120, min_length=1)]
+    label: Annotated[str, Field(max_length=160, min_length=1)]
+    state: State6
+
+
+class OptionalImprovement(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    key: Annotated[str, Field(max_length=120, min_length=1)]
+    label: Annotated[str, Field(max_length=160, min_length=1)]
+    state: State6
+
+
+class ReadyItem(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    key: Annotated[str, Field(max_length=120, min_length=1)]
+    label: Annotated[str, Field(max_length=160, min_length=1)]
+    state: State6
+
+
+class Groups(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    needsAttention: list[NeedsAttentionItem]
+    optionalImprovements: list[OptionalImprovement]
+    ready: list[ReadyItem]
+
+
+class RecommendationReadinessResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    generatedAt: AwareDatetime
+    groups: Groups
+    planningContextRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    plotId: UUID
+
+
+class ConfirmedAreaRef(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    areaRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    plotId: UUID
+
+
+class CultivationMethod(StrEnum):
+    TRADITIONAL = 'TRADITIONAL'
+    ORGANIC = 'ORGANIC'
+    MIXED = 'MIXED'
+    UNKNOWN = 'UNKNOWN'
+
+
+class FarmerConstraintRef(RootModel[str]):
+    root: Annotated[str, Field(max_length=120, min_length=1)]
+
+
+class LandAvailabilityWindow(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    availableFrom: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+    availableUntil: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+
+
+class ProposedStartWindow(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    earliestDate: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+    kind: Kind2
+    latestDate: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+    timezone: Literal['Asia/Kolkata']
+
+
+class RecommendationRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    confirmedAreaRef: ConfirmedAreaRef
+    cultivationMethod: CultivationMethod
+    farmerConstraintRefs: Annotated[list[FarmerConstraintRef], Field(max_length=20)]
+    landAvailabilityWindow: LandAvailabilityWindow
+    planningContextRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    planningSeasonKey: Annotated[str, Field(max_length=80, min_length=1)]
+    planningSeasonVersion: Annotated[str, Field(max_length=80, min_length=1)]
+    proposedStartWindow: ProposedStartWindow
+    schemaVersion: Literal['recommendation-request-v1']
+
+
+class Blocker(RootModel[str]):
+    root: Annotated[str, Field(max_length=220, min_length=1)]
+
+
+class ComparisonRow(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    key: Annotated[str, Field(max_length=80, min_length=1)]
+    label: Annotated[str, Field(max_length=120, min_length=1)]
+    values: dict[str, str]
+
+
+class State9(StrEnum):
+    READY = 'READY'
+    NEEDS_INPUT = 'NEEDS_INPUT'
+    NO_SAFE_RESULT = 'NO_SAFE_RESULT'
+    FAILED = 'FAILED'
+
+
+class RecommendationReviewRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    commandId: UUID
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    reason: Annotated[str, Field(max_length=500, min_length=1)]
+
+
+class State10(StrEnum):
+    QUEUED = 'QUEUED'
+    RUNNING = 'RUNNING'
+    SUCCEEDED = 'SUCCEEDED'
+    FAILED_RETRYABLE = 'FAILED_RETRYABLE'
+    FAILED_TERMINAL = 'FAILED_TERMINAL'
+    CANCELLED = 'CANCELLED'
+    EXPIRED = 'EXPIRED'
+
+
+class RecommendationRunAcceptedResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    acceptedAt: AwareDatetime
+    estimatedCompletionSeconds: Annotated[int, Field(gt=0, le=600)]
+    operationId: UUID
+    state: State10
+
+
+class RecommendationRunStatusResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    operationId: UUID
+    problemCode: Annotated[str | None, Field(max_length=120, min_length=1)] = None
+    recommendationId: UUID | None = None
+    state: State10
+    updatedAt: AwareDatetime
 
 
 class ClientContext4(BaseModel):
@@ -2132,6 +2435,54 @@ class ScanMediaAssetRequest(BaseModel):
     assetId: UUID
     scanRequestVersion: Literal[1]
     storageEventId: UUID
+
+
+class State12(StrEnum):
+    PLANNED = 'PLANNED'
+    ACTIVE = 'ACTIVE'
+    DONE = 'DONE'
+    CANNOT_DO = 'CANNOT_DO'
+
+
+class Task(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    dueDate: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+    source: Literal['RECOMMENDATION_ACCEPTANCE']
+    state: State12
+    taskId: UUID
+    title: Annotated[str, Field(max_length=160, min_length=1)]
+
+
+class SeasonCalendarResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    calendarId: UUID
+    generatedAt: AwareDatetime
+    seasonId: UUID
+    tasks: list[Task]
+
+
+class SeasonStartConfirmationRequest(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    actualStartDate: Annotated[
+        date_aliased,
+        Field(
+            pattern='^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$'
+        ),
+    ]
+    commandId: UUID
+    expectedRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    timezone: Literal['Asia/Kolkata']
 
 
 class ClientContext6(BaseModel):
@@ -2259,6 +2610,12 @@ class SetupVoiceProposalPayload(BaseModel):
     targetPath: Annotated[str, Field(max_length=160, min_length=1)]
 
 
+class Mode2(StrEnum):
+    LIVE = 'LIVE'
+    RECORDED = 'RECORDED'
+    SIMULATED = 'SIMULATED'
+
+
 class Unit2(StrEnum):
     MG_PER_KG = 'MG_PER_KG'
     KG_PER_HECTARE = 'KG_PER_HECTARE'
@@ -2276,11 +2633,6 @@ class SoilMeasurement(BaseModel):
     potassium: Annotated[float | None, Field(ge=0.0, le=9999.0)] = None
     source: Source
     unit: Unit2
-
-
-class Disposition2(StrEnum):
-    ACCEPTED = 'ACCEPTED'
-    ALREADY_ACCEPTED = 'ALREADY_ACCEPTED'
 
 
 class SoilRecordResponse(BaseModel):
@@ -2417,6 +2769,8 @@ class ProblemCode(StrEnum):
     SIGNATURE_INVALID = 'SIGNATURE_INVALID'
     REPLAY_DETECTED = 'REPLAY_DETECTED'
     CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED'
+    SOURCE_RIGHTS_OR_VERSION_INVALID = 'SOURCE_RIGHTS_OR_VERSION_INVALID'
+    NO_SAFE_RECOMMENDATION = 'NO_SAFE_RECOMMENDATION'
 
 
 class SyncCommandDisposition3(BaseModel):
@@ -2578,7 +2932,7 @@ class ConflictType(StrEnum):
     SCHEMA_REQUIRES_MIGRATION = 'SCHEMA_REQUIRES_MIGRATION'
 
 
-class State6(StrEnum):
+class State13(StrEnum):
     OPEN = 'OPEN'
     RESOLUTION_PENDING = 'RESOLUTION_PENDING'
     RESOLVED = 'RESOLVED'
@@ -2600,7 +2954,7 @@ class SyncConflict(BaseModel):
     localRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
     localSummary: dict[str, JsonValue]
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
-    state: State6
+    state: State13
     targetId: UUID
     targetType: Annotated[str, Field(max_length=80, min_length=1)]
 
@@ -2843,7 +3197,7 @@ class UpdateFarmerPreferencesPayload(BaseModel):
     voicePrompts: bool
 
 
-class State7(StrEnum):
+class State14(StrEnum):
     UNKNOWN = 'UNKNOWN'
     IN_PROGRESS = 'IN_PROGRESS'
     ACCEPTED = 'ACCEPTED'
@@ -2856,7 +3210,7 @@ class VoiceCommandStatusResponse(BaseModel):
     )
     commandId: UUID
     receiptReference: UUID | None = None
-    state: State7
+    state: State14
 
 
 class Type1(StrEnum):
@@ -2924,7 +3278,7 @@ class VoiceDelegation(BaseModel):
     toolKey: Annotated[str, Field(max_length=120, min_length=1)]
 
 
-class State8(StrEnum):
+class State15(StrEnum):
     PENDING = 'PENDING'
     CONFIRMED = 'CONFIRMED'
     CANCELLED = 'CANCELLED'
@@ -2946,7 +3300,7 @@ class VoiceProposalResponse(BaseModel):
     readBack: dict[str, JsonValue]
     revision: Annotated[int, Field(ge=0, le=9007199254740991)]
     sessionId: UUID
-    state: State8
+    state: State15
     toolKey: Annotated[str, Field(max_length=120, min_length=1)]
 
 
@@ -2983,11 +3337,26 @@ class VoiceTurnRequest(BaseModel):
     turnId: UUID
 
 
-class State9(StrEnum):
+class Result1(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    dataMode: DataMode
+    openDetailsRoute: Annotated[
+        str, Field(max_length=240, min_length=1, pattern='^\\/')
+    ]
+    recommendationId: UUID
+    resultType: Literal['RECOMMENDATION_READ']
+    sourceGeneratedAt: AwareDatetime
+    summary: Annotated[str, Field(max_length=600, min_length=1)]
+
+
+class State16(StrEnum):
     HELP = 'HELP'
     UNAVAILABLE = 'UNAVAILABLE'
     NEEDS_CLARIFICATION = 'NEEDS_CLARIFICATION'
     PROPOSAL_PENDING = 'PROPOSAL_PENDING'
+    RESULT_READY = 'RESULT_READY'
 
 
 class VoiceTurnResponse(BaseModel):
@@ -2997,9 +3366,10 @@ class VoiceTurnResponse(BaseModel):
     acknowledgedClientSequence: Annotated[int, Field(ge=0, le=9007199254740991)]
     messageKey: Annotated[str, Field(max_length=120, min_length=1)]
     proposalId: UUID | None = None
+    result: Result1 | None = None
     serverSequence: Annotated[int, Field(gt=0, le=9007199254740991)]
     sessionId: UUID
-    state: State9
+    state: State16
     turnId: UUID
 
 
@@ -3200,6 +3570,48 @@ class PlotEvidenceSummary(BaseModel):
     generatedAt: AwareDatetime
     plotId: UUID
     summaryVersion: Annotated[int, Field(ge=0, le=9007199254740991)]
+
+
+class RecommendationCandidate(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    candidateId: UUID
+    confidenceScore: Annotated[float, Field(ge=0.0, le=100.0)]
+    cropName: Annotated[str, Field(max_length=120, min_length=1)]
+    cropProfileId: Annotated[str, Field(max_length=120, min_length=1)]
+    durationDays: Annotated[int, Field(gt=0, le=400)]
+    evidenceRefs: Annotated[list[RecommendationEvidenceRef], Field(max_length=12)]
+    rank: Annotated[int, Field(gt=0, le=3)]
+    reasons: Annotated[list[Reason], Field(max_length=3, min_length=1)]
+    risks: Annotated[list[Risk], Field(max_length=3)]
+    seasonFitScore: Annotated[float, Field(ge=0.0, le=100.0)]
+    suitabilityScore: Annotated[float, Field(ge=0.0, le=100.0)]
+    warnings: Annotated[list[Warning], Field(max_length=4)]
+    waterSafetyScore: Annotated[float, Field(ge=0.0, le=100.0)]
+
+
+class RecommendationResultResponse(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    blockers: Annotated[list[Blocker], Field(max_length=12)]
+    candidates: Annotated[list[RecommendationCandidate], Field(max_length=3)]
+    comparisonRows: list[ComparisonRow]
+    dataMode: DataMode
+    etagRevision: Annotated[int, Field(ge=0, le=9007199254740991)]
+    excluded: Annotated[list[RecommendationGateResult], Field(max_length=40)]
+    expiresAt: AwareDatetime
+    generatedAt: AwareDatetime
+    modeExplanation: Annotated[str, Field(max_length=240, min_length=1)]
+    plotId: UUID
+    profileSetVersion: Annotated[str, Field(max_length=120, min_length=1)]
+    recommendationId: UUID
+    resultVersion: Annotated[int, Field(ge=0, le=9007199254740991)]
+    ruleSetVersion: Annotated[str, Field(max_length=120, min_length=1)]
+    snapshotChecksum: Annotated[str, Field(pattern='^sha256:[0-9a-f]{64}$')]
+    state: State9
+    templateSetVersion: Annotated[str, Field(max_length=120, min_length=1)]
 
 
 class Draft(BaseModel):
@@ -3407,7 +3819,7 @@ class SetupVoiceReadResponse(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    mode: Mode
+    mode: Mode2
     myFarm: MyFarmResponse | None = None
     setup: FarmerSetupSummary
 

@@ -42,19 +42,29 @@ export interface VoiceTurnInput {
 export interface VoiceTurnOutput {
   readonly turnId: string;
   readonly sessionId: string;
-  readonly state: 'HELP' | 'UNAVAILABLE' | 'NEEDS_CLARIFICATION' | 'PROPOSAL_PENDING';
+  readonly state:
+    'HELP' | 'UNAVAILABLE' | 'NEEDS_CLARIFICATION' | 'PROPOSAL_PENDING' | 'RESULT_READY';
   readonly messageKey: string;
   readonly proposalId?: string;
+  readonly result?: {
+    readonly resultType: 'RECOMMENDATION_READ';
+    readonly recommendationId: string;
+    readonly summary: string;
+    readonly openDetailsRoute: string;
+    readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+    readonly sourceGeneratedAt: string;
+  };
   readonly serverSequence: number;
   readonly acknowledgedClientSequence: number;
 }
 
 export interface ProviderInterpretation {
-  readonly kind: 'HELP' | 'CLARIFICATION' | 'TOOL_PROPOSAL';
+  readonly kind: 'HELP' | 'CLARIFICATION' | 'TOOL_PROPOSAL' | 'VALIDATED_RESULT';
   readonly messageKey: string;
   readonly toolKey?: string;
   readonly payload?: JsonObject;
   readonly readBack?: JsonObject;
+  readonly result?: VoiceTurnOutput['result'];
 }
 
 export interface VoiceProvider {
@@ -293,6 +303,7 @@ export class VoiceTransportService {
     let state: VoiceTurnOutput['state'] = 'UNAVAILABLE';
     let messageKey = 'voice.action_unavailable_use_touch_or_text';
     let proposalId: string | undefined;
+    let result: VoiceTurnOutput['result'];
 
     if (turn.input.type === 'TEXT' && isHelp(turn.input.text)) {
       state = 'HELP';
@@ -316,6 +327,15 @@ export class VoiceTransportService {
         } else if (interpretation.kind === 'CLARIFICATION') {
           state = 'NEEDS_CLARIFICATION';
           messageKey = interpretation.messageKey;
+        } else if (
+          interpretation.kind === 'VALIDATED_RESULT' &&
+          interpretation.result !== undefined &&
+          interpretation.toolKey === 'farmer.recommendation.read' &&
+          this.#registeredToolKeys.has(interpretation.toolKey)
+        ) {
+          state = 'RESULT_READY';
+          messageKey = interpretation.messageKey;
+          result = interpretation.result;
         } else if (
           interpretation.toolKey !== undefined &&
           interpretation.payload !== undefined &&
@@ -350,6 +370,7 @@ export class VoiceTransportService {
       state,
       messageKey,
       ...(proposalId === undefined ? {} : { proposalId }),
+      ...(result === undefined ? {} : { result }),
       serverSequence: transport.client.nextSendingSequence(),
       acknowledgedClientSequence: transport.client.highestReceived,
     });

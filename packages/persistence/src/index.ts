@@ -158,6 +158,8 @@ function isNullableContextUuid(value: string): boolean {
   return value === NIL_UUID || isUuid(value);
 }
 
+export { PostgresRecommendationRepository, RecommendationSql } from './recommendation-repository';
+
 export class InMemoryFarmerSetupRepository implements FarmerSetupRepository {
   readonly #records = new Map<string, FarmerSetupRecord>();
 

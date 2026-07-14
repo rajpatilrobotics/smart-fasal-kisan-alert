@@ -7,12 +7,12 @@
   },
   "httpOperations": {
     "DELETE /v1/auth/role-contexts/{roleContextId}": {
-      "fingerprint": "aa18279aedc7ce923eb594ac7aecbcd595e22df04b133362101acb17a8574e7b",
+      "fingerprint": "d927ca8c10740b8cb72a4aa694e45eb9ce916ef8ac364ca0cb45582176e74e45",
       "operationId": "revokeRoleContext",
       "surface": "common"
     },
     "DELETE /v1/media/upload-intents/{intentId}": {
-      "fingerprint": "87c9b1282bca46c331666da5623060fb23259fc51ba93cc290f8d90c7553bd3b",
+      "fingerprint": "d08ccc4dda704fd54b81439e46feffae4095094e8d8363998bb238704d0e66fd",
       "operationId": "cancelMediaUploadIntent",
       "surface": "operational"
     },
@@ -27,102 +27,122 @@
       "surface": "common"
     },
     "GET /ingest/v1/receipts/{receiptId}": {
-      "fingerprint": "dc3c61959e1bd6b741b9532df8d032e98a5ee6d5d9aa535fdc3860271576fded",
+      "fingerprint": "28f3e35dfa0e29f855da590aff157db6bc533c4fa63ac94cc99cd8a831e0e445",
       "operationId": "getDeviceIngestReceipt",
       "surface": "device"
     },
     "GET /v1/auth/roles": {
-      "fingerprint": "93c1662e70466744d74eb24ad4f4f5259370627e24cfb2ac4b4e3de0e1a9c266",
+      "fingerprint": "5ff2ac86ea6a2ea9f4579ac19cd96ee0b0dcfd2ecfd31a351a73d1ca58fbe526",
       "operationId": "listRoles",
       "surface": "common"
     },
     "GET /v1/auth/session": {
-      "fingerprint": "cab16db16235cd7a177269cf07a3ebdea3b097daab690f598f0b499ef5a103b7",
+      "fingerprint": "fd8bd4fea5866b44faff52210dda1e0b390725a697310dcef0248718c11e01ea",
       "operationId": "getAuthSession",
       "surface": "common"
     },
     "GET /v1/commands/{commandId}": {
-      "fingerprint": "ff960e61b91dc12badbb4d6013ccb679ee60436b70feaa55c822a60db695589d",
+      "fingerprint": "e6d7de92d41ba5648e43be4ec6aa0d8a1a6ddf09c852f983a8f49748b81995a2",
       "operationId": "getVoiceCommandStatus",
       "surface": "operational"
     },
     "GET /v1/farmer/bootstrap": {
-      "fingerprint": "fbb14e94a33824309f5d5cd0963ce86d7defba1ab6438614324793e028857f52",
+      "fingerprint": "0514a170b2f0168bbd44850041c1626d3c1943d45122a7fcdd6b9caccc6bf79f",
       "operationId": "getFarmerBootstrap",
       "surface": "farmer"
     },
     "GET /v1/farmer/consents": {
-      "fingerprint": "1d1bc804b7ccfae4cf8c94cf173cbc8376ba830da3f88b47c2233dc3b89c6263",
+      "fingerprint": "9bbb3ea8f865b402aea90306dffa281eceb5bbf7c668c36272b454f2bc20c183",
       "operationId": "listFarmerConsents",
       "surface": "farmer"
     },
     "GET /v1/farmer/farms": {
-      "fingerprint": "2eb1327c03b27258f1750a618eb9cb828aeb1d5b30f366b204056ec7a10048f5",
+      "fingerprint": "9b7b40e6fccb2e26f97f9a50ab38ce2746eb58a89b490296853ef92f279aedb0",
       "operationId": "listFarmerFarms",
       "surface": "farmer"
     },
     "GET /v1/farmer/farms/{farmId}": {
-      "fingerprint": "360d1e05f5ed5d1c7be0b268abd6c670a75a2a6edd1d08204af2647f942085e8",
+      "fingerprint": "90c85f716d27fbafd0017b3e215538ae43ad0ae57101f2e7196205ca93daa6fb",
       "operationId": "getFarmerFarm",
       "surface": "farmer"
     },
     "GET /v1/farmer/my-farm": {
-      "fingerprint": "54fb30f12f9f755f2560037d95ac21e45f3c0bc8c9973db35be263a50cac934d",
+      "fingerprint": "685609274e6ea0944cdfbbb48b515f5aff685df1ed9f716f89b6ac9892b1b6aa",
       "operationId": "getMyFarm",
       "surface": "farmer"
     },
     "GET /v1/farmer/plots/{plotId}": {
-      "fingerprint": "3141c6a2a8c5788809f9730d91eccd098738dfaa4081ca727a5421cc81ce6ec0",
+      "fingerprint": "b24de4951adc42e0ecfe74bf43494eef4ea5e463185087af8dabe08023208bab",
       "operationId": "getFarmerPlot",
       "surface": "farmer"
     },
     "GET /v1/farmer/plots/{plotId}/evidence-summary": {
-      "fingerprint": "7d7efc70f9044b019bf76cde2f2433957b01626c701f0a73df98757dea3e813a",
+      "fingerprint": "3d82df420e424aa9f0ed566316a00b04d2f8c9a48925a2652d239aa5dd5d00b4",
       "operationId": "getFarmerPlotEvidenceSummary",
       "surface": "farmer"
     },
+    "GET /v1/farmer/plots/{plotId}/recommendation-readiness": {
+      "fingerprint": "d0e7fc1d73d06237a6e0d682b8db7b66585ad1bcbc2e09bc02fa667f986ee006",
+      "operationId": "getFarmerRecommendationReadiness",
+      "surface": "farmer"
+    },
+    "GET /v1/farmer/recommendation-runs/{operationId}": {
+      "fingerprint": "7ddefd132e3ab633843be6faf7b38a382b9c825b3521d1d274dd2120d6d037e4",
+      "operationId": "getFarmerRecommendationRun",
+      "surface": "farmer"
+    },
+    "GET /v1/farmer/recommendations/{recommendationId}": {
+      "fingerprint": "f758e765a7bdab83f8a012d33ed382a81b494f7bf8930e560a3caf3eadcc58d7",
+      "operationId": "getFarmerRecommendation",
+      "surface": "farmer"
+    },
+    "GET /v1/farmer/seasons/{seasonId}/calendar": {
+      "fingerprint": "a21f0e65f25c50c62f91631b2a0947eb7aeeac85202e8f313c67cb7c9593fbb6",
+      "operationId": "getFarmerSeasonCalendar",
+      "surface": "farmer"
+    },
     "GET /v1/media/assets/{assetId}/status": {
-      "fingerprint": "571c91cc24bf8148d63e49da8348cb06dafbdfd69eb7f37414cb22fb8cd9e41c",
+      "fingerprint": "563507f626a6a2e7987f39ed01a9aa489f6dc5485c719d8fd68f7527fd625be0",
       "operationId": "getMediaAssetStatus",
       "surface": "operational"
     },
     "GET /v1/media/attachments/{attachmentId}/content": {
-      "fingerprint": "b1da460e33fe89e45550c0c5b6f61b81bdc82554f12b73aaefd289d5a646bbd2",
+      "fingerprint": "b828b62255ab2acdc31f9437565901d387ef082a5885553892b8c4cba8ac85f5",
       "operationId": "streamMediaAttachment",
       "surface": "operational"
     },
     "GET /v1/mp/query-context": {
-      "fingerprint": "3b81a94ba0d007d4e83f601e52c3150018bf32c62a29966e544bd89bc3d09f92",
+      "fingerprint": "b6700ecae77d7d11773690acd0522177dfcc19b11422830e06ed4a4e5cde9d03",
       "operationId": "getMpQueryContext",
       "surface": "mp"
     },
     "GET /v1/realtime": {
-      "fingerprint": "15e21194f8a7e5eca4d69c12c5f3de5070bc2551c0e810aaf8ee6e34d4fad41c",
+      "fingerprint": "5c2028964f8c3fce13f3ab875aa71e1d4c759ccdd4ee7c4ec18951bf8485fbdc",
       "operationId": "openVoiceRealtime",
       "surface": "voice"
     },
     "GET /v1/rsk/bootstrap": {
-      "fingerprint": "ffa096767d7651a182e30a89433b3a7f4ae22fd0f8347cdc3ece95d9626a3d31",
+      "fingerprint": "19e43ac9cc12ec51f05e6e310729a77e502e156d4589c49274841fa936b59a98",
       "operationId": "getRskBootstrap",
       "surface": "rsk"
     },
     "GET /v1/sync/commands/{commandId}": {
-      "fingerprint": "a5bf1d2e9000d82aeac139d8bf672f2f1a13e7acf2da222d03d09228db6d1d3b",
+      "fingerprint": "817614af67b8241ca6268aa1684c116f0077f98f23fa6946a72d83438ecaf5cb",
       "operationId": "getFarmerSyncCommand",
       "surface": "farmer"
     },
     "GET /v1/sync/conflicts": {
-      "fingerprint": "1cb765cf5e0c0971ae6a7c5b8c94495bc94c53471eb1af04ddf780dc2ebe30cf",
+      "fingerprint": "421d6959de92a6a4d4795c41b3760b5f06b31e30b5dfe781fd0c7d4f0b3f9e34",
       "operationId": "listFarmerSyncConflicts",
       "surface": "farmer"
     },
     "GET /v1/sync/conflicts/{conflictId}": {
-      "fingerprint": "dffe3b7c853dea72a3532a0515e1562af2e89141edad5419d753557368bddf7b",
+      "fingerprint": "e716e76759170626133df63eefdac762ba6f6ef6ae90f6158d00a319bb4c0e77",
       "operationId": "getFarmerSyncConflict",
       "surface": "farmer"
     },
     "GET /v1/sync/feed": {
-      "fingerprint": "e56cf282567ec65fd4b20c647bda58fac0286b418c055f6dc4f70d7b04c5df37",
+      "fingerprint": "1dcd64d752b091ff3e3299113f684c7fe12bee8e179c03365dd730084ee38ffe",
       "operationId": "getFarmerSyncFeed",
       "surface": "farmer"
     },
@@ -132,162 +152,182 @@
       "surface": "common"
     },
     "GET /v1/voice/proposals/{proposalId}": {
-      "fingerprint": "545bb5d0bbda12ad4bbaebabc32a547da4c5ea6d683a97f5f9ef500601c1d852",
+      "fingerprint": "6dd39e96e78918014e41d22b6e561b6c9aa42e65ba80b31b6900621816574278",
       "operationId": "getVoiceProposal",
       "surface": "operational"
     },
     "PATCH /v1/farmer/farms/{farmId}": {
-      "fingerprint": "59ad9c56f6708e19a8a838d62bf8c0c9efc2988f9a4dda15c6281b55f9c31948",
+      "fingerprint": "085a6c824cb5d8569a1cfc06506652b2127567e00ef834d2297de190f2a90b82",
       "operationId": "updateFarmerFarm",
       "surface": "farmer"
     },
     "PATCH /v1/farmer/plots/{plotId}": {
-      "fingerprint": "67a5584e6cd556954b5442664f1fd318be0bb12db015be5813b142ed9c9ac08e",
+      "fingerprint": "3a61cf4eeb4c666bac467901b869befd065dc3fe8b7e6c5f6e0cdef8a7c71e7c",
       "operationId": "updateFarmerPlot",
       "surface": "farmer"
     },
     "PATCH /v1/farmer/preferences": {
-      "fingerprint": "3981bc82a94eda55b28395cf5be809ee6eb7091f1d475e494b98ef210dbb1b00",
+      "fingerprint": "b681dd52f90f24b2139a3a8929fcd0b0c57ad218175be9be37dfa787d18219f8",
       "operationId": "updateFarmerPreferences",
       "surface": "farmer"
     },
     "POST /ingest/v1/batches": {
-      "fingerprint": "00b02b70ab6b491c678d46bc4d08a701efbf1d3c150058e19fa04e9266c9957d",
+      "fingerprint": "df95c4b23ed487e29280277a3bc5108e0fe5b2fa6f28585bda634cb844cd9ba3",
       "operationId": "createDeviceIngestBatch",
       "surface": "device"
     },
     "POST /ingest/v1/challenges": {
-      "fingerprint": "e44620263777d7bc2d0b3dd3c76a21faee46e3f6814bbe46e9a129ddeec071f4",
+      "fingerprint": "b4e002e33c54dde112c30fa53dec388cb0801902161e8335c2c13037cb2d7aa1",
       "operationId": "createDeviceIngestChallenge",
       "surface": "device"
     },
     "POST /internal/v1/intelligence/earth-jobs/{jobId}:execute": {
-      "fingerprint": "4516dc6808f92f7c1d7b651c268a5ec9ac3e66ced20e52ea6829477ba9b439ab",
+      "fingerprint": "a8f34378afca4b1570ce3397f2e0ad1fa41a7b821299f090c432dc61113f006e",
       "operationId": "executeEarthObservationJob",
       "surface": "internal"
     },
     "POST /internal/v1/media/assets/{assetId}:scan": {
-      "fingerprint": "a7e4926ac21de2bec284b8b50367994ad0d6b955f2c748d9bbbc1e600f9f4ee7",
+      "fingerprint": "3627a5e25b327b6cbd4e1556d3b589071dda742f708f0e81e6f286213f216b93",
       "operationId": "scanMediaAsset",
       "surface": "internal"
     },
     "POST /v1/auth/return-states": {
-      "fingerprint": "12d9f2ed705bc28c1ae1bb393f91155b24082f8763687a135e9f7fd3d049076b",
+      "fingerprint": "b41811133be84834cf5a6c4bb92a57b9417fd8b2d2c0dcc8b6fbb479427dcd34",
       "operationId": "createReturnState",
       "surface": "common"
     },
     "POST /v1/auth/role-contexts": {
-      "fingerprint": "b270463e4cf3f43fef9789ad556c095b558ed8cef0f4b7bc562d08ca907ce68f",
+      "fingerprint": "ac60c76b9b5acddfada569c47662923087f5e4ff10297fdeb7b758e16a153888",
       "operationId": "selectRoleContext",
       "surface": "common"
     },
     "POST /v1/farmer/consent-decisions": {
-      "fingerprint": "4c605adcb44ce5708d6534b81937acdfa43ea7033393350ee0cb5c4bac32c926",
+      "fingerprint": "7a997cd5f0e394c2e1e7589f0ea690a91a99c37f797944a8615e16583469f966",
       "operationId": "recordConsentDecision",
       "surface": "farmer"
     },
     "POST /v1/farmer/device-mode-changes": {
-      "fingerprint": "c55fc01c8cccf7f1e5c08d68a503df751cc846c09bd4afd9dfcf61e0c8a479bd",
+      "fingerprint": "bed9082b663494acff461489288c7ea050c4f61ad29eab9f08722de2cc2938f1",
       "operationId": "changeFarmerDeviceMode",
       "surface": "farmer"
     },
     "POST /v1/farmer/farms": {
-      "fingerprint": "1f0c653159fe90783185a6c878664017e582959a2541ddbd2e7854bc8ea1533f",
+      "fingerprint": "162d1fbc2d6165f7abd0db9f5e7ed7e7988fd6907b061b110a722a448ba5cb5f",
       "operationId": "createFarmerFarm",
       "surface": "farmer"
     },
     "POST /v1/farmer/farms/{farmId}/plots": {
-      "fingerprint": "8d218f1049bda27206175600fa7fa138e630233d48a6810abc49fd736754dca0",
+      "fingerprint": "f1b1256d291d032832ede73e26a5873c4e6c5927fb505098e21db814cbdbeca1",
       "operationId": "createFarmerPlot",
       "surface": "farmer"
     },
     "POST /v1/farmer/plots/{plotId}/geometry-versions": {
-      "fingerprint": "81a297e87232868b00c27948dd433f15086ffd5cfa210d05df9e833805c3e107",
+      "fingerprint": "8638f44cb969514bd98cc058aa23b0fdbe1e153837f8870e811d7fe6df549598",
       "operationId": "createFarmerPlotGeometryVersion",
       "surface": "farmer"
     },
+    "POST /v1/farmer/plots/{plotId}/recommendation-runs": {
+      "fingerprint": "fa523f820f9c5785c382dbc25bb3c8e3d46a517ad39abdb54cd703e49f6ff80e",
+      "operationId": "createFarmerRecommendationRun",
+      "surface": "farmer"
+    },
     "POST /v1/farmer/plots/{plotId}/soil-records": {
-      "fingerprint": "09e10ebf1dd715597edebb831e0cb3c072931c6db1cfc2a8180623ea9e516f68",
+      "fingerprint": "53c23c5227d3832524d5b4574f26158354a3aca67ad5a84bc39f0765704d7375",
       "operationId": "createFarmerSoilRecord",
       "surface": "farmer"
     },
+    "POST /v1/farmer/recommendations/{recommendationId}/acceptances": {
+      "fingerprint": "da2cbc9bf64b27bdfefc47a3e6b280cbdf537590204be500cbe8304ba5530c59",
+      "operationId": "acceptFarmerRecommendation",
+      "surface": "farmer"
+    },
+    "POST /v1/farmer/recommendations/{recommendationId}/review-requests": {
+      "fingerprint": "66da65f4398e39fb023244ae24d8fe36a7ce59cf71224fa47f70167ce02bd22e",
+      "operationId": "createFarmerRecommendationReviewRequest",
+      "surface": "farmer"
+    },
+    "POST /v1/farmer/seasons/{seasonId}/start-confirmations": {
+      "fingerprint": "408b3a2b8d9077ebdc72412b9a8791a8a887b2edd3c21f284464ab96bbc262b3",
+      "operationId": "confirmFarmerSeasonStart",
+      "surface": "farmer"
+    },
     "POST /v1/farmer/setup-drafts": {
-      "fingerprint": "73259d81b037914dc98783bb388f6450d238179c04d27f7fde4a124b7e36bf41",
+      "fingerprint": "9b9769cdacc013f28b8017c6db4f90ebdc6270c6d5eb07b15a8364edb733a9b3",
       "operationId": "saveFarmerSetupDraft",
       "surface": "farmer"
     },
     "POST /v1/farmer/setup:complete": {
-      "fingerprint": "dffb36e8d3ac45b412edbfac9856c6d2c26fe68aa3e825319e8cf412c2b49eb8",
+      "fingerprint": "c2d30798ae4a413def262a9e3079cac00cf3e6242736c72765662c5de79df998",
       "operationId": "completeFarmerSetup",
       "surface": "farmer"
     },
     "POST /v1/media/upload-intents": {
-      "fingerprint": "51eb172f84978520aed2aa1cbfaf88ce8a2e399e1a30974c47b6298a808eefd5",
+      "fingerprint": "5aa53bc356b59a33d6d8d7f6ce97874966b177c141def85b8a4389b03ed40ddf",
       "operationId": "createMediaUploadIntent",
       "surface": "operational"
     },
     "POST /v1/media/upload-intents/{intentId}:finalize": {
-      "fingerprint": "3f52f2300f145a4601186305ea03a64f88ead6d8366d94696649a808dd96644a",
+      "fingerprint": "d285463b2879411b8a1c031367739193c8e8f9693160eef941a966f8ad5195c2",
       "operationId": "finalizeMediaUploadIntent",
       "surface": "operational"
     },
     "POST /v1/rsk/access-grants": {
-      "fingerprint": "b8ca5356499864dbec1ca5f062e4b17b4833379159f1ba80db335a2eeed954a7",
+      "fingerprint": "fc68ab9be1f356f3a309e45e9a43bb2c7e14f7f5792fbaf6020a75107834c2af",
       "operationId": "issueRskAccessGrant",
       "surface": "rsk"
     },
     "POST /v1/rsk/protected-disclosures": {
-      "fingerprint": "d3b0a142f7d9cd2fae3cdbdc674c369bcc62557cb48c64b45e8c2efb5c4349cc",
+      "fingerprint": "22b3be6261347dc1b03f76fb28b37cd8c8dfdc08944663cd0df1923d7d95e8ee",
       "operationId": "createRskProtectedDisclosure",
       "surface": "rsk"
     },
     "POST /v1/sync/batches": {
-      "fingerprint": "e541c5f4bf0d1cf204c47d5df5f297440714ea62318161a09398b09c7b4705bb",
+      "fingerprint": "85b1fd299abb3fb0a372f7e74a4ba10a9557c9918eb977e609a00079c895abdb",
       "operationId": "syncFarmerBatch",
       "surface": "farmer"
     },
     "POST /v1/sync/bootstrap": {
-      "fingerprint": "1aa65f1b32407a9476bad88acca0de868dfa5027fa86f5dc72b765e9a34e95fe",
+      "fingerprint": "945f975c3b413ae0cc346280ebec3862f4d90f458106fc12a48cd5c82777776c",
       "operationId": "bootstrapFarmerSync",
       "surface": "farmer"
     },
     "POST /v1/sync/conflicts/{conflictId}/resolutions": {
-      "fingerprint": "ee81a3bdd9c22a6fd3d9029d7c9125325a05f1a9914f68ca4fe67cc46e49c1a6",
+      "fingerprint": "51772ebe8cf20f9f70f7efddc5f1c6aa8459c66c2f4d2b888a834d132dc3eb6e",
       "operationId": "resolveFarmerSyncConflict",
       "surface": "farmer"
     },
     "POST /v1/sync/streams": {
-      "fingerprint": "fa87d6422c8535b5f9e4179d21c263082faa9d63d9632256089eda153e72473f",
+      "fingerprint": "de14e45cd47719ce270f7b51ae94e17920682d70dfc4b0c627778482e50b2e24",
       "operationId": "openFarmerSyncStream",
       "surface": "farmer"
     },
     "POST /v1/voice/offline-audio": {
-      "fingerprint": "b4b54677a9d468493e33266ac87e438b1e61ba337fe52adaf823e24742347b1f",
+      "fingerprint": "5e2b2554ffd8e83d7ae9c0713f4ccad459fff7c65d9cb1c98d13be785bdade1f",
       "operationId": "attachVoiceOfflineAudio",
       "surface": "operational"
     },
     "POST /v1/voice/proposals/{proposalId}:cancel": {
-      "fingerprint": "f0b32ee034162289fed360bb489c5e2bd556c08487692f3d64899752d27c70e8",
+      "fingerprint": "43a41e12186798dbf5dadff093d77262b23b92842ac11de97d3d786a38c19eba",
       "operationId": "cancelVoiceProposal",
       "surface": "operational"
     },
     "POST /v1/voice/proposals/{proposalId}:confirm": {
-      "fingerprint": "d066791eafa4dedf14e446826586f15fec9ebdc6709c0a23e11395b735991d2b",
+      "fingerprint": "0748d1d4cbc88f0fa920c673aa1df0f8a470d039158cfe7a2b55dec932babef8",
       "operationId": "confirmVoiceProposal",
       "surface": "operational"
     },
     "POST /v1/voice/proposals/{proposalId}:correct": {
-      "fingerprint": "435be8de1c60b7f77605f95f0439b38e8790f5c2a4bdeb01b0c8e934aa63b07e",
+      "fingerprint": "970c526a09737f9c36916c38d30dff84a6f197b3d07c0f9ac2aa9c7e5185e1b4",
       "operationId": "correctVoiceProposal",
       "surface": "operational"
     },
     "POST /v1/voice/sessions": {
-      "fingerprint": "745ef661f07638aae8d74c1cfb621aabe0368395ce3e6f5110f6da61deeb9b2b",
+      "fingerprint": "f373bbfa8b176e30a9af8b94f248ef00df0a9e24bfe4d75ac6ed43d500f63925",
       "operationId": "createVoiceSession",
       "surface": "voice"
     },
     "POST /v1/voice/sessions/{sessionId}/turns": {
-      "fingerprint": "15f1c65f7b8c2e3e75f15f831ea877f245600f6655154dfa1aaf5570f31ce5eb",
+      "fingerprint": "dea63e74f91bbac765bebc13249877a026688fe9326b31532d34f3ccc8cace71",
       "operationId": "createVoiceTurn",
       "surface": "voice"
     }
@@ -441,6 +481,47 @@
         "fingerprint": "fdcf03de34a7d163ff2b72dd3ab5eaa204dd20388b6bdfb5d7b8228d40edbb21"
       }
     },
+    "recommendation": {
+      "RecommendationAcceptanceRequest": {
+        "fingerprint": "648c6692205159a77ed768875b2a6f4b88ae6565d29fd0c5174840688d82e6eb"
+      },
+      "RecommendationAcceptanceResponse": {
+        "fingerprint": "a761a7f8297cbd886dbde1fdb85e51246f283c5e74217e06ee0224036e1cf6e8"
+      },
+      "RecommendationCandidate": {
+        "fingerprint": "10d7752c6fc9c5aa723fb612494e4a8793c0bd9d62ad62f316c7f36dd0d633c3"
+      },
+      "RecommendationEvidenceRef": {
+        "fingerprint": "3ac6483628dd72755a0cab9c7901becd9b2ccbd4bcbd3d16dae02ac837ca4ed6"
+      },
+      "RecommendationGateResult": {
+        "fingerprint": "ea3906ee91f2312d3ffe457beb10dd80170f0ace6ed625b024d727a6675e06d3"
+      },
+      "RecommendationReadinessResponse": {
+        "fingerprint": "3fbdab0f97efb5c08865fcd5f1c0e3b427631a3b72efddc8bfd2252b6ffbcee8"
+      },
+      "RecommendationRequest": {
+        "fingerprint": "3ba9f5fc7434cc53847df9aa8c01024de882a707da9f5ef26779cc65b0156f93"
+      },
+      "RecommendationResultResponse": {
+        "fingerprint": "779965aae97d909b79cd3927ac35068eeb6cf5815d1e627b7c2f735bb83f7974"
+      },
+      "RecommendationReviewRequest": {
+        "fingerprint": "83211a4efc7903371734d6a5fe9d36b555128a690ca8596095cc0283b014c909"
+      },
+      "RecommendationRunAcceptedResponse": {
+        "fingerprint": "6dec64d9c1956cc58cc08942db8da8a882049dfb7a434fc60d839e839ca78be9"
+      },
+      "RecommendationRunStatusResponse": {
+        "fingerprint": "b9e7f1bd25e62afeda43880ce27c7ce1c9f0e30022aefc15c8bd970609efb3e5"
+      },
+      "SeasonCalendarResponse": {
+        "fingerprint": "fccb1eee4075a6b88329b0b67bce19fbd9692f6653e3e46fd7f643f88da58bfb"
+      },
+      "SeasonStartConfirmationRequest": {
+        "fingerprint": "6d164a7394560d988e1ed4c253416b68bd6e6739e302ab49dcba7843fde421b8"
+      }
+    },
     "setup": {
       "FarmerProfileSetup": {
         "fingerprint": "a7ded1bfd03d93587d7e47d68ebd4ece4783dc5ff9819601a25927edee84af71"
@@ -490,10 +571,10 @@
         "fingerprint": "2be1b8d0f6eb8f4eafa3147d38fdc5683aa5e41b48c1e4eb45ca4c698eeae310"
       },
       "SyncBatchResponse": {
-        "fingerprint": "d130cad90b508cde4bed45234b2c6c7fdf059d1a497bed79b9e201041e5e2ca1"
+        "fingerprint": "1481a57ac9309fb349f2540ed56273d9e291c136635782081c7476529c7f4649"
       },
       "SyncBatchResponseV2": {
-        "fingerprint": "c27edf5b4d203dd93f924b850c296469a56d7b00a5df8693ddffa13e9a78f02e"
+        "fingerprint": "1975bf70b99b62a5674a0ee3b8462d9f50d8fc5c11cfbb1fbe52e028fe433e8a"
       },
       "SyncBootstrapRequest": {
         "fingerprint": "0bd4dbab7d9fe70dc8db0bb91e520c3a3e21376c83113e6f0040076964ad1f39"
@@ -505,7 +586,7 @@
         "fingerprint": "000bd6bb9205475857df0d68d2cbf3be90a19f18783ef3c2016437d83fb6db31"
       },
       "SyncCommandDisposition": {
-        "fingerprint": "3a5490baedb365b49afa135b979ce1253c9a73b51f2204df1cfab3cfa57cf5c2"
+        "fingerprint": "1210103038f1db8dd479f05d49d6a53e998ea3010fecb3906d1f3e566dbbf195"
       },
       "SyncCommandEnvelope": {
         "fingerprint": "87fb7461714cdf178b05aab8ba71d7fef2f3ab0f47ead01e5eeea8fb31c008f4"
@@ -514,7 +595,7 @@
         "fingerprint": "b6ac67fd1945f531c62fd78f6c63c95e1140314baad9c77b64e3471d170fe3ee"
       },
       "SyncCommandStatusResponse": {
-        "fingerprint": "bb594eb404fa07245fc9d7253ce32aa9f09c8cab979dd2233b121469e7114047"
+        "fingerprint": "22a333aef20fbd7122b0ab11c53c5b808dc588605e9eeca6b3972d1c0796a720"
       },
       "SyncCompleteFarmerSetupCommandEnvelope": {
         "fingerprint": "ef790e14d81d266109886a707cc7d57e9286df53cad0d4491b14d00487801a1c"
@@ -591,7 +672,7 @@
         "fingerprint": "a19cc501cb5b1764112b308449d351e643cf271f0258522c08893fd2530502cc"
       },
       "VoiceTurnResponse": {
-        "fingerprint": "132ca8cc12639fdf500de0202561193c9d5a6ca7f2004e00d217e50e39eb7cbd"
+        "fingerprint": "28e107ceb8fb9a1f77ba3c7ef3830c87a71d6fd25af6d17cf4c0995f9a834cb7"
       }
     }
   }

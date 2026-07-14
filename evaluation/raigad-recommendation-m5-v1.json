@@ -1,0 +1,32 @@
+{
+  "scenarioId": "raigad-recommendation-m5-v1",
+  "milestone": 5,
+  "description": "Synthetic Raigad Smart Crop Recommendation demo with one ready Plot and one blocked/no-safe Plot.",
+  "dataMode": "SIMULATED",
+  "clock": "2026-07-14T09:00:00.000+05:30",
+  "containsRealPersonalData": false,
+  "containsExactPrivateGeometry": false,
+  "versions": {
+    "cropProfileSet": "raigad-crop-profiles-v1-proposed",
+    "ruleSet": "raigad-recommendation-rules-v1",
+    "decisionWeather": "raigad-decision-weather-v1",
+    "earth": "raigad-earth-v1",
+    "calendarTemplate": "raigad-calendar-template-v1"
+  },
+  "plots": [
+    {
+      "plotKey": "plot-a-ready",
+      "expectedState": "READY",
+      "expectedTopCrops": ["Rice", "Groundnut", "Tur"],
+      "voiceUtterance": "माझ्या शेतात कोणते पीक घ्यावे आणि का?",
+      "acceptanceCreates": ["season", "calendar", "initialTasks"]
+    },
+    {
+      "plotKey": "plot-b-blocked",
+      "expectedState": "NEEDS_INPUT_OR_NO_SAFE_RESULT",
+      "expectedPath": "RSK_REVIEW_AVAILABLE",
+      "reason": "Critical evidence is missing, stale, conflicting or unavailable for model input."
+    }
+  ],
+  "checksum": "sha256:1f568a68f5f0b8f92cfcb4f96dc0fb2bf971599c72c0641c4d8a45cb451780f3"
+}

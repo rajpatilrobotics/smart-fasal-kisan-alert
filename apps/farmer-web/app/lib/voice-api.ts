@@ -9,6 +9,14 @@ const SCHEMA_VERSION = '1' as const;
 export type FarmerVoiceTextOutcome =
   | { readonly kind: 'help' }
   | { readonly kind: 'needs-clarification' }
+  | {
+      readonly kind: 'recommendation-result';
+      readonly recommendationId: string;
+      readonly summary: string;
+      readonly openDetailsRoute: string;
+      readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+      readonly sourceGeneratedAt: string;
+    }
   | { readonly kind: 'unavailable' };
 
 interface FarmerVoiceTextOptions {
@@ -92,8 +100,20 @@ export async function submitFarmerVoiceText(
     if (!turn.data || turn.error) return { kind: 'unavailable' };
     if (turn.data.state === 'HELP') return { kind: 'help' };
     if (turn.data.state === 'NEEDS_CLARIFICATION') return { kind: 'needs-clarification' };
+    if (
+      turn.data.state === 'RESULT_READY' &&
+      turn.data.result?.resultType === 'RECOMMENDATION_READ'
+    ) {
+      return {
+        kind: 'recommendation-result',
+        recommendationId: turn.data.result.recommendationId,
+        summary: turn.data.result.summary,
+        openDetailsRoute: turn.data.result.openDetailsRoute,
+        dataMode: turn.data.result.dataMode,
+        sourceGeneratedAt: turn.data.result.sourceGeneratedAt,
+      };
+    }
 
-    // M2 intentionally has no owned Farmer tools, so no proposal/result is represented here.
     return { kind: 'unavailable' };
   } catch {
     return { kind: 'unavailable' };

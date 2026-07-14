@@ -24,6 +24,8 @@ import {
   type OutboxRow,
   type ProjectionAuthority,
   type ProjectionRow,
+  type RecommendationDraftRow,
+  type RecommendationResultCacheRow,
   type SyncStateRow,
   type TombstoneRow,
   type EvidenceCacheRow,
@@ -205,6 +207,26 @@ export interface MediaReservationInput {
 export interface EvidenceCacheInput {
   readonly plotId: string;
   readonly status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  readonly payload: Readonly<Record<string, unknown>>;
+}
+
+export interface RecommendationDraftInput {
+  readonly draftId: string;
+  readonly plotId: string;
+  readonly status:
+    'SAVED_ON_THIS_PHONE' | 'WAITING_FOR_INTERNET' | 'EVALUATING' | 'REJECTED' | 'CONFLICT';
+  readonly commandId: string;
+  readonly contextRevision: number;
+  readonly payload: Readonly<Record<string, unknown>>;
+}
+
+export interface RecommendationResultCacheInput {
+  readonly recommendationId: string;
+  readonly plotId: string;
+  readonly status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+  readonly generatedAt: string;
+  readonly freshnessLabel: string;
   readonly payload: Readonly<Record<string, unknown>>;
 }
 
@@ -432,6 +454,43 @@ export class FarmerOfflineStore {
     >,
   ) {
     return this.aad('evidenceCache', row.cacheKey, row.projectionSchemaVersion, {
+      plotId: row.plotId,
+      status: row.status,
+      updatedAt: row.updatedAt,
+    });
+  }
+
+  private recommendationDraftAad(
+    row: Pick<
+      RecommendationDraftRow,
+      | 'draftId'
+      | 'plotId'
+      | 'status'
+      | 'commandId'
+      | 'payloadHash'
+      | 'contextRevision'
+      | 'updatedAt'
+    >,
+  ) {
+    return this.aad('recommendationDrafts', row.draftId, 1, {
+      commandId: row.commandId,
+      contextRevision: row.contextRevision,
+      payloadHash: row.payloadHash,
+      plotId: row.plotId,
+      status: row.status,
+      updatedAt: row.updatedAt,
+    });
+  }
+
+  private recommendationResultAad(
+    row: Pick<
+      RecommendationResultCacheRow,
+      'recommendationId' | 'plotId' | 'status' | 'dataMode' | 'generatedAt' | 'updatedAt'
+    >,
+  ) {
+    return this.aad('recommendationResults', row.recommendationId, 1, {
+      dataMode: row.dataMode,
+      generatedAt: row.generatedAt,
       plotId: row.plotId,
       status: row.status,
       updatedAt: row.updatedAt,
@@ -734,6 +793,51 @@ export class FarmerOfflineStore {
     const row = await this.database.evidenceCache.get(`plot:${plotId}:evidence-summary`);
     if (row === undefined) return undefined;
     return decryptJson(this.key, this.evidenceCacheAad(row), row.encrypted);
+  }
+
+  async saveRecommendationDraft(input: RecommendationDraftInput): Promise<void> {
+    await this.assertAccessible();
+    const updatedAt = Date.now();
+    const row = {
+      draftId: input.draftId,
+      plotId: input.plotId,
+      status: input.status,
+      commandId: input.commandId,
+      payloadHash: await sha256CanonicalJson(input.payload),
+      contextRevision: input.contextRevision,
+      updatedAt,
+    };
+    await this.database.recommendationDrafts.put({
+      ...row,
+      encrypted: await encryptJson(this.key, this.recommendationDraftAad(row), input.payload),
+    });
+  }
+
+  async cacheRecommendationResult(input: RecommendationResultCacheInput): Promise<void> {
+    await this.assertAccessible();
+    const updatedAt = Date.now();
+    const row = {
+      recommendationId: input.recommendationId,
+      plotId: input.plotId,
+      status: input.status,
+      dataMode: input.dataMode,
+      generatedAt: input.generatedAt,
+      freshnessLabel: input.freshnessLabel,
+      updatedAt,
+    };
+    await this.database.recommendationResults.put({
+      ...row,
+      encrypted: await encryptJson(this.key, this.recommendationResultAad(row), input.payload),
+    });
+  }
+
+  async readCachedRecommendationResult(
+    recommendationId: string,
+  ): Promise<Readonly<Record<string, unknown>> | undefined> {
+    await this.assertAccessible();
+    const row = await this.database.recommendationResults.get(recommendationId);
+    if (row === undefined) return undefined;
+    return decryptJson(this.key, this.recommendationResultAad(row), row.encrypted);
   }
 
   async getLocalEvent(eventId: string): Promise<LocalCommitInput['event'] | undefined> {

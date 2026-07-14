@@ -2,6 +2,10 @@ import { createHmac, randomBytes } from 'node:crypto';
 
 import { CommandResultSchema } from '@smart-fasal/contracts/schemas';
 import { createSafeHttpRequestLogger } from '@smart-fasal/observability';
+import {
+  LiveUnavailableRecommendationEvidenceProvider,
+  RecordedRaigadRecommendationEvidenceProvider,
+} from '@smart-fasal/application';
 
 import { buildDomainApi } from './app.js';
 import { API_BOUNDARY_CONFIG, SERVICE_CONFIG } from './config.js';
@@ -133,7 +137,15 @@ const durableMilestoneTwoOperations =
 const milestoneTwoOperations = localMilestoneTwoOperations ?? durableMilestoneTwoOperations;
 const milestoneThreeOperations =
   SERVICE_CONFIG.NODE_ENV !== 'production' && API_BOUNDARY_CONFIG.environment === 'local'
-    ? new FarmerSetupOperations()
+    ? new FarmerSetupOperations(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        API_BOUNDARY_CONFIG.recommendationEvidenceMode === 'live_unavailable'
+          ? new LiveUnavailableRecommendationEvidenceProvider()
+          : new RecordedRaigadRecommendationEvidenceProvider(),
+      )
     : undefined;
 
 const operations = createProductionDomainComposition({
