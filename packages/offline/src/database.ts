@@ -4,7 +4,7 @@ import type { DeviceMode } from '@smart-fasal/contracts/schemas';
 
 import type { EncryptedEnvelope } from './crypto.js';
 
-export const LOCAL_DATABASE_SCHEMA_VERSION = 5;
+export const LOCAL_DATABASE_SCHEMA_VERSION = 6;
 
 export interface LocalEventRow {
   eventId: string;
@@ -161,6 +161,47 @@ export interface AdvisoryCacheRow {
   encrypted: EncryptedEnvelope;
 }
 
+export interface HealthReportDraftRow {
+  draftId: string;
+  plotId: string;
+  status:
+    | 'SAVED_ON_THIS_PHONE'
+    | 'WAITING_FOR_INTERNET'
+    | 'TRIAGE_PENDING'
+    | 'REJECTED'
+    | 'CONFLICT';
+  commandId: string;
+  payloadHash: string;
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
+export interface HealthReportCacheRow {
+  reportId: string;
+  plotId: string;
+  status: 'CURRENT' | 'STALE' | 'OFFLINE' | 'UNAVAILABLE';
+  dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
+export interface FarmerCaseCacheRow {
+  caseId: string;
+  reportId: string;
+  status:
+    | 'PENDING_EXPERT'
+    | 'ASSIGNED'
+    | 'AWAITING_FARMER'
+    | 'REPLIED'
+    | 'FOLLOW_UP_DUE'
+    | 'RESOLVED'
+    | 'CLOSED'
+    | 'REOPENED';
+  dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+  updatedAt: number;
+  encrypted: EncryptedEnvelope;
+}
+
 const VERSION_ONE_STORES = {
   localEvents: '&eventId,commandId,localSequence,eventSchemaVersion',
   projections: '&projectionKey,projectionType,projectionId,authorityState,projectionSchemaVersion',
@@ -193,6 +234,9 @@ export class FarmerOfflineDatabase extends Dexie {
   recommendationDrafts!: Table<RecommendationDraftRow, string>;
   recommendationResults!: Table<RecommendationResultCacheRow, string>;
   advisoryCache!: Table<AdvisoryCacheRow, string>;
+  healthReportDrafts!: Table<HealthReportDraftRow, string>;
+  healthReports!: Table<HealthReportCacheRow, string>;
+  farmerCases!: Table<FarmerCaseCacheRow, string>;
 
   constructor(databaseName: string) {
     super(databaseName);
@@ -209,6 +253,9 @@ export class FarmerOfflineDatabase extends Dexie {
           '&draftId,plotId,status,commandId,payloadHash,contextRevision,updatedAt',
         recommendationResults: '&recommendationId,plotId,status,dataMode,generatedAt,updatedAt',
         advisoryCache: '&advisoryId,plotId,status,dataMode,urgency,generatedAt,updatedAt',
+        healthReportDrafts: '&draftId,plotId,status,commandId,payloadHash,updatedAt',
+        healthReports: '&reportId,plotId,status,dataMode,updatedAt',
+        farmerCases: '&caseId,reportId,status,dataMode,updatedAt',
       })
       .upgrade(async (transaction) => {
         await transaction.table<CacheMetadataRow>('cacheMetadata').put({

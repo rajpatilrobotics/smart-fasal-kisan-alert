@@ -1718,6 +1718,14 @@ export function createProductionDomainComposition(
         case 'listFarmerAdvisories':
         case 'getFarmerAdvisory':
         case 'respondToFarmerAdvisory':
+        case 'listFarmerHealthReports':
+        case 'saveFarmerHealthReportDraft':
+        case 'attachFarmerHealthMedia':
+        case 'submitFarmerHealthReport':
+        case 'getFarmerHealthReport':
+        case 'decideFarmerHealthCaseSharing':
+        case 'listFarmerCases':
+        case 'getFarmerCase':
         case 'getFarmerRecommendationReadiness':
         case 'createFarmerRecommendationRun':
         case 'getFarmerRecommendationRun':

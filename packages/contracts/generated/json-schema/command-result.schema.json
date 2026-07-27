@@ -48,7 +48,9 @@
             "farmerSetup",
             "farmerPreferences",
             "deviceMode",
-            "advisory"
+            "advisory",
+            "healthReport",
+            "healthCaseSharing"
           ],
           "type": "string"
         }

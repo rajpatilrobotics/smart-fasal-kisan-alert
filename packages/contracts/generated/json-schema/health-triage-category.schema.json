@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "categoryKey": {
+      "enum": [
+        "RICE_LEAF_SPOT_POSSIBLE",
+        "RICE_BLAST_POSSIBLE",
+        "NUTRIENT_STRESS_POSSIBLE",
+        "WATER_STRESS_POSSIBLE",
+        "PEST_DAMAGE_POSSIBLE",
+        "UNKNOWN_STRESS",
+        "UNSUPPORTED_CROP_OR_PART"
+      ],
+      "type": "string"
+    },
+    "confidence": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ],
+      "type": "string"
+    },
+    "evidenceRefs": {
+      "items": {
+        "maxLength": 120,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "type": "array"
+    },
+    "label": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 4,
+      "type": "array"
+    }
+  },
+  "required": [
+    "categoryKey",
+    "label",
+    "confidence",
+    "evidenceRefs",
+    "limitations"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

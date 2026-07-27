@@ -33,4 +33,9 @@ export {
   type PartitionKeyProvider,
   type PartitionWrappingKeySource,
 } from './key-provider.js';
-export { LOCAL_DATABASE_SCHEMA_VERSION } from './database.js';
+export {
+  LOCAL_DATABASE_SCHEMA_VERSION,
+  type FarmerCaseCacheRow,
+  type HealthReportCacheRow,
+  type HealthReportDraftRow,
+} from './database.js';

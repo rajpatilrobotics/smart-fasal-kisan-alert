@@ -623,7 +623,7 @@
       "name": "health_media.attached",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "visit.media_attached",
@@ -731,49 +731,49 @@
       "name": "health_report.saved",
       "eventClass": "CLIENT_LOCAL",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "health_media.queued",
       "eventClass": "CLIENT_LOCAL",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "health_report.synced",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "health_report.triage_ready",
       "eventClass": "TECHNICAL",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "triage.completed",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "triage.escalated",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "triage.escalation_sharing_declined",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "case.created",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "case.contact_access_authorized",
@@ -833,7 +833,7 @@
       "name": "rsk.work_created",
       "eventClass": "DOMAIN",
       "version": 1,
-      "status": "reserved"
+      "status": "executable"
     },
     {
       "name": "rsk.work_assigned",

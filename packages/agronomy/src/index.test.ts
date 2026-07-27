@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createRecordedRiceLeafSpotExtraction,
   evaluateAdvisory,
   recommendCrops,
+  triageCropHealth,
   validateModelExplanation,
   type AdvisoryInput,
   type RecommendationInput,
@@ -252,5 +254,89 @@ describe('evaluateAdvisory', () => {
     expect(first.kind).toBe(second.kind);
     expect(second.lifecycleState).toBe('DEDUPLICATED');
     expect(second.limitations.some((item) => item.includes('did not drive'))).toBe(true);
+  });
+});
+
+describe('triageCropHealth', () => {
+  const healthInput = {
+    reportId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    plotId: baseInput.plotId,
+    cropName: 'Rice',
+    symptomSummary: 'भाताच्या पानांवर तीन दिवसांपासून तपकिरी डाग आहेत आणि ते पसरत आहेत.',
+    answers: [
+      { questionKey: 'affectedPart', answer: 'leaf' },
+      { questionKey: 'symptomStarted', answer: 'three days ago' },
+      { questionKey: 'spread', answer: 'spreading' },
+    ],
+    generatedAt: '2026-07-14T09:00:00.000+05:30',
+    policyVersion: 'health-triage-policy-v1',
+  } as const;
+
+  it('returns possible-only triage and requires expert escalation for spreading symptoms', () => {
+    const result = triageCropHealth({
+      ...healthInput,
+      media: [
+        {
+          assetId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          qualityBand: 'USABLE',
+          requiredView: 'AFFECTED_LEAF_TOP',
+          dataMode: 'SIMULATED',
+        },
+      ],
+      extraction: createRecordedRiceLeafSpotExtraction({ evidenceRefs: ['photo:bbbbbbbb-bbbb'] }),
+    });
+
+    expect(result.state).toBe('SUPPORTED');
+    expect(result.severity).toBe('HIGH');
+    expect(result.confidence).toBe('MEDIUM');
+    expect(result.mandatoryEscalation).toBe(true);
+    expect(JSON.stringify(result)).not.toMatch(/confirmed diagnosis|fungicide|pesticide|dose/i);
+  });
+
+  it('never sends unusable evidence to the visual model', () => {
+    const result = triageCropHealth({
+      ...healthInput,
+      media: [
+        {
+          assetId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+          qualityBand: 'UNUSABLE',
+          requiredView: 'AFFECTED_LEAF_TOP',
+          dataMode: 'SIMULATED',
+          limitation: 'Image is too dark for crop-health triage.',
+        },
+      ],
+      extraction: createRecordedRiceLeafSpotExtraction({ evidenceRefs: ['photo:cccccccc-cccc'] }),
+    });
+
+    expect(result.state).toBe('UNCLEAR');
+    expect(result.evidenceQuality.qualityBand).toBe('UNUSABLE');
+    expect(result.modelProvider).toBe('NONE');
+    expect(result.confidence).toBe('LOW');
+  });
+
+  it('caps high model confidence when evidence quality is limited', () => {
+    const extraction = createRecordedRiceLeafSpotExtraction({
+      evidenceRefs: ['photo:dddddddd-dddd'],
+    });
+    const result = triageCropHealth({
+      ...healthInput,
+      answers: [{ questionKey: 'affectedPart', answer: 'leaf' }],
+      media: [
+        {
+          assetId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+          qualityBand: 'LIMITED',
+          requiredView: 'AFFECTED_LEAF_TOP',
+          dataMode: 'RECORDED',
+        },
+      ],
+      extraction: {
+        ...extraction,
+        possibleCategories: [{ ...extraction.possibleCategories[0]!, confidence: 'HIGH' }],
+      },
+    });
+
+    expect(result.evidenceQuality.qualityBand).toBe('LIMITED');
+    expect(result.confidence).toBe('MEDIUM');
+    expect(result.dataMode).toBe('RECORDED');
   });
 });

@@ -1,11 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  attachHealthMedia,
+  decideHealthCaseSharing,
   createFarmerReturnState,
   establishFarmerRole,
+  loadFarmerCase,
+  loadFarmerCases,
   loadFarmerShell,
+  loadHealthReport,
+  loadHealthReports,
   problemToShellIssue,
   revokeFarmerRoleContext,
+  saveHealthReportDraft,
+  submitHealthReport,
 } from './farmer-api';
 
 const API_ORIGIN = 'https://farmer-api.local.example';
@@ -130,6 +138,27 @@ function farmerBootstrap(overrides: Record<string, unknown> = {}) {
     locale: 'mr',
     onboardingState: 'COMPLETE',
     subjectId: SUBJECT_ID,
+    ...overrides,
+  };
+}
+
+function healthReportResponse(overrides: Record<string, unknown> = {}) {
+  return {
+    answers: [],
+    createdAt: '2026-07-13T10:00:00.000Z',
+    cropName: 'Rice',
+    dataMode: 'RECORDED',
+    etagRevision: 1,
+    language: 'mr',
+    media: [],
+    plotId: SUBJECT_ID,
+    reportChecksum: `sha256:${'a'.repeat(64)}`,
+    reportId: SUBJECT_ID,
+    resultVersion: 1,
+    sharingDecision: 'NOT_REQUESTED',
+    state: 'DRAFT',
+    symptomSummary: 'Brown leaf spots are visible.',
+    updatedAt: '2026-07-13T10:00:00.000Z',
     ...overrides,
   };
 }
@@ -404,6 +433,161 @@ describe('Farmer API boundary', () => {
     expect(requests).toHaveLength(1);
     expect(requests[0]!.headers.get('x-role-context-id')).toBe(ROLE_CONTEXT_ID);
     expectSecretsAbsentFromUrl(requests[0]!);
+  });
+
+  it('calls Crop Health and Case routes with command metadata in headers only', async () => {
+    const requests = installFetchQueue(
+      { body: { generatedAt: '2026-07-13T10:00:00.000Z', plotId: SUBJECT_ID, reports: [] } },
+      { body: healthReportResponse() },
+      { body: healthReportResponse({ etagRevision: 2 }) },
+      { body: healthReportResponse({ etagRevision: 3, state: 'TRIAGED' }) },
+      { body: healthReportResponse({ state: 'TRIAGED' }) },
+      {
+        body: {
+          caseId: ROLE_GRANT_ID,
+          caseStatus: 'PENDING_EXPERT',
+          commandId: COMMAND_ID,
+          disposition: 'ACCEPTED',
+          evidencePackId: RETURN_STATE_ID,
+          reportId: SUBJECT_ID,
+          serverReceivedAt: '2026-07-13T10:00:01.000Z',
+          sharingDecision: 'ALLOW',
+          workItemId: CORRELATION_ID,
+        },
+      },
+      { body: { cases: [], generatedAt: '2026-07-13T10:00:00.000Z' } },
+      {
+        body: {
+          accessVersion: 1,
+          caseId: ROLE_GRANT_ID,
+          createdAt: '2026-07-13T10:00:00.000Z',
+          dataMode: 'RECORDED',
+          evidencePackExpiresAt: '2026-07-27T10:00:00.000Z',
+          pendingExpert: true,
+          plotId: SUBJECT_ID,
+          report: healthReportResponse({ sharingDecision: 'ALLOW' }),
+          reportId: SUBJECT_ID,
+          severity: 'HIGH',
+          status: 'PENDING_EXPERT',
+          timeline: [
+            {
+              at: '2026-07-13T10:00:00.000Z',
+              label: 'Shared with RSK for expert review.',
+              state: 'PENDING_EXPERT',
+            },
+          ],
+          title: 'Rice health report',
+          updatedAt: '2026-07-13T10:00:00.000Z',
+        },
+      },
+    );
+
+    await loadHealthReports(credentials, INSTALLATION_ID, ROLE_CONTEXT_ID, SUBJECT_ID, {
+      baseUrl: API_ORIGIN,
+    });
+    await saveHealthReportDraft(
+      credentials,
+      INSTALLATION_ID,
+      ROLE_CONTEXT_ID,
+      SUBJECT_ID,
+      {
+        answers: [],
+        clientRecordedAt: '2026-07-13T10:00:00.000Z',
+        commandId: COMMAND_ID,
+        cropName: 'Rice',
+        expectedRevision: 0,
+        language: 'mr',
+        schemaVersion: 'health-report-draft-v1',
+        symptomSummary: 'Brown leaf spots are visible.',
+        timezone: 'Asia/Kolkata',
+      },
+      { baseUrl: API_ORIGIN },
+    );
+    await attachHealthMedia(
+      credentials,
+      INSTALLATION_ID,
+      ROLE_CONTEXT_ID,
+      SUBJECT_ID,
+      {
+        assetId: RETURN_STATE_ID,
+        clientRecordedAt: '2026-07-13T10:01:00.000Z',
+        commandId: COMMAND_ID,
+        consentAccessVersion: 1,
+        expectedRevision: 1,
+        requiredView: 'WHOLE_PLANT',
+        timezone: 'Asia/Kolkata',
+      },
+      { baseUrl: API_ORIGIN },
+    );
+    await submitHealthReport(
+      credentials,
+      INSTALLATION_ID,
+      ROLE_CONTEXT_ID,
+      SUBJECT_ID,
+      {
+        clientSubmittedAt: '2026-07-13T10:02:00.000Z',
+        commandId: COMMAND_ID,
+        expectedRevision: 2,
+        timezone: 'Asia/Kolkata',
+      },
+      { baseUrl: API_ORIGIN },
+    );
+    await loadHealthReport(credentials, INSTALLATION_ID, ROLE_CONTEXT_ID, SUBJECT_ID, {
+      baseUrl: API_ORIGIN,
+    });
+    await decideHealthCaseSharing(
+      credentials,
+      INSTALLATION_ID,
+      ROLE_CONTEXT_ID,
+      SUBJECT_ID,
+      {
+        clientRecordedAt: '2026-07-13T10:03:00.000Z',
+        commandId: COMMAND_ID,
+        consentAccessVersion: 1,
+        decision: 'ALLOW',
+        expectedRevision: 3,
+        policyVersionId: ROLE_GRANT_ID,
+        timezone: 'Asia/Kolkata',
+      },
+      { baseUrl: API_ORIGIN },
+    );
+    await loadFarmerCases(credentials, INSTALLATION_ID, ROLE_CONTEXT_ID, {
+      baseUrl: API_ORIGIN,
+    });
+    await loadFarmerCase(credentials, INSTALLATION_ID, ROLE_CONTEXT_ID, ROLE_GRANT_ID, {
+      baseUrl: API_ORIGIN,
+    });
+
+    expect(requests.map((request) => request.url.pathname)).toEqual([
+      `/v1/farmer/plots/${SUBJECT_ID}/health`,
+      `/v1/farmer/plots/${SUBJECT_ID}/health-reports`,
+      `/v1/farmer/health-reports/${SUBJECT_ID}/media`,
+      `/v1/farmer/health-reports/${SUBJECT_ID}:submit`,
+      `/v1/farmer/health-reports/${SUBJECT_ID}`,
+      `/v1/farmer/health-reports/${SUBJECT_ID}/case-sharing-decisions`,
+      '/v1/farmer/cases',
+      `/v1/farmer/cases/${ROLE_GRANT_ID}`,
+    ]);
+    for (const request of requests) {
+      expectRequiredHeaders(request);
+      expect(request.headers.get('authorization')).toBe(`Bearer ${ID_TOKEN}`);
+      expect(request.headers.get('x-firebase-appcheck')).toBe(APP_CHECK_TOKEN);
+      expect(request.headers.get('x-role-context-id')).toBe(ROLE_CONTEXT_ID);
+      expectSecretsAbsentFromUrl(request);
+    }
+    const commandRequests = requests.filter((request) => request.method === 'POST');
+    expect(commandRequests.map((request) => request.headers.get('idempotency-key'))).toEqual([
+      COMMAND_ID,
+      COMMAND_ID,
+      COMMAND_ID,
+      COMMAND_ID,
+    ]);
+    expect(commandRequests.map((request) => request.headers.get('if-match'))).toEqual([
+      '"rev:0"',
+      '"rev:1"',
+      '"rev:2"',
+      '"rev:3"',
+    ]);
   });
 
   it('denies a shell load before a role context is selected without making a request', async () => {

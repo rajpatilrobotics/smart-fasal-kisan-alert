@@ -17,6 +17,24 @@ export type FarmerVoiceTextOutcome =
       readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
       readonly sourceGeneratedAt: string;
     }
+  | {
+      readonly kind: 'health-report-result';
+      readonly reportId: string;
+      readonly summary: string;
+      readonly openDetailsRoute: string;
+      readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+      readonly sourceGeneratedAt: string;
+      readonly triageState: 'SUPPORTED' | 'UNSUPPORTED' | 'UNCLEAR' | 'PENDING';
+    }
+  | {
+      readonly kind: 'case-result';
+      readonly caseId: string;
+      readonly summary: string;
+      readonly openDetailsRoute: string;
+      readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+      readonly sourceGeneratedAt: string;
+      readonly caseStatus: string;
+    }
   | { readonly kind: 'unavailable' };
 
 interface FarmerVoiceTextOptions {
@@ -111,6 +129,31 @@ export async function submitFarmerVoiceText(
         openDetailsRoute: turn.data.result.openDetailsRoute,
         dataMode: turn.data.result.dataMode,
         sourceGeneratedAt: turn.data.result.sourceGeneratedAt,
+      };
+    }
+    if (
+      turn.data.state === 'RESULT_READY' &&
+      turn.data.result?.resultType === 'HEALTH_REPORT_READ'
+    ) {
+      return {
+        kind: 'health-report-result',
+        reportId: turn.data.result.reportId,
+        summary: turn.data.result.summary,
+        openDetailsRoute: turn.data.result.openDetailsRoute,
+        dataMode: turn.data.result.dataMode,
+        sourceGeneratedAt: turn.data.result.sourceGeneratedAt,
+        triageState: turn.data.result.triageState,
+      };
+    }
+    if (turn.data.state === 'RESULT_READY' && turn.data.result?.resultType === 'CASE_READ') {
+      return {
+        kind: 'case-result',
+        caseId: turn.data.result.caseId,
+        summary: turn.data.result.summary,
+        openDetailsRoute: turn.data.result.openDetailsRoute,
+        dataMode: turn.data.result.dataMode,
+        sourceGeneratedAt: turn.data.result.sourceGeneratedAt,
+        caseStatus: turn.data.result.caseStatus,
       };
     }
 

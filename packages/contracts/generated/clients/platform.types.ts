@@ -272,6 +272,38 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/v1/farmer/cases": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["listFarmerCases"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/cases/{caseId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerCase"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/v1/farmer/consent-decisions": {
         readonly parameters: {
             readonly query?: never;
@@ -368,6 +400,70 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/v1/farmer/health-reports/{reportId}": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["getFarmerHealthReport"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/health-reports/{reportId}:submit": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["submitFarmerHealthReport"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/health-reports/{reportId}/case-sharing-decisions": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["decideFarmerHealthCaseSharing"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/health-reports/{reportId}/media": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["attachFarmerHealthMedia"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/v1/farmer/my-farm": {
         readonly parameters: {
             readonly query?: never;
@@ -426,6 +522,38 @@ export interface paths {
         readonly get?: never;
         readonly put?: never;
         readonly post: operations["createFarmerPlotGeometryVersion"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/plots/{plotId}/health": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get: operations["listFarmerHealthReports"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/farmer/plots/{plotId}/health-reports": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        readonly post: operations["saveFarmerHealthReportDraft"];
         readonly delete?: never;
         readonly options?: never;
         readonly head?: never;
@@ -1164,6 +1292,51 @@ export interface components {
             readonly urgency: "TODAY" | "NEXT_24_HOURS" | "NEXT_2_TO_3_DAYS" | "WHEN_POSSIBLE";
             readonly why: readonly components["schemas"]["AdvisoryReason"][];
         };
+        readonly AttachHealthMediaCommand: {
+            readonly clientContext: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                /** @enum {string} */
+                readonly dataModeClaim: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly timezone: string;
+            };
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly operation: "AttachHealthMedia";
+            readonly payload: {
+                /** Format: uuid */
+                readonly assetId: string;
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly consentAccessVersion: number;
+                /** @enum {string} */
+                readonly requiredView: "WHOLE_PLANT" | "AFFECTED_LEAF_TOP" | "AFFECTED_LEAF_UNDERSIDE" | "STEM_OR_BASE" | "FIELD_CONTEXT" | "OTHER";
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthReport";
+            };
+        };
+        readonly AttachHealthMediaRequest: {
+            /** Format: uuid */
+            readonly assetId: string;
+            /** Format: date-time */
+            readonly clientRecordedAt: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly consentAccessVersion: number;
+            readonly expectedRevision: number;
+            /** @enum {string} */
+            readonly requiredView: "WHOLE_PLANT" | "AFFECTED_LEAF_TOP" | "AFFECTED_LEAF_UNDERSIDE" | "STEM_OR_BASE" | "FIELD_CONTEXT" | "OTHER";
+            /** @constant */
+            readonly timezone: "Asia/Kolkata";
+        };
         readonly AttachOfflineAudioRequest: {
             /** Format: uuid */
             readonly assetId: string;
@@ -1188,7 +1361,7 @@ export interface components {
         };
         readonly AuthorizationContext: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond" | "farmer.health.read" | "farmer.health.write" | "farmer.health.submit" | "farmer.health.share_case" | "farmer.case.read")[];
             readonly capabilitySetVersion: number;
             /** @enum {string} */
             readonly environment: "local" | "preview" | "staging" | "demo" | "production";
@@ -1241,8 +1414,8 @@ export interface components {
                 readonly type: "deviceMode";
             };
         };
-        readonly Command: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"] | components["schemas"]["RespondToAdvisoryCommand"];
-        readonly CommandEnvelope: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"] | components["schemas"]["RespondToAdvisoryCommand"];
+        readonly Command: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"] | components["schemas"]["RespondToAdvisoryCommand"] | components["schemas"]["SaveHealthReportDraftCommand"] | components["schemas"]["AttachHealthMediaCommand"] | components["schemas"]["SubmitHealthReportCommand"] | components["schemas"]["DecideHealthCaseSharingCommand"];
+        readonly CommandEnvelope: components["schemas"]["SelectRoleContextCommand"] | components["schemas"]["RecordConsentDecisionCommand"] | components["schemas"]["IssueAccessGrantCommand"] | components["schemas"]["SaveFarmerSetupDraftCommand"] | components["schemas"]["CompleteFarmerSetupCommand"] | components["schemas"]["UpdateFarmerPreferencesCommand"] | components["schemas"]["ChangeDeviceModeCommand"] | components["schemas"]["RespondToAdvisoryCommand"] | components["schemas"]["SaveHealthReportDraftCommand"] | components["schemas"]["AttachHealthMediaCommand"] | components["schemas"]["SubmitHealthReportCommand"] | components["schemas"]["DecideHealthCaseSharingCommand"];
         readonly CommandResult: {
             /** Format: uuid */
             readonly commandId: string;
@@ -1254,7 +1427,7 @@ export interface components {
                 readonly id: string;
                 readonly revision: number;
                 /** @enum {string} */
-                readonly type: "roleContext" | "consentDecision" | "accessGrant" | "farmerSetupDraft" | "farmerSetup" | "farmerPreferences" | "deviceMode" | "advisory";
+                readonly type: "roleContext" | "consentDecision" | "accessGrant" | "farmerSetupDraft" | "farmerSetup" | "farmerPreferences" | "deviceMode" | "advisory" | "healthReport" | "healthCaseSharing";
             };
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -1450,6 +1623,37 @@ export interface components {
             readonly notes?: string;
             readonly seasonLabel: string;
             readonly year: number;
+        };
+        readonly DecideHealthCaseSharingCommand: {
+            readonly clientContext: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                /** @enum {string} */
+                readonly dataModeClaim: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly timezone: string;
+            };
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly operation: "DecideHealthCaseSharing";
+            readonly payload: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly consentAccessVersion: number;
+                /** @enum {string} */
+                readonly decision: "ALLOW" | "DENY";
+                /** Format: uuid */
+                readonly policyVersionId: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthCaseSharing";
+            };
         };
         readonly DeviceBatchReceipt: {
             /** Format: uuid */
@@ -1660,7 +1864,7 @@ export interface components {
         };
         readonly FarmerBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond" | "farmer.health.read" | "farmer.health.write" | "farmer.health.submit" | "farmer.health.share_case" | "farmer.case.read")[];
             /** @enum {string} */
             readonly deviceMode: "PERSONAL" | "TRUSTED_FAMILY" | "RSK_ASSISTED";
             /** @enum {string} */
@@ -1673,6 +1877,62 @@ export interface components {
             readonly setup: components["schemas"]["FarmerSetupSummary"];
             /** Format: uuid */
             readonly subjectId: string;
+        };
+        readonly FarmerCaseListResponse: {
+            readonly cases: readonly components["schemas"]["FarmerCaseSummary"][];
+            /** Format: date-time */
+            readonly generatedAt: string;
+        };
+        readonly FarmerCaseResponse: {
+            readonly accessVersion: number;
+            /** Format: uuid */
+            readonly caseId: string;
+            /** Format: date-time */
+            readonly createdAt: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: date-time */
+            readonly evidencePackExpiresAt: string;
+            readonly pendingExpert: boolean;
+            /** Format: uuid */
+            readonly plotId: string;
+            readonly report: components["schemas"]["HealthReportResponse"];
+            /** Format: uuid */
+            readonly reportId: string;
+            /** @enum {string} */
+            readonly severity: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+            /** @enum {string} */
+            readonly status: "PENDING_EXPERT" | "ASSIGNED" | "AWAITING_FARMER" | "REPLIED" | "FOLLOW_UP_DUE" | "RESOLVED" | "CLOSED" | "REOPENED";
+            readonly timeline: readonly {
+                /** Format: date-time */
+                readonly at: string;
+                readonly label: string;
+                /** @enum {string} */
+                readonly state: "PENDING_EXPERT" | "ASSIGNED" | "AWAITING_FARMER" | "REPLIED" | "FOLLOW_UP_DUE" | "RESOLVED" | "CLOSED" | "REOPENED";
+            }[];
+            readonly title: string;
+            /** Format: date-time */
+            readonly updatedAt: string;
+        };
+        readonly FarmerCaseSummary: {
+            /** Format: uuid */
+            readonly caseId: string;
+            /** Format: date-time */
+            readonly createdAt: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            readonly pendingExpert: boolean;
+            /** Format: uuid */
+            readonly plotId: string;
+            /** Format: uuid */
+            readonly reportId: string;
+            /** @enum {string} */
+            readonly severity: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+            /** @enum {string} */
+            readonly status: "PENDING_EXPERT" | "ASSIGNED" | "AWAITING_FARMER" | "REPLIED" | "FOLLOW_UP_DUE" | "RESOLVED" | "CLOSED" | "REOPENED";
+            readonly title: string;
+            /** Format: date-time */
+            readonly updatedAt: string;
         };
         readonly FarmerProfileSetup: {
             readonly accessibility: {
@@ -1753,12 +2013,192 @@ export interface components {
             readonly objectGeneration: string;
             readonly sha256: string;
         };
+        readonly HealthAnswer: {
+            readonly answer?: string;
+            /** @enum {string} */
+            readonly language: "mr" | "hi" | "en";
+            /** @enum {string} */
+            readonly questionKey: "crop" | "cropStage" | "affectedPart" | "symptomStarted" | "spread" | "areaAffected" | "recentWeather" | "recentInput" | "farmerConcern";
+            /** @enum {string} */
+            readonly source: "VOICE_DRAFT" | "TYPED" | "GUIDED_CHOICE" | "SYSTEM_CONTEXT";
+            /** @default false */
+            readonly unknown: boolean;
+        };
+        readonly HealthCaseSharingDecisionRequest: {
+            /** Format: date-time */
+            readonly clientRecordedAt: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly consentAccessVersion: number;
+            /** @enum {string} */
+            readonly decision: "ALLOW" | "DENY";
+            readonly expectedRevision: number;
+            /** Format: uuid */
+            readonly policyVersionId: string;
+            /** @constant */
+            readonly timezone: "Asia/Kolkata";
+        };
+        readonly HealthCaseSharingDecisionResponse: {
+            /** Format: uuid */
+            readonly caseId?: string;
+            /** @enum {string} */
+            readonly caseStatus?: "PENDING_EXPERT" | "ASSIGNED" | "AWAITING_FARMER" | "REPLIED" | "FOLLOW_UP_DUE" | "RESOLVED" | "CLOSED" | "REOPENED";
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @enum {string} */
+            readonly disposition: "ACCEPTED" | "ALREADY_ACCEPTED";
+            /** Format: uuid */
+            readonly evidencePackId?: string;
+            /** Format: uuid */
+            readonly reportId: string;
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            /** @enum {string} */
+            readonly sharingDecision: "ALLOW" | "DENY";
+            /** Format: uuid */
+            readonly workItemId?: string;
+        };
+        readonly HealthEvidenceQuality: {
+            readonly limitations: readonly string[];
+            readonly limitedPhotoCount: number;
+            readonly missingRequiredContext: readonly ("crop" | "cropStage" | "affectedPart" | "symptomStarted" | "spread" | "areaAffected" | "recentWeather" | "recentInput" | "farmerConcern")[];
+            /** @enum {string} */
+            readonly qualityBand: "USABLE" | "LIMITED" | "UNUSABLE";
+            readonly unusablePhotoCount: number;
+            readonly usablePhotoCount: number;
+            readonly validatorVersion: string;
+        };
+        readonly HealthMediaRef: {
+            /** Format: uuid */
+            readonly assetId: string;
+            /** Format: uuid */
+            readonly attachmentId?: string;
+            readonly height?: number;
+            readonly limitation?: string;
+            /** @enum {string} */
+            readonly qualityBand: "USABLE" | "LIMITED" | "UNUSABLE";
+            /** @enum {string} */
+            readonly requiredView: "WHOLE_PLANT" | "AFFECTED_LEAF_TOP" | "AFFECTED_LEAF_UNDERSIDE" | "STEM_OR_BASE" | "FIELD_CONTEXT" | "OTHER";
+            readonly scannerVersion?: string;
+            readonly width?: number;
+        };
         readonly HealthPayload: {
             readonly service: string;
             /** @enum {string} */
             readonly status: "ok" | "not_ready";
             /** Format: date-time */
             readonly timestamp: string;
+        };
+        readonly HealthReportDraftRequest: {
+            readonly answers: readonly components["schemas"]["HealthAnswer"][];
+            /** Format: date-time */
+            readonly clientRecordedAt: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly cropName: string;
+            readonly expectedRevision: number;
+            /** @enum {string} */
+            readonly language: "mr" | "hi" | "en";
+            /** Format: uuid */
+            readonly reportId?: string;
+            /** @constant */
+            readonly schemaVersion: "health-report-draft-v1";
+            readonly symptomSummary: string;
+            /** @constant */
+            readonly timezone: "Asia/Kolkata";
+        };
+        readonly HealthReportListResponse: {
+            /** Format: date-time */
+            readonly generatedAt: string;
+            /** Format: uuid */
+            readonly plotId: string;
+            readonly reports: readonly components["schemas"]["HealthReportResponse"][];
+        };
+        readonly HealthReportResponse: {
+            readonly answers: readonly components["schemas"]["HealthAnswer"][];
+            /** Format: uuid */
+            readonly caseId?: string;
+            /** Format: date-time */
+            readonly createdAt: string;
+            readonly cropName: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            readonly etagRevision: number;
+            /** Format: uuid */
+            readonly farmId?: string;
+            /** @enum {string} */
+            readonly language: "mr" | "hi" | "en";
+            readonly media: readonly components["schemas"]["HealthMediaRef"][];
+            /** Format: uuid */
+            readonly plotId: string;
+            readonly quality?: components["schemas"]["HealthEvidenceQuality"];
+            readonly reportChecksum: string;
+            /** Format: uuid */
+            readonly reportId: string;
+            readonly resultVersion: number;
+            /** @enum {string} */
+            readonly sharingDecision: "NOT_REQUESTED" | "PENDING" | "ALLOW" | "DENY";
+            /** @enum {string} */
+            readonly state: "DRAFT" | "SUBMITTED" | "TRIAGE_PENDING" | "TRIAGED" | "MODEL_UNAVAILABLE";
+            /** Format: date-time */
+            readonly submittedAt?: string;
+            readonly symptomSummary: string;
+            readonly triage?: components["schemas"]["HealthTriageResult"];
+            /** Format: date-time */
+            readonly updatedAt: string;
+        };
+        readonly HealthTriageCategory: {
+            /** @enum {string} */
+            readonly categoryKey: "RICE_LEAF_SPOT_POSSIBLE" | "RICE_BLAST_POSSIBLE" | "NUTRIENT_STRESS_POSSIBLE" | "WATER_STRESS_POSSIBLE" | "PEST_DAMAGE_POSSIBLE" | "UNKNOWN_STRESS" | "UNSUPPORTED_CROP_OR_PART";
+            /** @enum {string} */
+            readonly confidence: "LOW" | "MEDIUM" | "HIGH";
+            readonly evidenceRefs: readonly string[];
+            readonly label: string;
+            readonly limitations: readonly string[];
+        };
+        readonly HealthTriageResult: {
+            readonly categories: readonly components["schemas"]["HealthTriageCategory"][];
+            /** @enum {string} */
+            readonly confidence: "LOW" | "MEDIUM" | "HIGH";
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            readonly evidenceQuality: components["schemas"]["HealthEvidenceQuality"];
+            /** Format: date-time */
+            readonly generatedAt: string;
+            readonly mandatoryEscalation: boolean;
+            readonly modelName: string;
+            /** @enum {string} */
+            readonly modelProvider: "NONE" | "VERTEX_GEMINI" | "FIXTURE";
+            readonly modelVersion: string;
+            readonly policyVersion: string;
+            /** Format: uuid */
+            readonly reportId: string;
+            readonly safeNextStep: string;
+            /** @enum {string} */
+            readonly severity: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+            /** @enum {string} */
+            readonly spread: "NOT_SPREADING" | "SPREADING" | "FAST_SPREADING" | "UNKNOWN";
+            /** @enum {string} */
+            readonly state: "SUPPORTED" | "UNSUPPORTED" | "UNCLEAR";
+            readonly summary: string;
+            /** Format: uuid */
+            readonly triageId: string;
+            readonly unavailableReason?: string;
+        };
+        readonly HealthVisionExtraction: {
+            readonly evidenceRefs: readonly string[];
+            readonly limitations: readonly string[];
+            readonly modelName: string;
+            readonly modelVersion: string;
+            readonly observedParts: readonly string[];
+            readonly observedSymptoms: readonly string[];
+            readonly possibleCategories: readonly components["schemas"]["HealthTriageCategory"][];
+            /** @constant */
+            readonly schemaVersion: "health-vision-extraction-v1";
+            /** @enum {string} */
+            readonly state: "SUPPORTED" | "UNSUPPORTED" | "UNCLEAR";
+            /** @enum {string} */
+            readonly visualQualityBand: "USABLE" | "LIMITED" | "UNUSABLE";
         };
         readonly IssueAccessGrantCommand: {
             readonly clientContext: {
@@ -1990,6 +2430,313 @@ export interface components {
             readonly payloadChecksum: string;
             /** @constant */
             readonly payloadClassification: "C2";
+            readonly payloadSchemaVersion: number;
+            readonly producerBuild: string;
+            readonly producerService: string;
+            readonly provenanceTypes: readonly ("SENSOR" | "FARMER_REPORTED" | "FARMER_MANUAL" | "RSK_MANUAL" | "LABORATORY" | "SOIL_HEALTH_CARD" | "WEATHER" | "SATELLITE" | "PUBLIC_MARKET" | "DERIVED")[];
+            /** @enum {string} */
+            readonly purposeCode?: "farmer.self_service" | "case.expert_support" | "field.visit" | "sensor.maintenance" | "assisted.service" | "alert.delivery" | "market.support" | "data.rights";
+            readonly retentionClass: string;
+            /** Format: uuid */
+            readonly roleContextRef?: string;
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            readonly traceId?: string;
+        };
+        readonly MilestoneSevenEvent: components["schemas"]["MilestoneThreeEvent"] | {
+            /** Format: uuid */
+            readonly actorRef?: string;
+            /** @enum {string} */
+            readonly actorType: "FARMER" | "RSK_STAFF" | "MP_STAFF" | "SYSTEM" | "DEVICE" | "PROVIDER";
+            /** Format: uuid */
+            readonly aggregateId: string;
+            readonly aggregateRevision: number;
+            readonly aggregateType: string;
+            /** Format: uuid */
+            readonly causationId?: string;
+            /** Format: date-time */
+            readonly clientRecordedAt?: string;
+            /** Format: date-time */
+            readonly committedAt: string;
+            readonly consentAccessVersion?: number;
+            /** Format: uuid */
+            readonly correlationId: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly deviceRef?: string;
+            /** Format: uuid */
+            readonly eventId: string;
+            /** @enum {string} */
+            readonly eventName: "health_report.saved" | "health_report.synced" | "health_report.triage_ready";
+            readonly eventOrdinal: number;
+            readonly eventVersion: number;
+            /** Format: uuid */
+            readonly jurisdictionId?: string;
+            readonly modeDerivationVersion: string;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            readonly payload: {
+                readonly mediaCount?: number;
+                /** Format: uuid */
+                readonly plotId: string;
+                /** @enum {string} */
+                readonly qualityBand?: "USABLE" | "LIMITED" | "UNUSABLE";
+                /** Format: uuid */
+                readonly reportId: string;
+                readonly revision: number;
+                /** @enum {string} */
+                readonly state: "DRAFT" | "SUBMITTED" | "TRIAGE_PENDING" | "TRIAGED" | "MODEL_UNAVAILABLE";
+            };
+            readonly payloadChecksum: string;
+            /** @enum {string} */
+            readonly payloadClassification: "C2" | "C3";
+            readonly payloadSchemaVersion: number;
+            readonly producerBuild: string;
+            readonly producerService: string;
+            readonly provenanceTypes: readonly ("SENSOR" | "FARMER_REPORTED" | "FARMER_MANUAL" | "RSK_MANUAL" | "LABORATORY" | "SOIL_HEALTH_CARD" | "WEATHER" | "SATELLITE" | "PUBLIC_MARKET" | "DERIVED")[];
+            /** @enum {string} */
+            readonly purposeCode?: "farmer.self_service" | "case.expert_support" | "field.visit" | "sensor.maintenance" | "assisted.service" | "alert.delivery" | "market.support" | "data.rights";
+            readonly retentionClass: string;
+            /** Format: uuid */
+            readonly roleContextRef?: string;
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            readonly traceId?: string;
+        } | {
+            /** Format: uuid */
+            readonly actorRef?: string;
+            /** @enum {string} */
+            readonly actorType: "FARMER" | "RSK_STAFF" | "MP_STAFF" | "SYSTEM" | "DEVICE" | "PROVIDER";
+            /** Format: uuid */
+            readonly aggregateId: string;
+            readonly aggregateRevision: number;
+            readonly aggregateType: string;
+            /** Format: uuid */
+            readonly causationId?: string;
+            /** Format: date-time */
+            readonly clientRecordedAt?: string;
+            /** Format: date-time */
+            readonly committedAt: string;
+            readonly consentAccessVersion?: number;
+            /** Format: uuid */
+            readonly correlationId: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly deviceRef?: string;
+            /** Format: uuid */
+            readonly eventId: string;
+            /** @enum {string} */
+            readonly eventName: "health_media.queued" | "health_media.attached";
+            readonly eventOrdinal: number;
+            readonly eventVersion: number;
+            /** Format: uuid */
+            readonly jurisdictionId?: string;
+            readonly modeDerivationVersion: string;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            readonly payload: {
+                /** Format: uuid */
+                readonly assetId: string;
+                /** Format: uuid */
+                readonly attachmentId?: string;
+                /** @enum {string} */
+                readonly qualityBand?: "USABLE" | "LIMITED" | "UNUSABLE";
+                /** Format: uuid */
+                readonly reportId: string;
+                readonly requiredView?: string;
+            };
+            readonly payloadChecksum: string;
+            /** @enum {string} */
+            readonly payloadClassification: "C2" | "C3";
+            readonly payloadSchemaVersion: number;
+            readonly producerBuild: string;
+            readonly producerService: string;
+            readonly provenanceTypes: readonly ("SENSOR" | "FARMER_REPORTED" | "FARMER_MANUAL" | "RSK_MANUAL" | "LABORATORY" | "SOIL_HEALTH_CARD" | "WEATHER" | "SATELLITE" | "PUBLIC_MARKET" | "DERIVED")[];
+            /** @enum {string} */
+            readonly purposeCode?: "farmer.self_service" | "case.expert_support" | "field.visit" | "sensor.maintenance" | "assisted.service" | "alert.delivery" | "market.support" | "data.rights";
+            readonly retentionClass: string;
+            /** Format: uuid */
+            readonly roleContextRef?: string;
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            readonly traceId?: string;
+        } | {
+            /** Format: uuid */
+            readonly actorRef?: string;
+            /** @enum {string} */
+            readonly actorType: "FARMER" | "RSK_STAFF" | "MP_STAFF" | "SYSTEM" | "DEVICE" | "PROVIDER";
+            /** Format: uuid */
+            readonly aggregateId: string;
+            readonly aggregateRevision: number;
+            readonly aggregateType: string;
+            /** Format: uuid */
+            readonly causationId?: string;
+            /** Format: date-time */
+            readonly clientRecordedAt?: string;
+            /** Format: date-time */
+            readonly committedAt: string;
+            readonly consentAccessVersion?: number;
+            /** Format: uuid */
+            readonly correlationId: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly deviceRef?: string;
+            /** Format: uuid */
+            readonly eventId: string;
+            /** @enum {string} */
+            readonly eventName: "triage.completed" | "triage.escalated" | "triage.escalation_sharing_declined";
+            readonly eventOrdinal: number;
+            readonly eventVersion: number;
+            /** Format: uuid */
+            readonly jurisdictionId?: string;
+            readonly modeDerivationVersion: string;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            readonly payload: {
+                /** Format: uuid */
+                readonly caseId?: string;
+                /** @enum {string} */
+                readonly confidence: "LOW" | "MEDIUM" | "HIGH";
+                /** @enum {string} */
+                readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly mandatoryEscalation: boolean;
+                /** @enum {string} */
+                readonly modelProvider: "NONE" | "VERTEX_GEMINI" | "FIXTURE";
+                /** Format: uuid */
+                readonly reportId: string;
+                /** @enum {string} */
+                readonly severity: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+                /** @enum {string} */
+                readonly state: "SUPPORTED" | "UNSUPPORTED" | "UNCLEAR";
+                /** Format: uuid */
+                readonly triageId: string;
+            };
+            readonly payloadChecksum: string;
+            /** @enum {string} */
+            readonly payloadClassification: "C2" | "C3";
+            readonly payloadSchemaVersion: number;
+            readonly producerBuild: string;
+            readonly producerService: string;
+            readonly provenanceTypes: readonly ("SENSOR" | "FARMER_REPORTED" | "FARMER_MANUAL" | "RSK_MANUAL" | "LABORATORY" | "SOIL_HEALTH_CARD" | "WEATHER" | "SATELLITE" | "PUBLIC_MARKET" | "DERIVED")[];
+            /** @enum {string} */
+            readonly purposeCode?: "farmer.self_service" | "case.expert_support" | "field.visit" | "sensor.maintenance" | "assisted.service" | "alert.delivery" | "market.support" | "data.rights";
+            readonly retentionClass: string;
+            /** Format: uuid */
+            readonly roleContextRef?: string;
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            readonly traceId?: string;
+        } | {
+            /** Format: uuid */
+            readonly actorRef?: string;
+            /** @enum {string} */
+            readonly actorType: "FARMER" | "RSK_STAFF" | "MP_STAFF" | "SYSTEM" | "DEVICE" | "PROVIDER";
+            /** Format: uuid */
+            readonly aggregateId: string;
+            readonly aggregateRevision: number;
+            readonly aggregateType: string;
+            /** Format: uuid */
+            readonly causationId?: string;
+            /** Format: date-time */
+            readonly clientRecordedAt?: string;
+            /** Format: date-time */
+            readonly committedAt: string;
+            readonly consentAccessVersion?: number;
+            /** Format: uuid */
+            readonly correlationId: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly deviceRef?: string;
+            /** Format: uuid */
+            readonly eventId: string;
+            /** @constant */
+            readonly eventName: "case.created";
+            readonly eventOrdinal: number;
+            readonly eventVersion: number;
+            /** Format: uuid */
+            readonly jurisdictionId?: string;
+            readonly modeDerivationVersion: string;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            readonly payload: {
+                /** Format: uuid */
+                readonly caseId: string;
+                readonly consentAccessVersion: number;
+                /** Format: uuid */
+                readonly evidencePackId?: string;
+                /** Format: uuid */
+                readonly reportId: string;
+                /** @enum {string} */
+                readonly severity: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+                /** @enum {string} */
+                readonly status: "PENDING_EXPERT" | "ASSIGNED" | "AWAITING_FARMER" | "REPLIED" | "FOLLOW_UP_DUE" | "RESOLVED" | "CLOSED" | "REOPENED";
+            };
+            readonly payloadChecksum: string;
+            /** @enum {string} */
+            readonly payloadClassification: "C2" | "C3";
+            readonly payloadSchemaVersion: number;
+            readonly producerBuild: string;
+            readonly producerService: string;
+            readonly provenanceTypes: readonly ("SENSOR" | "FARMER_REPORTED" | "FARMER_MANUAL" | "RSK_MANUAL" | "LABORATORY" | "SOIL_HEALTH_CARD" | "WEATHER" | "SATELLITE" | "PUBLIC_MARKET" | "DERIVED")[];
+            /** @enum {string} */
+            readonly purposeCode?: "farmer.self_service" | "case.expert_support" | "field.visit" | "sensor.maintenance" | "assisted.service" | "alert.delivery" | "market.support" | "data.rights";
+            readonly retentionClass: string;
+            /** Format: uuid */
+            readonly roleContextRef?: string;
+            /** Format: date-time */
+            readonly serverReceivedAt: string;
+            readonly traceId?: string;
+        } | {
+            /** Format: uuid */
+            readonly actorRef?: string;
+            /** @enum {string} */
+            readonly actorType: "FARMER" | "RSK_STAFF" | "MP_STAFF" | "SYSTEM" | "DEVICE" | "PROVIDER";
+            /** Format: uuid */
+            readonly aggregateId: string;
+            readonly aggregateRevision: number;
+            readonly aggregateType: string;
+            /** Format: uuid */
+            readonly causationId?: string;
+            /** Format: date-time */
+            readonly clientRecordedAt?: string;
+            /** Format: date-time */
+            readonly committedAt: string;
+            readonly consentAccessVersion?: number;
+            /** Format: uuid */
+            readonly correlationId: string;
+            /** @enum {string} */
+            readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+            /** Format: uuid */
+            readonly deviceRef?: string;
+            /** Format: uuid */
+            readonly eventId: string;
+            /** @constant */
+            readonly eventName: "rsk.work_created";
+            readonly eventOrdinal: number;
+            readonly eventVersion: number;
+            /** Format: uuid */
+            readonly jurisdictionId?: string;
+            readonly modeDerivationVersion: string;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            readonly payload: {
+                /** Format: uuid */
+                readonly caseId: string;
+                readonly consentAccessVersion: number;
+                /** @constant */
+                readonly purpose: "case.expert_support";
+                /** @constant */
+                readonly status: "PENDING_EXPERT";
+                /** Format: uuid */
+                readonly workItemId: string;
+            };
+            readonly payloadChecksum: string;
+            /** @enum {string} */
+            readonly payloadClassification: "C2" | "C3";
             readonly payloadSchemaVersion: number;
             readonly producerBuild: string;
             readonly producerService: string;
@@ -2317,7 +3064,7 @@ export interface components {
         };
         readonly ProblemDetails: {
             /** @enum {string} */
-            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED";
+            readonly code: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED" | "HEALTH_MEDIA_UNUSABLE" | "HEALTH_MODEL_UNAVAILABLE" | "CASE_SHARING_REQUIRED";
             /** Format: uuid */
             readonly correlationId: string;
             readonly detail?: string;
@@ -2632,7 +3379,7 @@ export interface components {
         };
         readonly RskBootstrapResponse: {
             readonly authorizationVersion: number;
-            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond")[];
+            readonly capabilities: readonly ("case.response.draft" | "case.care_plan.issue" | "case.severe.resolve" | "advisory.review.decide" | "alert.draft" | "alert.approve" | "alert.publish" | "alert.delivery.monitor" | "alert.delivery.operate" | "sensor.agronomic_invalidate" | "template.draft" | "template.approve" | "template.publish" | "calendar.review" | "market.support" | "market.mapping.review" | "market.mapping.approve" | "assisted_session.operate" | "visit.manage" | "visit.execute.field" | "visit.execute.sensor" | "visit.outcome.review" | "audit.investigate_sensitive" | "rsk.work.read" | "rsk.work.operate" | "rsk.work.assign" | "rsk.protected_search" | "rsk.access_grant.issue" | "rsk.protected_disclose" | "case.read" | "case.evidence.request" | "case.follow_up.record" | "case.resolve.routine" | "advisory.review.read" | "outreach.operate" | "sensor.issue.operate" | "sensor.install" | "sensor.calibration.record" | "sensor.maintenance.execute" | "template.read" | "alert.read" | "identity.role_context.select" | "profile.correct" | "device_mode.change" | "farmer.setup.write" | "farmer.setup.complete" | "farmer.farm.write" | "farmer.plot.write" | "farmer.evidence.read" | "farmer.soil.write" | "farmer.voice.setup" | "farmer.recommendation.read" | "farmer.recommendation.run" | "farmer.recommendation.review_request" | "farmer.recommendation.accept" | "farmer.season.start_confirm" | "farmer.calendar.read" | "farmer.today.read" | "farmer.advisory.read" | "farmer.advisory.respond" | "farmer.health.read" | "farmer.health.write" | "farmer.health.submit" | "farmer.health.share_case" | "farmer.case.read")[];
             /** Format: uuid */
             readonly jurisdictionId: string;
             /** Format: uuid */
@@ -2688,6 +3435,41 @@ export interface components {
                 readonly waterByPlot: {
                     readonly [key: string]: components["schemas"]["WaterContext"];
                 };
+            };
+        };
+        readonly SaveHealthReportDraftCommand: {
+            readonly clientContext: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                /** @enum {string} */
+                readonly dataModeClaim: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly timezone: string;
+            };
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly operation: "SaveHealthReportDraft";
+            readonly payload: {
+                readonly answers: readonly components["schemas"]["HealthAnswer"][];
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly cropName: string;
+                /** @enum {string} */
+                readonly language: "mr" | "hi" | "en";
+                /** Format: uuid */
+                readonly reportId?: string;
+                /** @constant */
+                readonly schemaVersion: "health-report-draft-v1";
+                readonly symptomSummary: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthReport";
             };
         };
         readonly ScanMediaAssetRequest: {
@@ -2829,6 +3611,74 @@ export interface components {
             /** Format: uuid */
             readonly soilRecordId: string;
         };
+        readonly SubmitHealthReportCommand: {
+            readonly clientContext: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                /** @enum {string} */
+                readonly dataModeClaim: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly timezone: string;
+            };
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly operation: "SubmitHealthReport";
+            readonly payload: {
+                /** Format: date-time */
+                readonly clientSubmittedAt: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthReport";
+            };
+        };
+        readonly SubmitHealthReportRequest: {
+            /** Format: date-time */
+            readonly clientSubmittedAt: string;
+            /** Format: uuid */
+            readonly commandId: string;
+            readonly expectedRevision: number;
+            /** @constant */
+            readonly timezone: "Asia/Kolkata";
+        };
+        readonly SyncAttachHealthMediaCommandEnvelope: {
+            readonly causalCommandIds: readonly string[];
+            readonly clientEventIds: readonly string[];
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            readonly localSequence: number;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            /** @constant */
+            readonly operation: "AttachHealthMedia";
+            readonly payload: {
+                /** Format: uuid */
+                readonly assetId: string;
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly consentAccessVersion: number;
+                /** @enum {string} */
+                readonly requiredView: "WHOLE_PLANT" | "AFFECTED_LEAF_TOP" | "AFFECTED_LEAF_UNDERSIDE" | "STEM_OR_BASE" | "FIELD_CONTEXT" | "OTHER";
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly requestHash: string;
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthReport";
+            };
+            readonly timezone: string;
+        };
         readonly SyncBatch: {
             /** Format: uuid */
             readonly batchId: string;
@@ -2954,7 +3804,7 @@ export interface components {
             /** @constant */
             readonly disposition: "REJECTED";
             /** @enum {string} */
-            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED";
+            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED" | "HEALTH_MEDIA_UNUSABLE" | "HEALTH_MODEL_UNAVAILABLE" | "CASE_SHARING_REQUIRED";
             readonly serverEventIds: readonly string[];
             /** Format: date-time */
             readonly serverReceivedAt: string;
@@ -2970,12 +3820,12 @@ export interface components {
             /** @constant */
             readonly disposition: "CONFLICT";
             /** @enum {string} */
-            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED";
+            readonly problemCode: "AUTHENTICATION_REQUIRED" | "AUTHORIZATION_DENIED" | "MFA_REQUIRED" | "AUTHORIZATION_VERSION_CHANGED" | "CONSENT_OR_ACCESS_VERSION_CHANGED" | "DEVICE_BINDING_MISMATCH" | "IDEMPOTENCY_KEY_REUSED" | "EXPECTED_REVISION_MISMATCH" | "INVALID_STATE_TRANSITION" | "TOMBSTONED_ENTITY" | "SOURCE_VERSION_EXPIRED" | "EVIDENCE_INSUFFICIENT" | "SYNC_CURSOR_INVALID" | "SYNC_CURSOR_EXPIRED" | "SYNC_BOOTSTRAP_REQUIRED" | "SYNC_SCHEMA_UNSUPPORTED" | "SYNC_BATCH_ID_REUSED" | "CAUSAL_DEPENDENCY_UNSATISFIED" | "ASSIGNMENT_CHANGED" | "CLOCK_UNTRUSTED" | "MEDIA_INTEGRITY_MISMATCH" | "MEDIA_NOT_VERIFIED" | "UPLOAD_INTENT_EXPIRED" | "VOICE_PROPOSAL_EXPIRED" | "VOICE_PROPOSAL_HASH_MISMATCH" | "VISUAL_REVIEW_REQUIRED" | "RELEASE_INVALIDATED" | "RELEASE_UNAVAILABLE" | "DEPENDENCY_UNAVAILABLE" | "FILTER_NOT_ALLOWLISTED" | "COMPARISON_NOT_RELEASABLE" | "BATCH_ID_PAYLOAD_MISMATCH" | "RATE_LIMITED" | "SETUP_INCOMPLETE" | "GPS_PERMISSION_DENIED" | "HARDWARE_SKIPPED" | "STALE_DATA" | "PAYLOAD_TOO_LARGE" | "SIGNATURE_INVALID" | "REPLAY_DETECTED" | "CHALLENGE_EXPIRED" | "SOURCE_RIGHTS_OR_VERSION_INVALID" | "NO_SAFE_RECOMMENDATION" | "ADVISORY_EXPIRED" | "ADVISORY_DEDUPLICATED" | "ALERT_DELIVERY_DISABLED" | "HEALTH_MEDIA_UNUSABLE" | "HEALTH_MODEL_UNAVAILABLE" | "CASE_SHARING_REQUIRED";
             readonly serverEventIds: readonly string[];
             /** Format: date-time */
             readonly serverReceivedAt: string;
         };
-        readonly SyncCommandEnvelope: components["schemas"]["SyncConsentCommandEnvelope"] | components["schemas"]["SyncSaveFarmerSetupDraftCommandEnvelope"] | components["schemas"]["SyncCompleteFarmerSetupCommandEnvelope"] | components["schemas"]["SyncUpdateFarmerPreferencesCommandEnvelope"] | components["schemas"]["SyncChangeDeviceModeCommandEnvelope"] | components["schemas"]["SyncRespondToAdvisoryCommandEnvelope"];
+        readonly SyncCommandEnvelope: components["schemas"]["SyncConsentCommandEnvelope"] | components["schemas"]["SyncSaveFarmerSetupDraftCommandEnvelope"] | components["schemas"]["SyncCompleteFarmerSetupCommandEnvelope"] | components["schemas"]["SyncUpdateFarmerPreferencesCommandEnvelope"] | components["schemas"]["SyncChangeDeviceModeCommandEnvelope"] | components["schemas"]["SyncRespondToAdvisoryCommandEnvelope"] | components["schemas"]["SyncSaveHealthReportDraftCommandEnvelope"] | components["schemas"]["SyncAttachHealthMediaCommandEnvelope"] | components["schemas"]["SyncSubmitHealthReportCommandEnvelope"] | components["schemas"]["SyncDecideHealthCaseSharingCommandEnvelope"];
         readonly SyncCommandEnvelopeV2: {
             readonly causalCommandIds: readonly string[];
             readonly clientEventIds: readonly string[];
@@ -3120,6 +3970,39 @@ export interface components {
             };
             readonly timezone: string;
         };
+        readonly SyncDecideHealthCaseSharingCommandEnvelope: {
+            readonly causalCommandIds: readonly string[];
+            readonly clientEventIds: readonly string[];
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            readonly localSequence: number;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            /** @constant */
+            readonly operation: "DecideHealthCaseSharing";
+            readonly payload: {
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly consentAccessVersion: number;
+                /** @enum {string} */
+                readonly decision: "ALLOW" | "DENY";
+                /** Format: uuid */
+                readonly policyVersionId: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly requestHash: string;
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthCaseSharing";
+            };
+            readonly timezone: string;
+        };
         readonly SyncFeedEvent: {
             /** Format: uuid */
             readonly feedEventId: string;
@@ -3130,7 +4013,7 @@ export interface components {
         readonly SyncFeedEventV2: {
             /** Format: uuid */
             readonly feedEventId: string;
-            readonly integrationEvent: components["schemas"]["MilestoneTwoEvent"];
+            readonly integrationEvent: components["schemas"]["MilestoneSevenEvent"];
             readonly projectionDeltas: readonly components["schemas"]["SyncProjectionDelta"][];
             readonly sequence: number;
         };
@@ -3225,6 +4108,43 @@ export interface components {
             };
             readonly timezone: string;
         };
+        readonly SyncSaveHealthReportDraftCommandEnvelope: {
+            readonly causalCommandIds: readonly string[];
+            readonly clientEventIds: readonly string[];
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            readonly localSequence: number;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            /** @constant */
+            readonly operation: "SaveHealthReportDraft";
+            readonly payload: {
+                readonly answers: readonly components["schemas"]["HealthAnswer"][];
+                /** Format: date-time */
+                readonly clientRecordedAt: string;
+                readonly cropName: string;
+                /** @enum {string} */
+                readonly language: "mr" | "hi" | "en";
+                /** Format: uuid */
+                readonly reportId?: string;
+                /** @constant */
+                readonly schemaVersion: "health-report-draft-v1";
+                readonly symptomSummary: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly requestHash: string;
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthReport";
+            };
+            readonly timezone: string;
+        };
         readonly SyncStreamOpenRequest: {
             readonly clientBuild: string;
             readonly clientEventVersions: {
@@ -3286,6 +4206,34 @@ export interface components {
             readonly streamId: string;
             /** Format: uuid */
             readonly subjectDeviceBindingId: string;
+        };
+        readonly SyncSubmitHealthReportCommandEnvelope: {
+            readonly causalCommandIds: readonly string[];
+            readonly clientEventIds: readonly string[];
+            /** Format: uuid */
+            readonly commandId: string;
+            /** @constant */
+            readonly commandSchemaVersion: 1;
+            readonly expectedRevision: number;
+            readonly localSequence: number;
+            /** Format: date-time */
+            readonly occurredAt: string;
+            /** @constant */
+            readonly operation: "SubmitHealthReport";
+            readonly payload: {
+                /** Format: date-time */
+                readonly clientSubmittedAt: string;
+                /** @constant */
+                readonly timezone: "Asia/Kolkata";
+            };
+            readonly requestHash: string;
+            readonly target: {
+                /** Format: uuid */
+                readonly id: string;
+                /** @constant */
+                readonly type: "healthReport";
+            };
+            readonly timezone: string;
         };
         readonly SyncUpdateFarmerPreferencesCommandEnvelope: {
             readonly causalCommandIds: readonly string[];
@@ -3446,6 +4394,31 @@ export interface components {
                 readonly openDetailsRoute: string;
                 /** @constant */
                 readonly resultType: "ADVISORY_READ";
+                /** Format: date-time */
+                readonly sourceGeneratedAt: string;
+                readonly summary: string;
+            } | {
+                /** @enum {string} */
+                readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly openDetailsRoute: string;
+                /** Format: uuid */
+                readonly reportId: string;
+                /** @constant */
+                readonly resultType: "HEALTH_REPORT_READ";
+                /** Format: date-time */
+                readonly sourceGeneratedAt: string;
+                readonly summary: string;
+                /** @enum {string} */
+                readonly triageState: "SUPPORTED" | "UNSUPPORTED" | "UNCLEAR" | "PENDING";
+            } | {
+                /** Format: uuid */
+                readonly caseId: string;
+                readonly caseStatus: string;
+                /** @enum {string} */
+                readonly dataMode: "LIVE" | "RECORDED" | "SIMULATED";
+                readonly openDetailsRoute: string;
+                /** @constant */
+                readonly resultType: "CASE_READ";
                 /** Format: date-time */
                 readonly sourceGeneratedAt: string;
                 readonly summary: string;
@@ -4652,6 +5625,156 @@ export interface operations {
             };
         };
     };
+    readonly listFarmerCases: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["FarmerCaseListResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly getFarmerCase: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly caseId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["FarmerCaseResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     readonly recordConsentDecision: {
         readonly parameters: {
             readonly query?: never;
@@ -5335,6 +6458,388 @@ export interface operations {
             };
         };
     };
+    readonly getFarmerHealthReport: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly reportId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["HealthReportResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly submitFarmerHealthReport: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly reportId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["SubmitHealthReportRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["HealthReportResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly decideFarmerHealthCaseSharing: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly reportId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["HealthCaseSharingDecisionRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["HealthCaseSharingDecisionResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly attachFarmerHealthMedia: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly reportId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["AttachHealthMediaRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["HealthReportResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     readonly getMyFarm: {
         readonly parameters: {
             readonly query?: never;
@@ -5738,6 +7243,175 @@ export interface operations {
             };
             /** @description Typed request failure */
             readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description A required command precondition is missing */
+            readonly 428: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly listFarmerHealthReports: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly plotId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["HealthReportListResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    readonly saveFarmerHealthReportDraft: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header: {
+                /** @description Stable command UUID */
+                readonly "Idempotency-Key": components["parameters"]["commandId"];
+                /** @description Quoted entity revision, for example "rev:3" */
+                readonly "If-Match": components["parameters"]["expectedRevision"];
+                /** @description Client build identifier */
+                readonly "X-Client-Build": components["parameters"]["clientBuild"];
+                /** @description Stable installation identifier */
+                readonly "X-Client-Installation-Id": components["parameters"]["installationId"];
+                /** @description Supported Milestone 3 contract schema version */
+                readonly "X-Client-Schema-Version": components["parameters"]["schemaVersion"];
+                /** @description Current authorized role-context identifier */
+                readonly "X-Role-Context-Id": components["parameters"]["roleContextId"];
+            };
+            readonly path: {
+                readonly plotId: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["HealthReportDraftRequest"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["HealthReportResponse"];
+                };
+            };
+            /** @description Request header, path or body failed schema or value validation */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Typed request failure */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Command revision, idempotency hash or authorization-version conflict */
+            readonly 409: {
                 headers: {
                     readonly [name: string]: unknown;
                 };

@@ -5,6 +5,7 @@ import {
   MEDIA_PURPOSE_POLICIES,
   MediaVerificationEngine,
   MediaVerificationReplayConflictError,
+  assessCropHealthImageQuality,
   detectMagicMime,
   inspectContainer,
   sha256Digest,
@@ -165,6 +166,45 @@ describe('media verification policy', () => {
     );
 
     expect(result).toMatchObject({ outcome: 'REJECTED', failureCode: 'UNSUPPORTED_CODEC' });
+  });
+});
+
+describe('Crop Health media quality assessment', () => {
+  it('keeps quality separate from diagnosis confidence', () => {
+    expect(
+      assessCropHealthImageQuality({
+        verifiedMimeType: 'image/jpeg',
+        width: 1200,
+        height: 900,
+      }),
+    ).toEqual({
+      qualityBand: 'USABLE',
+      validatorVersion: 'm2-media-verifier-v1',
+      limitations: [],
+      width: 1200,
+      height: 900,
+    });
+    expect(
+      assessCropHealthImageQuality({
+        verifiedMimeType: 'image/png',
+        width: 320,
+        height: 240,
+      }),
+    ).toMatchObject({
+      qualityBand: 'LIMITED',
+      limitations: expect.arrayContaining([
+        'Image is small; capture a closer, clearer view.',
+        'Image has limited detail for visual triage.',
+      ]),
+    });
+    expect(
+      assessCropHealthImageQuality({
+        verifiedMimeType: 'audio/wav',
+      }),
+    ).toMatchObject({
+      qualityBand: 'UNUSABLE',
+      limitations: ['Crop Health triage requires a verified image.'],
+    });
   });
 });
 

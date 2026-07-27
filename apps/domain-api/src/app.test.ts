@@ -92,6 +92,115 @@ function commandResult() {
   };
 }
 
+function healthQuality() {
+  return {
+    qualityBand: 'USABLE',
+    usablePhotoCount: 1,
+    limitedPhotoCount: 0,
+    unusablePhotoCount: 0,
+    missingRequiredContext: [],
+    limitations: [],
+    validatorVersion: 'health-quality-demo-v1',
+  };
+}
+
+function healthTriage() {
+  return {
+    triageId: EVENT_ID,
+    reportId: TARGET_ID,
+    state: 'SUPPORTED',
+    severity: 'HIGH',
+    confidence: 'MEDIUM',
+    spread: 'SPREADING',
+    mandatoryEscalation: true,
+    summary: 'Possible rice leaf stress. This is not a confirmed diagnosis.',
+    safeNextStep: 'Ask an RSK expert before taking treatment action.',
+    categories: [
+      {
+        categoryKey: 'RICE_LEAF_SPOT_POSSIBLE',
+        label: 'Possible rice leaf spot',
+        confidence: 'MEDIUM',
+        evidenceRefs: ['photo:whole-plant'],
+        limitations: ['Synthetic demo evidence only.'],
+      },
+    ],
+    evidenceQuality: healthQuality(),
+    modelProvider: 'FIXTURE',
+    modelName: 'recorded-raigad-health-fixture',
+    modelVersion: 'fixture-v1',
+    policyVersion: 'health-triage-policy-v1',
+    dataMode: 'RECORDED',
+    generatedAt: NOW,
+  };
+}
+
+function omitUndefinedFields(value: Record<string, unknown>) {
+  return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
+}
+
+function healthReport(overrides: Record<string, unknown> = {}) {
+  return omitUndefinedFields({
+    reportId: TARGET_ID,
+    plotId: TARGET_ID,
+    farmId: TARGET_ID,
+    state: 'TRIAGED',
+    cropName: 'Rice',
+    language: 'mr',
+    symptomSummary: 'Brown spots are visible on a few rice leaves.',
+    answers: [
+      {
+        questionKey: 'affectedPart',
+        answer: 'leaf',
+        unknown: false,
+        language: 'en',
+        source: 'GUIDED_CHOICE',
+      },
+    ],
+    media: [
+      {
+        assetId: TARGET_ID,
+        attachmentId: ROLE_GRANT_ID,
+        requiredView: 'WHOLE_PLANT',
+        qualityBand: 'USABLE',
+        width: 1200,
+        height: 900,
+        scannerVersion: 'media-scanner-demo-v1',
+      },
+    ],
+    quality: healthQuality(),
+    triage: healthTriage(),
+    sharingDecision: 'PENDING',
+    dataMode: 'RECORDED',
+    resultVersion: 1,
+    etagRevision: 1,
+    reportChecksum: `sha256:${'a'.repeat(64)}`,
+    createdAt: NOW,
+    updatedAt: NOW,
+    submittedAt: NOW,
+    ...overrides,
+  });
+}
+
+function farmerCase(overrides: Record<string, unknown> = {}) {
+  return omitUndefinedFields({
+    caseId: TARGET_ID,
+    reportId: TARGET_ID,
+    plotId: TARGET_ID,
+    status: 'PENDING_EXPERT',
+    severity: 'HIGH',
+    createdAt: NOW,
+    updatedAt: NOW,
+    dataMode: 'RECORDED',
+    title: 'Rice health report',
+    pendingExpert: true,
+    accessVersion: 1,
+    evidencePackExpiresAt: FUTURE,
+    report: healthReport({ sharingDecision: 'ALLOW', caseId: TARGET_ID }),
+    timeline: [{ at: NOW, state: 'PENDING_EXPERT', label: 'Shared with RSK for expert review.' }],
+    ...overrides,
+  });
+}
+
 function fakeOperations(
   onExecute?: (operationId: DomainOperationId) => void,
 ): DomainOperationAdapter {
@@ -135,6 +244,57 @@ function fakeOperations(
           fields: { displayName: 'Synthetic Farmer', contact: 'synthetic-contact' },
           auditedAt: NOW,
         },
+        listFarmerHealthReports: {
+          plotId: TARGET_ID,
+          generatedAt: NOW,
+          reports: [healthReport()],
+        },
+        saveFarmerHealthReportDraft: healthReport({
+          state: 'DRAFT',
+          media: [],
+          quality: undefined,
+          triage: undefined,
+          sharingDecision: 'NOT_REQUESTED',
+          submittedAt: undefined,
+        }),
+        attachFarmerHealthMedia: healthReport({
+          state: 'DRAFT',
+          quality: undefined,
+          triage: undefined,
+          sharingDecision: 'NOT_REQUESTED',
+          submittedAt: undefined,
+        }),
+        submitFarmerHealthReport: healthReport(),
+        getFarmerHealthReport: healthReport(),
+        decideFarmerHealthCaseSharing: {
+          commandId: COMMAND_ID,
+          disposition: 'ACCEPTED',
+          reportId: TARGET_ID,
+          sharingDecision: 'ALLOW',
+          caseId: TARGET_ID,
+          evidencePackId: ROLE_GRANT_ID,
+          workItemId: ROLE_CONTEXT_ID,
+          caseStatus: 'PENDING_EXPERT',
+          serverReceivedAt: NOW,
+        },
+        listFarmerCases: {
+          generatedAt: NOW,
+          cases: [
+            {
+              caseId: TARGET_ID,
+              reportId: TARGET_ID,
+              plotId: TARGET_ID,
+              status: 'PENDING_EXPERT',
+              severity: 'HIGH',
+              createdAt: NOW,
+              updatedAt: NOW,
+              dataMode: 'RECORDED',
+              title: 'Rice health report',
+              pendingExpert: true,
+            },
+          ],
+        },
+        getFarmerCase: farmerCase(),
       };
       return Promise.resolve(responses[request.operationId]);
     },
@@ -365,6 +525,110 @@ describe('domain API route contracts', () => {
     expect(forbidden.statusCode).toBe(404);
     expect(forbidden.headers['content-type']).toContain('application/problem+json');
     expect(ProblemDetailsSchema.safeParse(forbidden.json()).success).toBe(true);
+  });
+
+  it('exposes Farmer Crop Health and Case routes through the exact contract operations', async () => {
+    const executed: DomainOperationId[] = [];
+    const app = openApp(testOptions({ operations: fakeOperations((id) => executed.push(id)) }));
+
+    const draftPayload = {
+      commandId: IDEMPOTENCY_KEY,
+      expectedRevision: 0,
+      schemaVersion: 'health-report-draft-v1',
+      cropName: 'Rice',
+      language: 'mr',
+      symptomSummary: 'Brown spots are visible on a few rice leaves.',
+      answers: [
+        {
+          questionKey: 'affectedPart',
+          answer: 'leaf',
+          unknown: false,
+          language: 'en',
+          source: 'GUIDED_CHOICE',
+        },
+      ],
+      clientRecordedAt: NOW,
+      timezone: 'Asia/Kolkata',
+    };
+    const attachPayload = {
+      commandId: IDEMPOTENCY_KEY,
+      expectedRevision: 0,
+      assetId: TARGET_ID,
+      requiredView: 'WHOLE_PLANT',
+      consentAccessVersion: 1,
+      clientRecordedAt: NOW,
+      timezone: 'Asia/Kolkata',
+    };
+    const submitPayload = {
+      commandId: IDEMPOTENCY_KEY,
+      expectedRevision: 0,
+      clientSubmittedAt: NOW,
+      timezone: 'Asia/Kolkata',
+    };
+    const sharingPayload = {
+      commandId: IDEMPOTENCY_KEY,
+      expectedRevision: 0,
+      decision: 'ALLOW',
+      policyVersionId: POLICY_ID,
+      consentAccessVersion: 1,
+      clientRecordedAt: NOW,
+      timezone: 'Asia/Kolkata',
+    };
+
+    const requests = [
+      {
+        method: 'GET',
+        url: `/v1/farmer/plots/${TARGET_ID}/health`,
+        headers: businessHeaders(),
+      },
+      {
+        method: 'POST',
+        url: `/v1/farmer/plots/${TARGET_ID}/health-reports`,
+        headers: businessCommandHeaders(),
+        payload: draftPayload,
+      },
+      {
+        method: 'POST',
+        url: `/v1/farmer/health-reports/${TARGET_ID}/media`,
+        headers: businessCommandHeaders(),
+        payload: attachPayload,
+      },
+      {
+        method: 'POST',
+        url: `/v1/farmer/health-reports/${TARGET_ID}:submit`,
+        headers: businessCommandHeaders(),
+        payload: submitPayload,
+      },
+      {
+        method: 'GET',
+        url: `/v1/farmer/health-reports/${TARGET_ID}`,
+        headers: businessHeaders(),
+      },
+      {
+        method: 'POST',
+        url: `/v1/farmer/health-reports/${TARGET_ID}/case-sharing-decisions`,
+        headers: businessCommandHeaders(),
+        payload: sharingPayload,
+      },
+      { method: 'GET', url: '/v1/farmer/cases', headers: businessHeaders() },
+      { method: 'GET', url: `/v1/farmer/cases/${TARGET_ID}`, headers: businessHeaders() },
+    ] as const;
+
+    for (const request of requests) {
+      const response = await app.inject(request);
+      expect(response.statusCode, `${request.method} ${request.url}`).toBe(200);
+    }
+
+    expect(executed).toEqual([
+      'listFarmerHealthReports',
+      'saveFarmerHealthReportDraft',
+      'attachFarmerHealthMedia',
+      'submitFarmerHealthReport',
+      'getFarmerHealthReport',
+      'decideFarmerHealthCaseSharing',
+      'listFarmerCases',
+      'getFarmerCase',
+    ]);
   });
 
   it('requires schema version 1 on every protected browser route', async () => {

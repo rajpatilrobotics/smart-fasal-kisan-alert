@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@smart-fasal/agronomy": "workspace:*",
+    "@smart-fasal/contracts": "workspace:*",
     "json-canonicalize": "2.0.0"
   }
 }

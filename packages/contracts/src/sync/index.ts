@@ -8,9 +8,17 @@ import {
   FarmerSetupCommandTargetSchema,
   FarmerPreferencesCommandTargetSchema,
   DeviceModeCommandTargetSchema,
+  HealthCaseSharingCommandTargetSchema,
+  HealthReportCommandTargetSchema,
 } from '../commands/index.js';
 import { AdvisoryResponseRequestSchema } from '../advisory/index.js';
-import { MilestoneOneEventSchema, MilestoneTwoEventSchema } from '../events/index.js';
+import {
+  AttachHealthMediaRequestSchema,
+  HealthCaseSharingDecisionRequestSchema,
+  HealthReportDraftRequestSchema,
+  SubmitHealthReportRequestSchema,
+} from '../crop-health/index.js';
+import { MilestoneOneEventSchema, MilestoneSevenEventSchema, MilestoneTwoEventSchema } from '../events/index.js';
 import {
   CompleteFarmerSetupPayloadSchema,
   DeviceModeChangePayloadSchema,
@@ -137,6 +145,41 @@ export const SyncRespondToAdvisoryCommandEnvelopeSchema = SyncCommandBaseSchema.
   .strict()
   .meta({ id: 'SyncRespondToAdvisoryCommandEnvelope', 'x-data-classification': 'C3' });
 
+export const SyncSaveHealthReportDraftCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('SaveHealthReportDraft'),
+  target: HealthReportCommandTargetSchema,
+  payload: HealthReportDraftRequestSchema.omit({ commandId: true, expectedRevision: true }),
+})
+  .strict()
+  .meta({ id: 'SyncSaveHealthReportDraftCommandEnvelope', 'x-data-classification': 'C3' });
+
+export const SyncAttachHealthMediaCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('AttachHealthMedia'),
+  target: HealthReportCommandTargetSchema,
+  payload: AttachHealthMediaRequestSchema.omit({ commandId: true, expectedRevision: true }),
+})
+  .strict()
+  .meta({ id: 'SyncAttachHealthMediaCommandEnvelope', 'x-data-classification': 'C3' });
+
+export const SyncSubmitHealthReportCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('SubmitHealthReport'),
+  target: HealthReportCommandTargetSchema,
+  payload: SubmitHealthReportRequestSchema.omit({ commandId: true, expectedRevision: true }),
+})
+  .strict()
+  .meta({ id: 'SyncSubmitHealthReportCommandEnvelope', 'x-data-classification': 'C3' });
+
+export const SyncDecideHealthCaseSharingCommandEnvelopeSchema = SyncCommandBaseSchema.extend({
+  operation: z.literal('DecideHealthCaseSharing'),
+  target: HealthCaseSharingCommandTargetSchema,
+  payload: HealthCaseSharingDecisionRequestSchema.omit({
+    commandId: true,
+    expectedRevision: true,
+  }),
+})
+  .strict()
+  .meta({ id: 'SyncDecideHealthCaseSharingCommandEnvelope', 'x-data-classification': 'C3' });
+
 export const SyncCommandEnvelopeSchema = z
   .discriminatedUnion('operation', [
     SyncConsentCommandEnvelopeSchema,
@@ -145,6 +188,10 @@ export const SyncCommandEnvelopeSchema = z
     SyncUpdateFarmerPreferencesCommandEnvelopeSchema,
     SyncChangeDeviceModeCommandEnvelopeSchema,
     SyncRespondToAdvisoryCommandEnvelopeSchema,
+    SyncSaveHealthReportDraftCommandEnvelopeSchema,
+    SyncAttachHealthMediaCommandEnvelopeSchema,
+    SyncSubmitHealthReportCommandEnvelopeSchema,
+    SyncDecideHealthCaseSharingCommandEnvelopeSchema,
   ])
   .meta({ id: 'SyncCommandEnvelope', 'x-data-classification': 'C3' });
 
@@ -221,7 +268,7 @@ export const SyncCommandDispositionSchema = z
   .meta({ id: 'SyncCommandDisposition', 'x-data-classification': 'C2' });
 
 export const SyncIntegrationEventSchema = MilestoneOneEventSchema;
-export const SyncIntegrationEventV2Schema = MilestoneTwoEventSchema;
+export const SyncIntegrationEventV2Schema = MilestoneSevenEventSchema;
 
 export const SyncProjectionDeltaSchema = z
   .object({

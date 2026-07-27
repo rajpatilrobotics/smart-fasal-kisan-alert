@@ -105,6 +105,30 @@ const farmerSetupPaths = [
   '/v1/farmer/setup-drafts',
   '/v1/farmer/setup:complete',
 ];
+const farmerHealthPaths = [
+  '/v1/farmer/cases',
+  '/v1/farmer/cases/{caseId}',
+  '/v1/farmer/health-reports/{reportId}',
+  '/v1/farmer/health-reports/{reportId}/case-sharing-decisions',
+  '/v1/farmer/health-reports/{reportId}/media',
+  '/v1/farmer/health-reports/{reportId}:submit',
+  '/v1/farmer/plots/{plotId}/health',
+  '/v1/farmer/plots/{plotId}/health-reports',
+];
+const farmerMilestoneFivePaths = [
+  '/v1/farmer/advisories',
+  '/v1/farmer/advisories/{advisoryId}',
+  '/v1/farmer/advisories/{advisoryId}/responses',
+  '/v1/farmer/plots/{plotId}/recommendation-readiness',
+  '/v1/farmer/plots/{plotId}/recommendation-runs',
+  '/v1/farmer/recommendation-runs/{operationId}',
+  '/v1/farmer/recommendations/{recommendationId}',
+  '/v1/farmer/recommendations/{recommendationId}/acceptances',
+  '/v1/farmer/recommendations/{recommendationId}/review-requests',
+  '/v1/farmer/seasons/{seasonId}/calendar',
+  '/v1/farmer/seasons/{seasonId}/start-confirmations',
+  '/v1/farmer/today',
+];
 
 const surfacePaths = {
   farmer: [
@@ -114,6 +138,8 @@ const surfacePaths = {
     ...mediaPaths,
     ...farmerSyncPaths,
     ...farmerSetupPaths,
+    ...farmerMilestoneFivePaths,
+    ...farmerHealthPaths,
     '/v1/farmer/bootstrap',
     '/v1/farmer/consent-decisions',
     '/v1/farmer/consents',
@@ -152,6 +178,26 @@ const responseStatusesByOperation = {
   createFarmerPlot: ['200', '400', '401', '403', '409', '428', '503'],
   getFarmerPlot: ['200', '400', '401', '403', '409', '503'],
   getFarmerPlotEvidenceSummary: ['200', '400', '401', '403', '409', '422', '503'],
+  getFarmerToday: ['200', '400', '401', '403', '409', '503'],
+  listFarmerAdvisories: ['200', '400', '401', '403', '409', '503'],
+  getFarmerAdvisory: ['200', '400', '401', '403', '409', '503'],
+  respondToFarmerAdvisory: ['200', '400', '401', '403', '409', '410', '428', '503'],
+  listFarmerHealthReports: ['200', '400', '401', '403', '409', '503'],
+  saveFarmerHealthReportDraft: ['200', '400', '401', '403', '409', '428', '503'],
+  attachFarmerHealthMedia: ['200', '400', '401', '403', '409', '422', '428', '503'],
+  submitFarmerHealthReport: ['200', '400', '401', '403', '409', '422', '428', '503'],
+  getFarmerHealthReport: ['200', '400', '401', '403', '409', '503'],
+  decideFarmerHealthCaseSharing: ['200', '400', '401', '403', '409', '422', '428', '503'],
+  listFarmerCases: ['200', '400', '401', '403', '409', '503'],
+  getFarmerCase: ['200', '400', '401', '403', '409', '503'],
+  getFarmerRecommendationReadiness: ['200', '400', '401', '403', '409', '503'],
+  createFarmerRecommendationRun: ['202', '400', '401', '403', '409', '422', '428', '503'],
+  getFarmerRecommendationRun: ['200', '400', '401', '403', '409', '503'],
+  getFarmerRecommendation: ['200', '400', '401', '403', '409', '503'],
+  createFarmerRecommendationReviewRequest: ['200', '400', '401', '403', '409', '428', '503'],
+  acceptFarmerRecommendation: ['200', '400', '401', '403', '409', '422', '428', '503'],
+  confirmFarmerSeasonStart: ['200', '400', '401', '403', '409', '428', '503'],
+  getFarmerSeasonCalendar: ['200', '400', '401', '403', '409', '503'],
   createFarmerSoilRecord: ['202', '400', '401', '403', '409', '428', '503'],
   updateFarmerPlot: ['200', '400', '401', '403', '409', '428', '503'],
   createFarmerPlotGeometryVersion: ['200', '400', '401', '403', '409', '422', '428', '503'],
@@ -863,9 +909,9 @@ describe('offline compatibility baselines', () => {
 });
 
 describe('event and consent authority', () => {
-  it('freezes the complete catalogue and marks only M1/M3 owned emitters executable', () => {
-    expect(eventCatalog.events).toHaveLength(357);
-    expect(new Set(eventCatalog.events.map((event) => event.name))).toHaveProperty('size', 357);
+  it('freezes the complete catalogue and marks only owned emitters executable', () => {
+    expect(eventCatalog.events).toHaveLength(359);
+    expect(new Set(eventCatalog.events.map((event) => event.name))).toHaveProperty('size', 359);
     expect(
       eventCatalog.events
         .filter((event) => event.status === 'executable')
@@ -886,6 +932,16 @@ describe('event and consent authority', () => {
       'water_context.updated',
       'farm.crop_history_recorded',
       'profile.snapshot_created',
+      'health_media.attached',
+      'health_report.saved',
+      'health_media.queued',
+      'health_report.synced',
+      'health_report.triage_ready',
+      'triage.completed',
+      'triage.escalated',
+      'triage.escalation_sharing_declined',
+      'case.created',
+      'rsk.work_created',
     ]);
     const reservedM2 = [
       'sync.batch_started',

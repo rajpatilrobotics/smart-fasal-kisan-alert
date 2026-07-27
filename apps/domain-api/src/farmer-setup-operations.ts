@@ -5,30 +5,40 @@ import {
   AdvisoryService,
   EvidenceService,
   FarmerSetupService,
+  HealthRejectedError,
+  HealthService,
   InMemoryAdvisoryRepository,
   InMemoryEvidenceRepository,
+  InMemoryHealthRepository,
   InMemoryRecommendationRepository,
   RecommendationRejectedError,
   RecommendationService,
   RecordedRaigadAdvisoryEvidenceProvider,
+  RecordedRaigadHealthVisionExtractor,
   type AdvisoryEvidenceProvider,
   type AdvisoryRepository,
   type EvidenceRepository,
   type FarmerSetupOwner,
   type FarmerSetupRepository,
+  type HealthRepository,
+  type HealthVisionExtractor,
   type RecommendationEvidenceProvider,
   type RecommendationRepository,
 } from '@smart-fasal/application';
 import {
   AdvisoryResponseRequestSchema,
+  AttachHealthMediaRequestSchema,
   ChangeDeviceModeCommandSchema,
   CompleteFarmerSetupCommandSchema,
   CreateSoilRecordRequestSchema,
+  HealthCaseSharingDecisionRequestSchema,
+  HealthReportDraftRequestSchema,
   RecommendationAcceptanceRequestSchema,
   RecommendationRequestSchema,
   RecommendationReviewRequestSchema,
   SeasonStartConfirmationRequestSchema,
   SaveFarmerSetupDraftCommandSchema,
+  SubmitHealthReportRequestSchema,
   UpdateFarmerPreferencesCommandSchema,
 } from '@smart-fasal/contracts/schemas';
 
@@ -92,6 +102,7 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
   readonly #evidence: EvidenceService;
   readonly #recommendations: RecommendationService;
   readonly #advisories: AdvisoryService;
+  readonly #health: HealthService;
 
   constructor(
     repository: FarmerSetupRepository = new MemoryFarmerSetupRepository(),
@@ -101,6 +112,8 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
     now?: () => Date,
     recommendationEvidenceProvider?: RecommendationEvidenceProvider,
     advisoryEvidenceProvider?: AdvisoryEvidenceProvider,
+    healthRepository: HealthRepository = new InMemoryHealthRepository(),
+    healthVisionExtractor: HealthVisionExtractor = new RecordedRaigadHealthVisionExtractor(),
   ) {
     this.#service = new FarmerSetupService(repository, now);
     this.#evidence = new EvidenceService(evidenceRepository, repository, now);
@@ -117,6 +130,14 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
       now,
       randomUUID,
       advisoryEvidenceProvider ?? new RecordedRaigadAdvisoryEvidenceProvider(),
+    );
+    this.#health = new HealthService(
+      repository,
+      healthRepository,
+      now,
+      randomUUID,
+      undefined,
+      healthVisionExtractor,
     );
   }
 
@@ -139,6 +160,22 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
         return this.#advisory(request);
       case 'respondToFarmerAdvisory':
         return this.#respondToAdvisory(request);
+      case 'listFarmerHealthReports':
+        return this.#healthReports(request);
+      case 'saveFarmerHealthReportDraft':
+        return this.#saveHealthDraft(request);
+      case 'attachFarmerHealthMedia':
+        return this.#attachHealthMedia(request);
+      case 'submitFarmerHealthReport':
+        return this.#submitHealthReport(request);
+      case 'getFarmerHealthReport':
+        return this.#healthReport(request);
+      case 'decideFarmerHealthCaseSharing':
+        return this.#decideHealthSharing(request);
+      case 'listFarmerCases':
+        return this.#healthCases(request);
+      case 'getFarmerCase':
+        return this.#healthCase(request);
       case 'getFarmerRecommendationReadiness':
         return this.#recommendationReadiness(request);
       case 'createFarmerRecommendationRun':
@@ -191,6 +228,11 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
         'farmer.plot.write',
         'farmer.evidence.read',
         'farmer.soil.write',
+        'farmer.health.read',
+        'farmer.health.write',
+        'farmer.health.submit',
+        'farmer.health.share_case',
+        'farmer.case.read',
         'farmer.voice.setup',
       ],
       farmContextState:
@@ -285,6 +327,99 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
           ...(body.note === undefined ? {} : { note: body.note }),
         },
       }),
+    );
+  }
+
+  async #healthReports(request: DomainOperationRequest) {
+    const plotId = request.params?.['plotId'];
+    if (plotId === undefined) throw dependencyUnavailable();
+    return this.#translateHealthError(request, () =>
+      this.#health.listReports(ownerFor(request.boundary), plotId),
+    );
+  }
+
+  async #saveHealthDraft(request: DomainOperationRequest) {
+    const plotId = request.params?.['plotId'];
+    if (plotId === undefined) throw dependencyUnavailable();
+    const body = HealthReportDraftRequestSchema.parse(request.body);
+    return this.#translateHealthError(request, () =>
+      this.#health.saveDraft({
+        owner: ownerFor(request.boundary),
+        plotId,
+        request: {
+          commandId: request.boundary.idempotencyKey ?? body.commandId,
+          expectedRevision: body.expectedRevision,
+          schemaVersion: body.schemaVersion,
+          ...(body.reportId === undefined ? {} : { reportId: body.reportId }),
+          cropName: body.cropName,
+          language: body.language,
+          symptomSummary: body.symptomSummary,
+          answers: body.answers,
+          clientRecordedAt: body.clientRecordedAt,
+          timezone: body.timezone,
+        },
+      }),
+    );
+  }
+
+  async #attachHealthMedia(request: DomainOperationRequest) {
+    const reportId = request.params?.['reportId'];
+    if (reportId === undefined) throw dependencyUnavailable();
+    const body = AttachHealthMediaRequestSchema.parse(request.body);
+    return this.#translateHealthError(request, () =>
+      this.#health.attachMedia({
+        owner: ownerFor(request.boundary),
+        reportId,
+        request: { ...body, commandId: request.boundary.idempotencyKey ?? body.commandId },
+      }),
+    );
+  }
+
+  async #submitHealthReport(request: DomainOperationRequest) {
+    const reportId = request.params?.['reportId'];
+    if (reportId === undefined) throw dependencyUnavailable();
+    const body = SubmitHealthReportRequestSchema.parse(request.body);
+    return this.#translateHealthError(request, () =>
+      this.#health.submit({
+        owner: ownerFor(request.boundary),
+        reportId,
+        request: { ...body, commandId: request.boundary.idempotencyKey ?? body.commandId },
+      }),
+    );
+  }
+
+  async #healthReport(request: DomainOperationRequest) {
+    const reportId = request.params?.['reportId'];
+    if (reportId === undefined) throw dependencyUnavailable();
+    return this.#translateHealthError(request, () =>
+      this.#health.report(ownerFor(request.boundary), reportId),
+    );
+  }
+
+  async #decideHealthSharing(request: DomainOperationRequest) {
+    const reportId = request.params?.['reportId'];
+    if (reportId === undefined) throw dependencyUnavailable();
+    const body = HealthCaseSharingDecisionRequestSchema.parse(request.body);
+    return this.#translateHealthError(request, () =>
+      this.#health.decideSharing({
+        owner: ownerFor(request.boundary),
+        reportId,
+        request: { ...body, commandId: request.boundary.idempotencyKey ?? body.commandId },
+      }),
+    );
+  }
+
+  async #healthCases(request: DomainOperationRequest) {
+    return this.#translateHealthError(request, () =>
+      this.#health.listCases(ownerFor(request.boundary)),
+    );
+  }
+
+  async #healthCase(request: DomainOperationRequest) {
+    const caseId = request.params?.['caseId'];
+    if (caseId === undefined) throw dependencyUnavailable();
+    return this.#translateHealthError(request, () =>
+      this.#health.case(ownerFor(request.boundary), caseId),
     );
   }
 
@@ -424,6 +559,48 @@ export class FarmerSetupOperations implements DomainOperationAdapter {
           code: 'INVALID_STATE_TRANSITION',
           status: 409,
           title: 'The Advisory command cannot be applied in the current state.',
+        });
+      }
+      throw error;
+    }
+  }
+
+  async #translateHealthError<Result>(
+    request: DomainOperationRequest,
+    work: () => Promise<Result>,
+  ): Promise<Result> {
+    try {
+      return await work();
+    } catch (error) {
+      if (error instanceof HealthRejectedError && error.code === 'AUTHORIZATION_DENIED') {
+        throw new ApiBoundaryProblem({
+          code: 'AUTHORIZATION_DENIED',
+          status: 404,
+          title: 'The requested Crop Health resource is not available to this Farmer.',
+        });
+      }
+      if (error instanceof HealthRejectedError && error.code === 'EXPECTED_REVISION_MISMATCH') {
+        throw new ApiBoundaryProblem({
+          code: 'EXPECTED_REVISION_MISMATCH',
+          status: 409,
+          title: 'The Crop Health command could not be applied to this revision.',
+        });
+      }
+      if (error instanceof HealthRejectedError && error.code === 'HEALTH_MEDIA_UNUSABLE') {
+        throw new ApiBoundaryProblem({
+          code: 'HEALTH_MEDIA_UNUSABLE',
+          status: 422,
+          title: 'The Crop Health evidence is not usable for triage.',
+        });
+      }
+      if (error instanceof HealthRejectedError && error.code === 'INVALID_STATE_TRANSITION') {
+        throw new ApiBoundaryProblem({
+          code:
+            request.operationId === 'decideFarmerHealthCaseSharing'
+              ? 'CASE_SHARING_REQUIRED'
+              : 'INVALID_STATE_TRANSITION',
+          status: request.operationId === 'decideFarmerHealthCaseSharing' ? 422 : 409,
+          title: 'The Crop Health command cannot be applied in the current state.',
         });
       }
       throw error;

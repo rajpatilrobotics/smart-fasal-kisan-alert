@@ -414,6 +414,9 @@ importers:
       '@smart-fasal/agronomy':
         specifier: workspace:*
         version: link:../agronomy
+      '@smart-fasal/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       json-canonicalize:
         specifier: 2.0.0
         version: 2.0.0

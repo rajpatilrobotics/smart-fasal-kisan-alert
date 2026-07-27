@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "HealthTriageCategory": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryKey": {
+          "enum": [
+            "RICE_LEAF_SPOT_POSSIBLE",
+            "RICE_BLAST_POSSIBLE",
+            "NUTRIENT_STRESS_POSSIBLE",
+            "WATER_STRESS_POSSIBLE",
+            "PEST_DAMAGE_POSSIBLE",
+            "UNKNOWN_STRESS",
+            "UNSUPPORTED_CROP_OR_PART"
+          ],
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "items": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "type": "array"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "type": "array"
+        }
+      },
+      "required": [
+        "categoryKey",
+        "label",
+        "confidence",
+        "evidenceRefs",
+        "limitations"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "evidenceRefs": {
+      "items": {
+        "maxLength": 120,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 12,
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "maxLength": 220,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 8,
+      "type": "array"
+    },
+    "modelName": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "modelVersion": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "observedParts": {
+      "items": {
+        "maxLength": 80,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 6,
+      "type": "array"
+    },
+    "observedSymptoms": {
+      "items": {
+        "maxLength": 120,
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 8,
+      "type": "array"
+    },
+    "possibleCategories": {
+      "items": {
+        "$ref": "#/$defs/HealthTriageCategory"
+      },
+      "maxItems": 3,
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": "health-vision-extraction-v1",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "SUPPORTED",
+        "UNSUPPORTED",
+        "UNCLEAR"
+      ],
+      "type": "string"
+    },
+    "visualQualityBand": {
+      "enum": [
+        "USABLE",
+        "LIMITED",
+        "UNUSABLE"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "modelName",
+    "modelVersion",
+    "state",
+    "visualQualityBand",
+    "observedParts",
+    "observedSymptoms",
+    "possibleCategories",
+    "limitations",
+    "evidenceRefs"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

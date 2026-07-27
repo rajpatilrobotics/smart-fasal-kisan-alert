@@ -114,6 +114,28 @@ export const VoiceTurnResponseSchema = z
             sourceGeneratedAt: TimestampSchema,
           })
           .strict(),
+        z
+          .object({
+            resultType: z.literal('HEALTH_REPORT_READ'),
+            reportId: UuidSchema,
+            summary: z.string().min(1).max(600),
+            openDetailsRoute: z.string().min(1).max(240).regex(/^\//),
+            dataMode: z.enum(['LIVE', 'RECORDED', 'SIMULATED']),
+            sourceGeneratedAt: TimestampSchema,
+            triageState: z.enum(['SUPPORTED', 'UNSUPPORTED', 'UNCLEAR', 'PENDING']),
+          })
+          .strict(),
+        z
+          .object({
+            resultType: z.literal('CASE_READ'),
+            caseId: UuidSchema,
+            summary: z.string().min(1).max(600),
+            openDetailsRoute: z.string().min(1).max(240).regex(/^\//),
+            dataMode: z.enum(['LIVE', 'RECORDED', 'SIMULATED']),
+            sourceGeneratedAt: TimestampSchema,
+            caseStatus: z.string().min(1).max(80),
+          })
+          .strict(),
       ])
       .optional(),
     serverSequence: z.int().positive(),
@@ -212,5 +234,11 @@ export const VoiceControlFrameSchema = z
 
 export const M2_VOICE_TOOL_KEYS = [] as const;
 export const M5_VOICE_TOOL_KEYS = ['farmer.recommendation.read'] as const;
+export const M7_VOICE_TOOL_KEYS = [
+  'farmer.recommendation.read',
+  'farmer.advisory.read',
+  'farmer.health.read',
+  'farmer.case.read',
+] as const;
 export type VoiceControlFrame = z.infer<typeof VoiceControlFrameSchema>;
 export type VoiceProposalResponse = z.infer<typeof VoiceProposalResponseSchema>;

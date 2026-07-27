@@ -3,7 +3,15 @@ import type {
   AdvisoryResponseReceipt,
   AdvisoryResponseRequest,
   AdvisoryResultResponse,
+  AttachHealthMediaRequest,
+  FarmerCaseListResponse,
+  FarmerCaseResponse,
   FarmerTodayResponse,
+  HealthCaseSharingDecisionRequest,
+  HealthCaseSharingDecisionResponse,
+  HealthReportDraftRequest,
+  HealthReportListResponse,
+  HealthReportResponse,
   RecommendationAcceptanceRequest,
   RecommendationAcceptanceResponse,
   RecommendationReadinessResponse,
@@ -14,6 +22,7 @@ import type {
   RecommendationRunStatusResponse,
   SeasonCalendarResponse,
   SeasonStartConfirmationRequest,
+  SubmitHealthReportRequest,
 } from '@smart-fasal/contracts/schemas';
 
 import type { InMemoryCredentials } from '../auth/auth-memory';
@@ -411,6 +420,194 @@ export async function respondToFarmerAdvisory(
     failRecommendationRequest(result.error?.code, result.response.status);
   }
   return result.data as unknown as AdvisoryResponseReceipt;
+}
+
+export async function loadHealthReports(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  plotId: string,
+  options: ApiOptions = {},
+): Promise<HealthReportListResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/plots/{plotId}/health', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { plotId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as HealthReportListResponse;
+}
+
+export async function saveHealthReportDraft(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  plotId: string,
+  request: HealthReportDraftRequest,
+  options: ApiOptions = {},
+): Promise<HealthReportResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/plots/{plotId}/health-reports', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { plotId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as HealthReportResponse;
+}
+
+export async function attachHealthMedia(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  reportId: string,
+  request: AttachHealthMediaRequest,
+  options: ApiOptions = {},
+): Promise<HealthReportResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/health-reports/{reportId}/media', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { reportId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as HealthReportResponse;
+}
+
+export async function submitHealthReport(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  reportId: string,
+  request: SubmitHealthReportRequest,
+  options: ApiOptions = {},
+): Promise<HealthReportResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/health-reports/{reportId}:submit', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { reportId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as HealthReportResponse;
+}
+
+export async function loadHealthReport(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  reportId: string,
+  options: ApiOptions = {},
+): Promise<HealthReportResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/health-reports/{reportId}', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { reportId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as HealthReportResponse;
+}
+
+export async function decideHealthCaseSharing(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  reportId: string,
+  request: HealthCaseSharingDecisionRequest,
+  options: ApiOptions = {},
+): Promise<HealthCaseSharingDecisionResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.POST('/v1/farmer/health-reports/{reportId}/case-sharing-decisions', {
+    body: request,
+    params: {
+      header: {
+        ...protectedHeaders(installationId, roleContextId),
+        'Idempotency-Key': request.commandId,
+        'If-Match': etagRevision(request.expectedRevision),
+      },
+      path: { reportId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as HealthCaseSharingDecisionResponse;
+}
+
+export async function loadFarmerCases(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  options: ApiOptions = {},
+): Promise<FarmerCaseListResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/cases', {
+    params: { header: protectedHeaders(installationId, roleContextId) },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as FarmerCaseListResponse;
+}
+
+export async function loadFarmerCase(
+  credentials: InMemoryCredentials,
+  installationId: string,
+  roleContextId: string,
+  caseId: string,
+  options: ApiOptions = {},
+): Promise<FarmerCaseResponse> {
+  const client = authenticatedClient(credentials, options.baseUrl, roleContextId);
+  const result = await client.GET('/v1/farmer/cases/{caseId}', {
+    params: {
+      header: protectedHeaders(installationId, roleContextId),
+      path: { caseId },
+    },
+    signal: options.signal,
+  });
+  if (!result.data || result.error) {
+    failRecommendationRequest(result.error?.code, result.response.status);
+  }
+  return result.data as unknown as FarmerCaseResponse;
 }
 
 export async function loadRecommendationReadiness(
