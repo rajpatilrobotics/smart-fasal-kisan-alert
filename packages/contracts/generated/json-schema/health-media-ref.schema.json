@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assetId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "attachmentId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "height": {
+      "exclusiveMinimum": 0,
+      "maximum": 16384,
+      "type": "integer"
+    },
+    "limitation": {
+      "maxLength": 220,
+      "minLength": 1,
+      "type": "string"
+    },
+    "qualityBand": {
+      "enum": [
+        "USABLE",
+        "LIMITED",
+        "UNUSABLE"
+      ],
+      "type": "string"
+    },
+    "requiredView": {
+      "enum": [
+        "WHOLE_PLANT",
+        "AFFECTED_LEAF_TOP",
+        "AFFECTED_LEAF_UNDERSIDE",
+        "STEM_OR_BASE",
+        "FIELD_CONTEXT",
+        "OTHER"
+      ],
+      "type": "string"
+    },
+    "scannerVersion": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": "string"
+    },
+    "width": {
+      "exclusiveMinimum": 0,
+      "maximum": 16384,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "assetId",
+    "requiredView",
+    "qualityBand"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

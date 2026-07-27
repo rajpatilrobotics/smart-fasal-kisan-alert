@@ -5,8 +5,13 @@ import { describe, expect, it } from 'vitest';
 
 import { createDatabaseClient } from './client';
 import {
+  caseEvidencePacks,
+  cropHealthCases,
   farmerProfiles,
   farms,
+  healthMediaLinks,
+  healthReports,
+  healthTriageResults,
   mediaAssets,
   plotGeometryVersions,
   plots,
@@ -14,6 +19,7 @@ import {
   seedRuns,
   syncStreams,
   voiceSessions,
+  workCaseLinks,
 } from './schema';
 
 describe('foundation migration', () => {
@@ -250,6 +256,40 @@ describe('foundation migration', () => {
     expect(migration).toContain('force row level security');
     expect(migration).toContain('advisory_one_active_deduplication_key_idx');
     expect(migration).toContain('Push, SMS and WhatsApp delivery adapters remain disabled');
+  });
+
+  it('adds the Milestone 7 Crop Health report, triage and consented Case foundation', async () => {
+    const migration = await readFile(
+      resolve(import.meta.dirname, '../migrations/0010_milestone_7_crop_health_triage.sql'),
+      'utf8',
+    );
+    for (const relation of [
+      'workflow.health_report',
+      'workflow.health_answer',
+      'workflow.health_media_link',
+      'workflow.health_evidence_quality',
+      'workflow.triage_result',
+      'workflow.triage_possible_category',
+      'workflow.case_evidence_pack',
+      'workflow.case_evidence_ref',
+      'workflow.work_case_link',
+    ]) {
+      expect(migration).toContain(`create table ${relation}`);
+    }
+    expect(migration).toContain('create table workflow."case"');
+    expect(migration).toContain("'CROP_HEALTH_CASE_REVIEW'");
+    expect(migration).toContain("evidence_quality_band = 'LIMITED' and confidence = 'HIGH'");
+    expect(migration).toContain("evidence_quality_band = 'UNUSABLE' and model_provider <> 'NONE'");
+    expect(migration).toContain("workflow.\"case\" is");
+    expect(migration).toContain('MP has no privilege or copied data');
+    expect(migration).toContain('force row level security');
+    expect(migration).not.toMatch(/grant\s+select[^;]*workflow\.[^;]*sf_mp_api/i);
+    expect(healthReports.lifecycleState.name).toBe('lifecycle_state');
+    expect(healthMediaLinks.requiredView.name).toBe('required_view');
+    expect(healthTriageResults.mandatoryEscalation.name).toBe('mandatory_escalation');
+    expect(cropHealthCases.evidencePackExpiresAt.name).toBe('evidence_pack_expires_at');
+    expect(caseEvidencePacks.manifestChecksum.name).toBe('manifest_checksum');
+    expect(workCaseLinks.purposeCode.name).toBe('purpose_code');
   });
 
   it('seeds a synthetic Milestone 5 Raigad recommendation demo without private data', async () => {

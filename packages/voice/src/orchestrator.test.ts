@@ -333,4 +333,99 @@ describe('bounded voice transport', () => {
       result: { dataMode: 'RECORDED', resultType: 'ADVISORY_READ' },
     });
   });
+
+  it('returns Crop Health and Case read results only through registered read tools', async () => {
+    const healthProvider: VoiceProvider = {
+      cancel: vi.fn().mockResolvedValue(undefined),
+      interpret: vi.fn().mockResolvedValue({
+        kind: 'VALIDATED_RESULT',
+        messageKey: 'voice.health.ready',
+        toolKey: 'farmer.health.read',
+        result: {
+          resultType: 'HEALTH_REPORT_READ',
+          reportId: '019f5678-1234-7000-8000-000000000086',
+          summary: 'हा अहवाल फक्त possible triage दाखवतो; diagnosis confirmed नाही.',
+          openDetailsRoute: '/farmer/health/019f5678-1234-7000-8000-000000000086',
+          dataMode: 'RECORDED',
+          sourceGeneratedAt: '2026-07-14T09:00:00.000+05:30',
+          triageState: 'SUPPORTED',
+        },
+      }),
+    };
+    const disabled = createService(healthProvider).service;
+    const disabledSession = disabled.createSession(binding).session;
+    await expect(
+      disabled.processTurn(disabledSession.sessionId, principal, {
+        turnId: '019f5678-1234-7000-8000-000000000087',
+        input: { type: 'TEXT', text: 'माझ्या पिकाचा health report दाखव' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      }),
+    ).resolves.toMatchObject({ state: 'UNAVAILABLE' });
+
+    const enabled = new VoiceTransportService({
+      proposals: new InMemoryVoiceProposalStore({
+        executor: { execute: vi.fn() },
+        policy: { reauthorize: vi.fn().mockResolvedValue(true) },
+        registeredToolKeys: [],
+      }),
+      provider: healthProvider,
+      randomId: () => randomUUIDForTest(),
+      registeredToolKeys: ['farmer.health.read', 'farmer.case.read'],
+      tickets: new InMemoryVoiceTicketStore({ randomId: () => randomUUIDForTest() }),
+    });
+    const enabledSession = enabled.createSession(binding).session;
+    await expect(
+      enabled.processTurn(enabledSession.sessionId, principal, {
+        turnId: '019f5678-1234-7000-8000-000000000088',
+        input: { type: 'TEXT', text: 'माझ्या पिकाचा health report दाखव' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      }),
+    ).resolves.toMatchObject({
+      state: 'RESULT_READY',
+      result: { dataMode: 'RECORDED', resultType: 'HEALTH_REPORT_READ' },
+    });
+
+    const caseProvider: VoiceProvider = {
+      cancel: vi.fn().mockResolvedValue(undefined),
+      interpret: vi.fn().mockResolvedValue({
+        kind: 'VALIDATED_RESULT',
+        messageKey: 'voice.case.ready',
+        toolKey: 'farmer.case.read',
+        result: {
+          resultType: 'CASE_READ',
+          caseId: '019f5678-1234-7000-8000-000000000089',
+          summary: 'RSK expert review pending आहे.',
+          openDetailsRoute: '/farmer/cases/019f5678-1234-7000-8000-000000000089',
+          dataMode: 'RECORDED',
+          sourceGeneratedAt: '2026-07-14T09:00:00.000+05:30',
+          caseStatus: 'PENDING_EXPERT',
+        },
+      }),
+    };
+    const caseEnabled = new VoiceTransportService({
+      proposals: new InMemoryVoiceProposalStore({
+        executor: { execute: vi.fn() },
+        policy: { reauthorize: vi.fn().mockResolvedValue(true) },
+        registeredToolKeys: [],
+      }),
+      provider: caseProvider,
+      randomId: () => randomUUIDForTest(),
+      registeredToolKeys: ['farmer.health.read', 'farmer.case.read'],
+      tickets: new InMemoryVoiceTicketStore({ randomId: () => randomUUIDForTest() }),
+    });
+    const caseSession = caseEnabled.createSession(binding).session;
+    await expect(
+      caseEnabled.processTurn(caseSession.sessionId, principal, {
+        turnId: '019f5678-1234-7000-8000-000000000090',
+        input: { type: 'TEXT', text: 'माझी RSK case स्थिती काय आहे?' },
+        clientSequence: 1,
+        acknowledgedServerSequence: 0,
+      }),
+    ).resolves.toMatchObject({
+      state: 'RESULT_READY',
+      result: { caseStatus: 'PENDING_EXPERT', resultType: 'CASE_READ' },
+    });
+  });
 });

@@ -1,13 +1,21 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 import {
+  createRecordedRiceLeafSpotExtraction,
   evaluateAdvisory,
   recommendCrops,
+  triageCropHealth,
   type AdvisoryInput,
   type AgronomyEvidence,
   type CropProfile,
+  type HealthMediaEvidence,
   type RecommendationInput,
 } from '@smart-fasal/agronomy';
+import type {
+  FarmerCaseResponse,
+  HealthCaseSharingDecisionResponse,
+  HealthReportResponse,
+} from '@smart-fasal/contracts/schemas';
 import { canonicalize } from 'json-canonicalize';
 
 function cloneJson<T>(value: T): T {
@@ -1068,6 +1076,557 @@ export async function withdrawConsent(input: {
     await transaction.commitWithdrawal(commit);
     return commit;
   });
+}
+
+export interface HealthReportDraftInput {
+  commandId: string;
+  expectedRevision: number;
+  schemaVersion: 'health-report-draft-v1';
+  reportId?: string;
+  cropName: string;
+  language: 'mr' | 'hi' | 'en';
+  symptomSummary: string;
+  answers: HealthReportResponse['answers'];
+  clientRecordedAt: string;
+  timezone: 'Asia/Kolkata';
+}
+
+export interface AttachHealthMediaInput {
+  commandId: string;
+  expectedRevision: number;
+  assetId: string;
+  requiredView: HealthReportResponse['media'][number]['requiredView'];
+  consentAccessVersion: number;
+  clientRecordedAt: string;
+  timezone: 'Asia/Kolkata';
+}
+
+export interface SubmitHealthReportInput {
+  commandId: string;
+  expectedRevision: number;
+  clientSubmittedAt: string;
+  timezone: 'Asia/Kolkata';
+}
+
+export interface HealthCaseSharingDecisionInput {
+  commandId: string;
+  expectedRevision: number;
+  decision: 'ALLOW' | 'DENY';
+  policyVersionId: string;
+  consentAccessVersion: number;
+  clientRecordedAt: string;
+  timezone: 'Asia/Kolkata';
+}
+
+export interface HealthReportRecord {
+  owner: FarmerSetupOwner;
+  farmId?: string;
+  plotId: string;
+  report: HealthReportResponse;
+}
+
+export interface HealthCaseRecord {
+  owner: FarmerSetupOwner;
+  case: FarmerCaseResponse;
+}
+
+export type HealthCommandReplay =
+  | { kind: 'REPORT'; response: HealthReportResponse }
+  | { kind: 'SHARING'; response: HealthCaseSharingDecisionResponse };
+
+export interface HealthRepository {
+  loadCommand(owner: FarmerSetupOwner, commandId: string): Promise<HealthCommandReplay | undefined>;
+  saveCommand(owner: FarmerSetupOwner, commandId: string, replay: HealthCommandReplay): Promise<void>;
+  loadReport(owner: FarmerSetupOwner, reportId: string): Promise<HealthReportRecord | undefined>;
+  listReports(owner: FarmerSetupOwner, plotId: string): Promise<readonly HealthReportRecord[]>;
+  saveReport(record: HealthReportRecord): Promise<void>;
+  loadCase(owner: FarmerSetupOwner, caseId: string): Promise<HealthCaseRecord | undefined>;
+  listCases(owner: FarmerSetupOwner): Promise<readonly HealthCaseRecord[]>;
+  saveCase(record: HealthCaseRecord): Promise<void>;
+}
+
+export interface HealthMediaQualityResult {
+  qualityBand: HealthReportResponse['media'][number]['qualityBand'];
+  height?: number;
+  limitation?: string;
+  scannerVersion?: string;
+  width?: number;
+}
+
+export interface HealthMediaQualityProvider {
+  evaluate(input: {
+    owner: FarmerSetupOwner;
+    report: HealthReportResponse;
+    assetId: string;
+    requiredView: HealthReportResponse['media'][number]['requiredView'];
+  }): Promise<HealthMediaQualityResult>;
+}
+
+export interface HealthVisionExtractor {
+  extract(input: {
+    report: HealthReportResponse;
+    media: readonly HealthMediaEvidence[];
+  }): Promise<
+    | { outcome: 'EXTRACTED'; extraction: ReturnType<typeof createRecordedRiceLeafSpotExtraction> }
+    | { outcome: 'UNAVAILABLE'; reason: string }
+  >;
+}
+
+export class HealthRejectedError extends Error {
+  constructor(
+    readonly code:
+      | 'AUTHORIZATION_DENIED'
+      | 'EXPECTED_REVISION_MISMATCH'
+      | 'HEALTH_MEDIA_UNUSABLE'
+      | 'INVALID_STATE_TRANSITION',
+  ) {
+    super(code);
+    this.name = 'HealthRejectedError';
+  }
+}
+
+export class HealthService {
+  constructor(
+    private readonly setupRepository: FarmerSetupRepository,
+    private readonly healthRepository: HealthRepository,
+    private readonly now: () => Date = () => new Date(),
+    private readonly id: () => string = randomUUID,
+    private readonly qualityProvider: HealthMediaQualityProvider = new DemoHealthMediaQualityProvider(),
+    private readonly visionExtractor: HealthVisionExtractor = new RecordedRaigadHealthVisionExtractor(),
+  ) {}
+
+  async listReports(owner: FarmerSetupOwner, plotId: string) {
+    await this.assertPlotOwned(owner, plotId);
+    return {
+      plotId,
+      generatedAt: this.now().toISOString(),
+      reports: (await this.healthRepository.listReports(owner, plotId)).map((record) => record.report),
+    };
+  }
+
+  async saveDraft(input: {
+    owner: FarmerSetupOwner;
+    plotId: string;
+    request: HealthReportDraftInput;
+  }): Promise<HealthReportResponse> {
+    const replay = await this.healthRepository.loadCommand(input.owner, input.request.commandId);
+    if (replay?.kind === 'REPORT') return replay.response;
+    const plotContext = await this.plotContext(input.owner, input.plotId);
+    const reportId = input.request.reportId ?? this.id();
+    const current = await this.healthRepository.loadReport(input.owner, reportId);
+    const currentRevision = current?.report.etagRevision ?? 0;
+    if (currentRevision !== input.request.expectedRevision) {
+      throw new HealthRejectedError('EXPECTED_REVISION_MISMATCH');
+    }
+    if (current?.report.state !== undefined && current.report.state !== 'DRAFT') {
+      throw new HealthRejectedError('INVALID_STATE_TRANSITION');
+    }
+    const timestamp = this.now().toISOString();
+    const next: HealthReportResponse = withHealthChecksum({
+      reportId,
+      plotId: input.plotId,
+      ...(plotContext.farmId === undefined ? {} : { farmId: plotContext.farmId }),
+      state: 'DRAFT',
+      cropName: input.request.cropName,
+      language: input.request.language,
+      symptomSummary: input.request.symptomSummary,
+      answers: input.request.answers,
+      media: current?.report.media ?? [],
+      sharingDecision: current?.report.sharingDecision ?? 'NOT_REQUESTED',
+      ...(current?.report.caseId === undefined ? {} : { caseId: current.report.caseId }),
+      dataMode: modeFromHealthMedia(current?.report.media ?? []),
+      resultVersion: 1,
+      etagRevision: currentRevision + 1,
+      reportChecksum: `sha256:${'0'.repeat(64)}`,
+      createdAt: current?.report.createdAt ?? timestamp,
+      updatedAt: timestamp,
+    });
+    await this.healthRepository.saveReport({
+      owner: input.owner,
+      ...(plotContext.farmId === undefined ? {} : { farmId: plotContext.farmId }),
+      plotId: input.plotId,
+      report: next,
+    });
+    await this.healthRepository.saveCommand(input.owner, input.request.commandId, {
+      kind: 'REPORT',
+      response: next,
+    });
+    return next;
+  }
+
+  async attachMedia(input: {
+    owner: FarmerSetupOwner;
+    reportId: string;
+    request: AttachHealthMediaInput;
+  }): Promise<HealthReportResponse> {
+    const replay = await this.healthRepository.loadCommand(input.owner, input.request.commandId);
+    if (replay?.kind === 'REPORT') return replay.response;
+    const record = await this.loadOwnedReport(input.owner, input.reportId);
+    if (record.report.state !== 'DRAFT') throw new HealthRejectedError('INVALID_STATE_TRANSITION');
+    if (record.report.etagRevision !== input.request.expectedRevision) {
+      throw new HealthRejectedError('EXPECTED_REVISION_MISMATCH');
+    }
+    const quality = await this.qualityProvider.evaluate({
+      owner: input.owner,
+      report: record.report,
+      assetId: input.request.assetId,
+      requiredView: input.request.requiredView,
+    });
+    const media = [
+      ...record.report.media,
+      {
+        assetId: input.request.assetId,
+        attachmentId: this.id(),
+        requiredView: input.request.requiredView,
+        ...quality,
+      },
+    ].slice(0, 6);
+    const next = withHealthChecksum({
+      ...record.report,
+      media,
+      dataMode: modeFromHealthMedia(media),
+      etagRevision: record.report.etagRevision + 1,
+      updatedAt: this.now().toISOString(),
+    });
+    await this.healthRepository.saveReport({ ...record, report: next });
+    await this.healthRepository.saveCommand(input.owner, input.request.commandId, {
+      kind: 'REPORT',
+      response: next,
+    });
+    return next;
+  }
+
+  async submit(input: {
+    owner: FarmerSetupOwner;
+    reportId: string;
+    request: SubmitHealthReportInput;
+  }): Promise<HealthReportResponse> {
+    const replay = await this.healthRepository.loadCommand(input.owner, input.request.commandId);
+    if (replay?.kind === 'REPORT') return replay.response;
+    const record = await this.loadOwnedReport(input.owner, input.reportId);
+    if (record.report.etagRevision !== input.request.expectedRevision) {
+      throw new HealthRejectedError('EXPECTED_REVISION_MISMATCH');
+    }
+    if (record.report.state !== 'DRAFT' && record.report.state !== 'SUBMITTED') {
+      throw new HealthRejectedError('INVALID_STATE_TRANSITION');
+    }
+    const media = healthMediaEvidence(record.report);
+    if (media.length === 0 || media.every((item) => item.qualityBand === 'UNUSABLE')) {
+      throw new HealthRejectedError('HEALTH_MEDIA_UNUSABLE');
+    }
+    const extracted = await this.visionExtractor.extract({ report: record.report, media });
+    const triage = triageCropHealth({
+      reportId: record.report.reportId,
+      plotId: record.plotId,
+      cropName: record.report.cropName,
+      symptomSummary: record.report.symptomSummary,
+      answers: record.report.answers,
+      media,
+      generatedAt: this.now().toISOString(),
+      policyVersion: 'health-triage-policy-v1',
+      ...(extracted.outcome === 'EXTRACTED'
+        ? { extraction: extracted.extraction }
+        : { modelUnavailableReason: extracted.reason }),
+    });
+    const next = withHealthChecksum({
+      ...record.report,
+      state: extracted.outcome === 'EXTRACTED' ? 'TRIAGED' : 'MODEL_UNAVAILABLE',
+      quality: triage.evidenceQuality,
+      triage,
+      sharingDecision: triage.mandatoryEscalation ? 'PENDING' : 'NOT_REQUESTED',
+      dataMode: triage.dataMode,
+      etagRevision: record.report.etagRevision + 1,
+      updatedAt: this.now().toISOString(),
+      submittedAt: input.request.clientSubmittedAt,
+    });
+    await this.healthRepository.saveReport({ ...record, report: next });
+    await this.healthRepository.saveCommand(input.owner, input.request.commandId, {
+      kind: 'REPORT',
+      response: next,
+    });
+    return next;
+  }
+
+  async report(owner: FarmerSetupOwner, reportId: string): Promise<HealthReportResponse> {
+    return (await this.loadOwnedReport(owner, reportId)).report;
+  }
+
+  async decideSharing(input: {
+    owner: FarmerSetupOwner;
+    reportId: string;
+    request: HealthCaseSharingDecisionInput;
+  }): Promise<HealthCaseSharingDecisionResponse> {
+    const replay = await this.healthRepository.loadCommand(input.owner, input.request.commandId);
+    if (replay?.kind === 'SHARING') return { ...replay.response, disposition: 'ALREADY_ACCEPTED' };
+    const record = await this.loadOwnedReport(input.owner, input.reportId);
+    if (record.report.etagRevision !== input.request.expectedRevision) {
+      throw new HealthRejectedError('EXPECTED_REVISION_MISMATCH');
+    }
+    if (record.report.triage === undefined || record.report.sharingDecision !== 'PENDING') {
+      throw new HealthRejectedError('INVALID_STATE_TRANSITION');
+    }
+
+    if (input.request.decision === 'DENY') {
+      const next = withHealthChecksum({
+        ...record.report,
+        sharingDecision: 'DENY',
+        etagRevision: record.report.etagRevision + 1,
+        updatedAt: this.now().toISOString(),
+      });
+      await this.healthRepository.saveReport({ ...record, report: next });
+      const response: HealthCaseSharingDecisionResponse = {
+        commandId: input.request.commandId,
+        disposition: 'ACCEPTED',
+        reportId: input.reportId,
+        sharingDecision: 'DENY',
+        serverReceivedAt: this.now().toISOString(),
+      };
+      await this.healthRepository.saveCommand(input.owner, input.request.commandId, {
+        kind: 'SHARING',
+        response,
+      });
+      return response;
+    }
+
+    const caseId = this.id();
+    const evidencePackId = this.id();
+    const workItemId = this.id();
+    const evidencePackExpiresAt = new Date(
+      this.now().getTime() + 14 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+    const updatedAt = this.now().toISOString();
+    const report = withHealthChecksum({
+      ...record.report,
+      sharingDecision: 'ALLOW',
+      caseId,
+      etagRevision: record.report.etagRevision + 1,
+      updatedAt,
+    });
+    const farmerCase: FarmerCaseResponse = {
+      caseId,
+      reportId: input.reportId,
+      plotId: record.plotId,
+      status: 'PENDING_EXPERT',
+      severity: record.report.triage.severity,
+      createdAt: updatedAt,
+      updatedAt,
+      dataMode: report.dataMode,
+      title: `${report.cropName} health report`,
+      pendingExpert: true,
+      accessVersion: input.request.consentAccessVersion,
+      evidencePackExpiresAt,
+      report,
+      timeline: [
+        { at: updatedAt, state: 'PENDING_EXPERT', label: 'Shared with RSK for expert review.' },
+      ],
+    };
+    await this.healthRepository.saveReport({ ...record, report });
+    await this.healthRepository.saveCase({ owner: input.owner, case: farmerCase });
+    const response: HealthCaseSharingDecisionResponse = {
+      commandId: input.request.commandId,
+      disposition: 'ACCEPTED',
+      reportId: input.reportId,
+      sharingDecision: 'ALLOW',
+      caseId,
+      evidencePackId,
+      workItemId,
+      caseStatus: 'PENDING_EXPERT',
+      serverReceivedAt: updatedAt,
+    };
+    await this.healthRepository.saveCommand(input.owner, input.request.commandId, {
+      kind: 'SHARING',
+      response,
+    });
+    return response;
+  }
+
+  async listCases(owner: FarmerSetupOwner) {
+    return {
+      generatedAt: this.now().toISOString(),
+      cases: (await this.healthRepository.listCases(owner)).map((record) => ({
+        caseId: record.case.caseId,
+        reportId: record.case.reportId,
+        plotId: record.case.plotId,
+        status: record.case.status,
+        severity: record.case.severity,
+        createdAt: record.case.createdAt,
+        updatedAt: record.case.updatedAt,
+        dataMode: record.case.dataMode,
+        title: record.case.title,
+        pendingExpert: record.case.pendingExpert,
+      })),
+    };
+  }
+
+  async case(owner: FarmerSetupOwner, caseId: string): Promise<FarmerCaseResponse> {
+    const record = await this.healthRepository.loadCase(owner, caseId);
+    if (record === undefined) throw new HealthRejectedError('AUTHORIZATION_DENIED');
+    return record.case;
+  }
+
+  private async loadOwnedReport(
+    owner: FarmerSetupOwner,
+    reportId: string,
+  ): Promise<HealthReportRecord> {
+    const record = await this.healthRepository.loadReport(owner, reportId);
+    if (record === undefined) throw new HealthRejectedError('AUTHORIZATION_DENIED');
+    await this.assertPlotOwned(owner, record.plotId);
+    return record;
+  }
+
+  private async plotContext(
+    owner: FarmerSetupOwner,
+    plotId: string,
+  ): Promise<{ farmId?: string }> {
+    const setup = await this.setupRepository.load(owner);
+    for (const farm of setup?.draft?.farms ?? []) {
+      if (farm.plots.some((plot) => plot.plotId === plotId)) return { farmId: farm.farmId };
+    }
+    throw new HealthRejectedError('AUTHORIZATION_DENIED');
+  }
+
+  private async assertPlotOwned(owner: FarmerSetupOwner, plotId: string): Promise<void> {
+    await this.plotContext(owner, plotId);
+  }
+}
+
+export class InMemoryHealthRepository implements HealthRepository {
+  readonly #commands = new Map<string, HealthCommandReplay>();
+  readonly #reports = new Map<string, HealthReportRecord>();
+  readonly #cases = new Map<string, HealthCaseRecord>();
+
+  async loadCommand(owner: FarmerSetupOwner, commandId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#commands.get(key(owner, commandId)));
+  }
+
+  async saveCommand(owner: FarmerSetupOwner, commandId: string, replay: HealthCommandReplay) {
+    await Promise.resolve();
+    this.#commands.set(key(owner, commandId), cloneJson(replay));
+  }
+
+  async loadReport(owner: FarmerSetupOwner, reportId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#reports.get(key(owner, reportId)));
+  }
+
+  async listReports(owner: FarmerSetupOwner, plotId: string) {
+    await Promise.resolve();
+    return [...this.#reports.values()]
+      .filter(
+        (record) =>
+          record.owner.environment === owner.environment &&
+          record.owner.subjectId === owner.subjectId &&
+          record.plotId === plotId,
+      )
+      .map((record) => cloneJson(record));
+  }
+
+  async saveReport(record: HealthReportRecord) {
+    await Promise.resolve();
+    this.#reports.set(key(record.owner, record.report.reportId), cloneJson(record));
+  }
+
+  async loadCase(owner: FarmerSetupOwner, caseId: string) {
+    await Promise.resolve();
+    return cloneJson(this.#cases.get(key(owner, caseId)));
+  }
+
+  async listCases(owner: FarmerSetupOwner) {
+    await Promise.resolve();
+    return [...this.#cases.values()]
+      .filter(
+        (record) =>
+          record.owner.environment === owner.environment &&
+          record.owner.subjectId === owner.subjectId,
+      )
+      .map((record) => cloneJson(record));
+  }
+
+  async saveCase(record: HealthCaseRecord) {
+    await Promise.resolve();
+    this.#cases.set(key(record.owner, record.case.caseId), cloneJson(record));
+  }
+}
+
+export class DemoHealthMediaQualityProvider implements HealthMediaQualityProvider {
+  async evaluate(input: {
+    assetId: string;
+  }): Promise<HealthMediaQualityResult> {
+    await Promise.resolve();
+    if (input.assetId.endsWith('000000000bad')) {
+      return {
+        qualityBand: 'UNUSABLE',
+        scannerVersion: 'health-quality-demo-v1',
+        limitation: 'Image is too dark or blurry for crop-health triage.',
+      };
+    }
+    if (input.assetId.endsWith('000000000lim')) {
+      return {
+        qualityBand: 'LIMITED',
+        scannerVersion: 'health-quality-demo-v1',
+        width: 640,
+        height: 480,
+        limitation: 'Image is usable but not clear enough for high confidence.',
+      };
+    }
+    return {
+      qualityBand: 'USABLE',
+      scannerVersion: 'health-quality-demo-v1',
+      width: 1280,
+      height: 960,
+    };
+  }
+}
+
+export class RecordedRaigadHealthVisionExtractor implements HealthVisionExtractor {
+  async extract(input: {
+    report: HealthReportResponse;
+    media: readonly HealthMediaEvidence[];
+  }): Promise<{ outcome: 'EXTRACTED'; extraction: ReturnType<typeof createRecordedRiceLeafSpotExtraction> }> {
+    await Promise.resolve();
+    return {
+      outcome: 'EXTRACTED',
+      extraction: createRecordedRiceLeafSpotExtraction({
+        evidenceRefs: input.media.map((media: HealthMediaEvidence) => `photo:${media.assetId}`),
+      }),
+    };
+  }
+}
+
+export class UnavailableHealthVisionExtractor implements HealthVisionExtractor {
+  constructor(private readonly reason = 'HEALTH_MODEL_UNAVAILABLE') {}
+
+  async extract(): Promise<{ outcome: 'UNAVAILABLE'; reason: string }> {
+    await Promise.resolve();
+    return { outcome: 'UNAVAILABLE', reason: this.reason };
+  }
+}
+
+function healthMediaEvidence(report: HealthReportResponse): HealthMediaEvidence[] {
+  return report.media.map((media) => ({
+    assetId: media.assetId,
+    qualityBand: media.qualityBand,
+    requiredView: media.requiredView,
+    dataMode: report.dataMode,
+    ...(media.width === undefined ? {} : { width: media.width }),
+    ...(media.height === undefined ? {} : { height: media.height }),
+    ...(media.limitation === undefined ? {} : { limitation: media.limitation }),
+  }));
+}
+
+function modeFromHealthMedia(media: readonly HealthReportResponse['media'][number][]) {
+  return media.length === 0 ? 'SIMULATED' : 'RECORDED';
+}
+
+function withHealthChecksum<T extends HealthReportResponse>(report: T): T {
+  const { reportChecksum: _previous, ...withoutChecksum } = report;
+  return {
+    ...report,
+    reportChecksum: `sha256:${createHash('sha256')
+      .update(canonicalize(withoutChecksum), 'utf8')
+      .digest('hex')}`,
+  };
 }
 
 export interface RecommendationRunRequest {

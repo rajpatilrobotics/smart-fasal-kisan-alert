@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "answer": {
+      "maxLength": 500,
+      "minLength": 1,
+      "type": "string"
+    },
+    "language": {
+      "enum": [
+        "mr",
+        "hi",
+        "en"
+      ],
+      "type": "string"
+    },
+    "questionKey": {
+      "enum": [
+        "crop",
+        "cropStage",
+        "affectedPart",
+        "symptomStarted",
+        "spread",
+        "areaAffected",
+        "recentWeather",
+        "recentInput",
+        "farmerConcern"
+      ],
+      "type": "string"
+    },
+    "source": {
+      "enum": [
+        "VOICE_DRAFT",
+        "TYPED",
+        "GUIDED_CHOICE",
+        "SYSTEM_CONTEXT"
+      ],
+      "type": "string"
+    },
+    "unknown": {
+      "default": false,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "questionKey",
+    "unknown",
+    "language",
+    "source"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

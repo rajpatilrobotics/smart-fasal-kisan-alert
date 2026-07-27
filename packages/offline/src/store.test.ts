@@ -10,7 +10,7 @@ import {
   encryptJson,
   generatePartitionKey,
 } from './crypto.js';
-import { FarmerOfflineDatabase } from './database.js';
+import { FarmerOfflineDatabase, LOCAL_DATABASE_SCHEMA_VERSION } from './database.js';
 import {
   DeviceWrappedPartitionKeyProvider,
   type PartitionKeyEnvelopeStore,
@@ -188,6 +188,20 @@ function responseApplyInput(response: SyncBatchResponse, expectedBatchId = respo
 }
 
 describe('Farmer offline partition', () => {
+  it('registers the Milestone 7 Crop Health draft/report/case stores', async () => {
+    const database = new FarmerOfflineDatabase(`smart-fasal-test-${crypto.randomUUID()}`);
+    await database.open();
+    expect(LOCAL_DATABASE_SCHEMA_VERSION).toBe(6);
+    expect(database.verno).toBe(6);
+    expect(database.healthReportDrafts.schema.primKey.keyPath).toBe('draftId');
+    expect(database.healthReports.schema.primKey.keyPath).toBe('reportId');
+    expect(database.farmerCases.schema.primKey.keyPath).toBe('caseId');
+    expect(database.healthReportDrafts.schema.idxByName['plotId']).toBeDefined();
+    expect(database.healthReports.schema.idxByName['dataMode']).toBeDefined();
+    expect(database.farmerCases.schema.idxByName['status']).toBeDefined();
+    database.close();
+  });
+
   it('derives a stable physical name without exposing environment or binding', async () => {
     const first = await createPartitionDatabaseName('local', IDS.binding, 'PERSONAL');
     const second = await createPartitionDatabaseName('local', IDS.binding, 'PERSONAL');

@@ -62,6 +62,24 @@ export interface VoiceTurnOutput {
         readonly openDetailsRoute: string;
         readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
         readonly sourceGeneratedAt: string;
+      }
+    | {
+        readonly resultType: 'HEALTH_REPORT_READ';
+        readonly reportId: string;
+        readonly summary: string;
+        readonly openDetailsRoute: string;
+        readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+        readonly sourceGeneratedAt: string;
+        readonly triageState: 'SUPPORTED' | 'UNSUPPORTED' | 'UNCLEAR' | 'PENDING';
+      }
+    | {
+        readonly resultType: 'CASE_READ';
+        readonly caseId: string;
+        readonly summary: string;
+        readonly openDetailsRoute: string;
+        readonly dataMode: 'LIVE' | 'RECORDED' | 'SIMULATED';
+        readonly sourceGeneratedAt: string;
+        readonly caseStatus: string;
       };
   readonly serverSequence: number;
   readonly acknowledgedClientSequence: number;
@@ -87,6 +105,13 @@ export interface VoiceProvider {
   }): Promise<ProviderInterpretation>;
   cancel(input: { readonly generation: number; readonly sessionId: string }): Promise<void>;
 }
+
+const READ_RESULT_TOOL_KEYS = new Set([
+  'farmer.recommendation.read',
+  'farmer.advisory.read',
+  'farmer.health.read',
+  'farmer.case.read',
+]);
 
 export class UnavailableVoiceProvider implements VoiceProvider {
   interpret(): Promise<ProviderInterpretation> {
@@ -341,8 +366,8 @@ export class VoiceTransportService {
         } else if (
           interpretation.kind === 'VALIDATED_RESULT' &&
           interpretation.result !== undefined &&
-          (interpretation.toolKey === 'farmer.recommendation.read' ||
-            interpretation.toolKey === 'farmer.advisory.read') &&
+          interpretation.toolKey !== undefined &&
+          READ_RESULT_TOOL_KEYS.has(interpretation.toolKey) &&
           this.#registeredToolKeys.has(interpretation.toolKey)
         ) {
           state = 'RESULT_READY';

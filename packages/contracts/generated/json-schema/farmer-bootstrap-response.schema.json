@@ -824,7 +824,12 @@
           "farmer.calendar.read",
           "farmer.today.read",
           "farmer.advisory.read",
-          "farmer.advisory.respond"
+          "farmer.advisory.respond",
+          "farmer.health.read",
+          "farmer.health.write",
+          "farmer.health.submit",
+          "farmer.health.share_case",
+          "farmer.case.read"
         ],
         "type": "string"
       },

@@ -2,6 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 
 import type {
   AdvisoryResultResponse,
+  HealthTriageResult,
+  HealthVisionExtraction,
   RecommendationCandidate,
   RecommendationResultResponse,
 } from '@smart-fasal/contracts/schemas';
@@ -357,6 +359,238 @@ export function validateModelExplanation(input: ExplanationValidationInput): boo
         })),
       )
   );
+}
+
+export interface HealthMediaEvidence {
+  assetId: string;
+  qualityBand: 'USABLE' | 'LIMITED' | 'UNUSABLE';
+  requiredView: string;
+  dataMode: DataMode;
+  width?: number;
+  height?: number;
+  limitation?: string;
+}
+
+export interface HealthTriageInput {
+  triageId?: string;
+  reportId: string;
+  plotId: string;
+  cropName: string;
+  symptomSummary: string;
+  answers: readonly {
+    questionKey: string;
+    answer?: string | undefined;
+    unknown?: boolean | undefined;
+  }[];
+  media: readonly HealthMediaEvidence[];
+  generatedAt: string;
+  policyVersion: string;
+  extraction?: HealthVisionExtraction;
+  modelUnavailableReason?: string;
+}
+
+const HEALTH_TRIAGE_MODEL_NAME = 'health.vision.extractor';
+const HEALTH_TRIAGE_MODEL_VERSION = 'fixture-health-vision-v1';
+const HEALTH_POLICY_VERSION = 'health-triage-policy-v1';
+const UNSAFE_TREATMENT_PATTERN =
+  /\b(?:spray|fungicide|pesticide|insecticide|herbicide|chemical|dose|dosage|ml|kg|litre|liter)\b/iu;
+
+function healthMode(media: readonly HealthMediaEvidence[], extraction?: HealthVisionExtraction): DataMode {
+  if (media.some((item) => item.dataMode === 'SIMULATED')) return 'SIMULATED';
+  if (extraction?.modelName.includes('fixture') || media.some((item) => item.dataMode === 'RECORDED')) {
+    return 'RECORDED';
+  }
+  return 'LIVE';
+}
+
+function answerText(input: HealthTriageInput, questionKey: string): string | undefined {
+  return input.answers.find((answer) => answer.questionKey === questionKey && !answer.unknown)
+    ?.answer;
+}
+
+function deriveHealthSpread(input: HealthTriageInput): HealthTriageResult['spread'] {
+  const spread = `${answerText(input, 'spread') ?? ''} ${input.symptomSummary}`.toLowerCase();
+  if (spread.includes('fast') || spread.includes('जलद') || spread.includes('झपाट्याने')) {
+    return 'FAST_SPREADING';
+  }
+  if (
+    spread.includes('spreading') ||
+    spread.includes('spread') ||
+    spread.includes('पसर') ||
+    spread.includes('वाढ')
+  ) {
+    return 'SPREADING';
+  }
+  if (answerText(input, 'spread') === undefined) return 'UNKNOWN';
+  return 'NOT_SPREADING';
+}
+
+function deriveHealthSeverity(spread: HealthTriageResult['spread'], summary: string) {
+  const lower = summary.toLowerCase();
+  if (
+    spread === 'FAST_SPREADING' ||
+    lower.includes('wilting whole field') ||
+    lower.includes('संपूर्ण') ||
+    lower.includes('critical')
+  ) {
+    return 'CRITICAL' as const;
+  }
+  if (spread === 'SPREADING' || lower.includes('many plants') || lower.includes('जास्त')) {
+    return 'HIGH' as const;
+  }
+  if (lower.includes('spot') || lower.includes('डाग') || lower.includes('yellow')) {
+    return 'MODERATE' as const;
+  }
+  return 'LOW' as const;
+}
+
+function confidenceFromQuality(
+  qualityBand: HealthTriageResult['evidenceQuality']['qualityBand'],
+  extraction?: HealthVisionExtraction,
+): HealthTriageResult['confidence'] {
+  if (qualityBand === 'UNUSABLE' || extraction === undefined) return 'LOW';
+  const strongest = extraction.possibleCategories.some((category) => category.confidence === 'HIGH')
+    ? 'HIGH'
+    : extraction.possibleCategories.some((category) => category.confidence === 'MEDIUM')
+      ? 'MEDIUM'
+      : 'LOW';
+  if (qualityBand === 'LIMITED' && strongest === 'HIGH') return 'MEDIUM';
+  return strongest;
+}
+
+function healthQuality(input: HealthTriageInput): HealthTriageResult['evidenceQuality'] {
+  const usablePhotoCount = input.media.filter((item) => item.qualityBand === 'USABLE').length;
+  const limitedPhotoCount = input.media.filter((item) => item.qualityBand === 'LIMITED').length;
+  const unusablePhotoCount = input.media.filter((item) => item.qualityBand === 'UNUSABLE').length;
+  const missingRequiredContext = ['affectedPart', 'symptomStarted', 'spread'].filter(
+    (key) => answerText(input, key) === undefined,
+  ) as ('affectedPart' | 'symptomStarted' | 'spread')[];
+  const qualityBand =
+    usablePhotoCount > 0 && missingRequiredContext.length === 0
+      ? 'USABLE'
+      : usablePhotoCount + limitedPhotoCount > 0
+        ? 'LIMITED'
+        : 'UNUSABLE';
+  return {
+    qualityBand,
+    usablePhotoCount,
+    limitedPhotoCount,
+    unusablePhotoCount,
+    missingRequiredContext,
+    limitations: [
+      ...input.media.flatMap((item) => (item.limitation === undefined ? [] : [item.limitation])),
+      ...(missingRequiredContext.length === 0
+        ? []
+        : [`Missing context: ${missingRequiredContext.join(', ')}`]),
+    ].slice(0, 8),
+    validatorVersion: 'health-quality-v1',
+  };
+}
+
+function assertSafeHealthExtraction(extraction: HealthVisionExtraction): void {
+  const payload = JSON.stringify(extraction);
+  if (UNSAFE_TREATMENT_PATTERN.test(payload)) {
+    throw new TypeError('Health extraction must not contain chemical treatment guidance.');
+  }
+  const allowed = new Set([
+    'RICE_LEAF_SPOT_POSSIBLE',
+    'RICE_BLAST_POSSIBLE',
+    'NUTRIENT_STRESS_POSSIBLE',
+    'WATER_STRESS_POSSIBLE',
+    'PEST_DAMAGE_POSSIBLE',
+    'UNKNOWN_STRESS',
+    'UNSUPPORTED_CROP_OR_PART',
+  ]);
+  if (extraction.possibleCategories.some((category) => !allowed.has(category.categoryKey))) {
+    throw new TypeError('Health extraction category is not allowlisted.');
+  }
+}
+
+export function createRecordedRiceLeafSpotExtraction(input: {
+  evidenceRefs: readonly string[];
+}): HealthVisionExtraction {
+  return {
+    schemaVersion: 'health-vision-extraction-v1',
+    modelName: 'fixture-health-vision',
+    modelVersion: HEALTH_TRIAGE_MODEL_VERSION,
+    state: 'SUPPORTED',
+    visualQualityBand: 'USABLE',
+    observedParts: ['rice leaf'],
+    observedSymptoms: ['brown leaf spots', 'yellowing near spots'],
+    possibleCategories: [
+      {
+        categoryKey: 'RICE_LEAF_SPOT_POSSIBLE',
+        label: 'Possible rice leaf spot or stress',
+        confidence: 'MEDIUM',
+        evidenceRefs: input.evidenceRefs.slice(0, 3),
+        limitations: ['Expert review is still required.'],
+      },
+      {
+        categoryKey: 'NUTRIENT_STRESS_POSSIBLE',
+        label: 'Possible nutrient or water stress',
+        confidence: 'LOW',
+        evidenceRefs: input.evidenceRefs.slice(0, 3),
+        limitations: ['Needs expert review with field context.'],
+      },
+    ],
+    limitations: ['Fixture extraction for the Raigad demo scenario.'],
+    evidenceRefs: input.evidenceRefs.slice(0, 12),
+  };
+}
+
+export function triageCropHealth(input: HealthTriageInput): HealthTriageResult {
+  const quality = healthQuality(input);
+  const spread = deriveHealthSpread(input);
+  const severity = deriveHealthSeverity(spread, input.symptomSummary);
+  const extraction =
+    quality.qualityBand === 'UNUSABLE' || input.modelUnavailableReason !== undefined
+      ? undefined
+      : input.extraction;
+  if (extraction !== undefined) assertSafeHealthExtraction(extraction);
+
+  const state =
+    extraction?.state ??
+    (quality.qualityBand === 'UNUSABLE' || input.modelUnavailableReason !== undefined
+      ? 'UNCLEAR'
+      : 'UNSUPPORTED');
+  const confidence = confidenceFromQuality(quality.qualityBand, extraction);
+  const mandatoryEscalation =
+    severity === 'HIGH' ||
+    severity === 'CRITICAL' ||
+    state === 'UNCLEAR' ||
+    confidence === 'LOW' ||
+    spread === 'FAST_SPREADING';
+  const dataMode = healthMode(input.media, extraction);
+  const categories = extraction?.possibleCategories.slice(0, 3) ?? [];
+  return {
+    triageId: input.triageId ?? randomUUID(),
+    reportId: input.reportId,
+    state,
+    severity,
+    confidence,
+    spread,
+    mandatoryEscalation,
+    summary:
+      state === 'SUPPORTED' && categories[0] !== undefined
+        ? `${categories[0].label}. This is a possible finding and needs expert review if it is spreading or severe.`
+        : input.modelUnavailableReason !== undefined
+          ? 'The crop health model is unavailable. The report can still be shared with an expert.'
+          : 'The report does not have enough usable evidence for visual triage.',
+    safeNextStep: mandatoryEscalation
+      ? 'Review the report and choose whether to share the case with RSK for expert help.'
+      : 'Monitor the crop and add clearer photos if symptoms spread.',
+    categories,
+    evidenceQuality: quality,
+    modelProvider: extraction === undefined ? 'NONE' : extraction.modelName.includes('fixture') ? 'FIXTURE' : 'VERTEX_GEMINI',
+    modelName: extraction?.modelName ?? HEALTH_TRIAGE_MODEL_NAME,
+    modelVersion: extraction?.modelVersion ?? 'unavailable',
+    policyVersion: input.policyVersion || HEALTH_POLICY_VERSION,
+    dataMode,
+    generatedAt: input.generatedAt,
+    ...(input.modelUnavailableReason === undefined
+      ? {}
+      : { unavailableReason: input.modelUnavailableReason }),
+  };
 }
 
 export interface AdvisoryEvidence extends AgronomyEvidence {

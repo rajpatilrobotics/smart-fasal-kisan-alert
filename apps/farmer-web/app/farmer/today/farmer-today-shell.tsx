@@ -410,12 +410,20 @@ export function FarmerTodayShell({
                   ))}
                 </div>
                 {viewState.firstFarmId && viewState.firstPlotId ? (
-                  <Link
-                    className="primary-link"
-                    href={`/farmer/farms/${viewState.firstFarmId}/plots/${viewState.firstPlotId}/recommendations`}
-                  >
-                    Open crop recommendation
-                  </Link>
+                  <div className="recommendation-actions">
+                    <Link
+                      className="primary-link"
+                      href={`/farmer/farms/${viewState.firstFarmId}/plots/${viewState.firstPlotId}/recommendations`}
+                    >
+                      Open crop recommendation
+                    </Link>
+                    <Link
+                      className="secondary-action"
+                      href={`/farmer/farms/${viewState.firstFarmId}/plots/${viewState.firstPlotId}/health`}
+                    >
+                      Report crop health
+                    </Link>
+                  </div>
                 ) : null}
               </section>
             ) : null}

@@ -1,0 +1,266 @@
+{
+  "$defs": {
+    "HealthEvidenceQuality": {
+      "additionalProperties": false,
+      "properties": {
+        "limitations": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "type": "array"
+        },
+        "limitedPhotoCount": {
+          "maximum": 6,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missingRequiredContext": {
+          "items": {
+            "enum": [
+              "crop",
+              "cropStage",
+              "affectedPart",
+              "symptomStarted",
+              "spread",
+              "areaAffected",
+              "recentWeather",
+              "recentInput",
+              "farmerConcern"
+            ],
+            "type": "string"
+          },
+          "maxItems": 9,
+          "type": "array"
+        },
+        "qualityBand": {
+          "enum": [
+            "USABLE",
+            "LIMITED",
+            "UNUSABLE"
+          ],
+          "type": "string"
+        },
+        "unusablePhotoCount": {
+          "maximum": 6,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "usablePhotoCount": {
+          "maximum": 6,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "validatorVersion": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "qualityBand",
+        "usablePhotoCount",
+        "limitedPhotoCount",
+        "unusablePhotoCount",
+        "missingRequiredContext",
+        "limitations",
+        "validatorVersion"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    },
+    "HealthTriageCategory": {
+      "additionalProperties": false,
+      "properties": {
+        "categoryKey": {
+          "enum": [
+            "RICE_LEAF_SPOT_POSSIBLE",
+            "RICE_BLAST_POSSIBLE",
+            "NUTRIENT_STRESS_POSSIBLE",
+            "WATER_STRESS_POSSIBLE",
+            "PEST_DAMAGE_POSSIBLE",
+            "UNKNOWN_STRESS",
+            "UNSUPPORTED_CROP_OR_PART"
+          ],
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "items": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "type": "array"
+        },
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "type": "array"
+        }
+      },
+      "required": [
+        "categoryKey",
+        "label",
+        "confidence",
+        "evidenceRefs",
+        "limitations"
+      ],
+      "type": "object",
+      "x-data-classification": "C3"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "categories": {
+      "items": {
+        "$ref": "#/$defs/HealthTriageCategory"
+      },
+      "maxItems": 3,
+      "type": "array"
+    },
+    "confidence": {
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ],
+      "type": "string"
+    },
+    "dataMode": {
+      "enum": [
+        "LIVE",
+        "RECORDED",
+        "SIMULATED"
+      ],
+      "type": "string"
+    },
+    "evidenceQuality": {
+      "$ref": "#/$defs/HealthEvidenceQuality"
+    },
+    "generatedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "mandatoryEscalation": {
+      "type": "boolean"
+    },
+    "modelName": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "modelProvider": {
+      "enum": [
+        "NONE",
+        "VERTEX_GEMINI",
+        "FIXTURE"
+      ],
+      "type": "string"
+    },
+    "modelVersion": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "policyVersion": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    },
+    "reportId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "safeNextStep": {
+      "maxLength": 260,
+      "minLength": 1,
+      "type": "string"
+    },
+    "severity": {
+      "enum": [
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "type": "string"
+    },
+    "spread": {
+      "enum": [
+        "NOT_SPREADING",
+        "SPREADING",
+        "FAST_SPREADING",
+        "UNKNOWN"
+      ],
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "SUPPORTED",
+        "UNSUPPORTED",
+        "UNCLEAR"
+      ],
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 360,
+      "minLength": 1,
+      "type": "string"
+    },
+    "triageId": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string"
+    },
+    "unavailableReason": {
+      "maxLength": 160,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "triageId",
+    "reportId",
+    "state",
+    "severity",
+    "confidence",
+    "spread",
+    "mandatoryEscalation",
+    "summary",
+    "safeNextStep",
+    "categories",
+    "evidenceQuality",
+    "modelProvider",
+    "modelName",
+    "modelVersion",
+    "policyVersion",
+    "dataMode",
+    "generatedAt"
+  ],
+  "type": "object",
+  "x-data-classification": "C3"
+}

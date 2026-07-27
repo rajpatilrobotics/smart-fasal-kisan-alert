@@ -157,11 +157,16 @@
                 "farmer.calendar.read",
                 "farmer.today.read",
                 "farmer.advisory.read",
-                "farmer.advisory.respond"
+                "farmer.advisory.respond",
+                "farmer.health.read",
+                "farmer.health.write",
+                "farmer.health.submit",
+                "farmer.health.share_case",
+                "farmer.case.read"
               ],
               "type": "string"
             },
-            "maxItems": 60,
+            "maxItems": 65,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -283,7 +288,9 @@
                   "farmerSetup",
                   "farmerPreferences",
                   "deviceMode",
-                  "advisory"
+                  "advisory",
+                  "healthReport",
+                  "healthCaseSharing"
                 ],
                 "type": "string"
               }
@@ -539,7 +546,10 @@
               "NO_SAFE_RECOMMENDATION",
               "ADVISORY_EXPIRED",
               "ADVISORY_DEDUPLICATED",
-              "ALERT_DELIVERY_DISABLED"
+              "ALERT_DELIVERY_DISABLED",
+              "HEALTH_MEDIA_UNUSABLE",
+              "HEALTH_MODEL_UNAVAILABLE",
+              "CASE_SHARING_REQUIRED"
             ],
             "type": "string"
           },
@@ -1062,6 +1072,116 @@
                   "openDetailsRoute",
                   "dataMode",
                   "sourceGeneratedAt"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "openDetailsRoute": {
+                    "maxLength": 240,
+                    "minLength": 1,
+                    "pattern": "^\\/",
+                    "type": "string"
+                  },
+                  "reportId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "const": "HEALTH_REPORT_READ",
+                    "type": "string"
+                  },
+                  "sourceGeneratedAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "maxLength": 600,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "triageState": {
+                    "enum": [
+                      "SUPPORTED",
+                      "UNSUPPORTED",
+                      "UNCLEAR",
+                      "PENDING"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultType",
+                  "reportId",
+                  "summary",
+                  "openDetailsRoute",
+                  "dataMode",
+                  "sourceGeneratedAt",
+                  "triageState"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "caseId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "caseStatus": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "openDetailsRoute": {
+                    "maxLength": 240,
+                    "minLength": 1,
+                    "pattern": "^\\/",
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "const": "CASE_READ",
+                    "type": "string"
+                  },
+                  "sourceGeneratedAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "maxLength": 600,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultType",
+                  "caseId",
+                  "summary",
+                  "openDetailsRoute",
+                  "dataMode",
+                  "sourceGeneratedAt",
+                  "caseStatus"
                 ],
                 "type": "object"
               }
@@ -2578,7 +2698,12 @@
     "farmer.calendar.read",
     "farmer.today.read",
     "farmer.advisory.read",
-    "farmer.advisory.respond"
+    "farmer.advisory.respond",
+    "farmer.health.read",
+    "farmer.health.write",
+    "farmer.health.submit",
+    "farmer.health.share_case",
+    "farmer.case.read"
   ],
   "x-smart-fasal-consent-scope-registry": [
     "location.processing",

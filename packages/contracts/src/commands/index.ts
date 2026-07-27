@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 import { AdvisoryResponseRequestSchema } from '../advisory/index.js';
 import {
+  AttachHealthMediaRequestSchema,
+  HealthCaseSharingDecisionRequestSchema,
+  HealthReportDraftRequestSchema,
+  SubmitHealthReportRequestSchema,
+} from '../crop-health/index.js';
+import {
   CompleteFarmerSetupPayloadSchema,
   DeviceModeChangePayloadSchema,
   SaveFarmerSetupDraftPayloadSchema,
@@ -35,6 +41,8 @@ export const CommandTargetSchema = z
       'farmerPreferences',
       'deviceMode',
       'advisory',
+      'healthReport',
+      'healthCaseSharing',
     ]),
     id: UuidSchema,
   })
@@ -70,6 +78,14 @@ export const DeviceModeCommandTargetSchema = CommandTargetSchema.extend({
 
 export const AdvisoryCommandTargetSchema = CommandTargetSchema.extend({
   type: z.literal('advisory'),
+}).strict();
+
+export const HealthReportCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('healthReport'),
+}).strict();
+
+export const HealthCaseSharingCommandTargetSchema = CommandTargetSchema.extend({
+  type: z.literal('healthCaseSharing'),
 }).strict();
 
 export const SelectRoleContextPayloadSchema = z
@@ -168,6 +184,30 @@ export const RespondToAdvisoryCommandSchema = commandEnvelope(
   AdvisoryResponseRequestSchema.omit({ commandId: true, expectedRevision: true }),
 ).meta({ id: 'RespondToAdvisoryCommand', 'x-data-classification': 'C3' });
 
+export const SaveHealthReportDraftCommandSchema = commandEnvelope(
+  'SaveHealthReportDraft',
+  HealthReportCommandTargetSchema,
+  HealthReportDraftRequestSchema.omit({ commandId: true, expectedRevision: true }),
+).meta({ id: 'SaveHealthReportDraftCommand', 'x-data-classification': 'C3' });
+
+export const AttachHealthMediaCommandSchema = commandEnvelope(
+  'AttachHealthMedia',
+  HealthReportCommandTargetSchema,
+  AttachHealthMediaRequestSchema.omit({ commandId: true, expectedRevision: true }),
+).meta({ id: 'AttachHealthMediaCommand', 'x-data-classification': 'C3' });
+
+export const SubmitHealthReportCommandSchema = commandEnvelope(
+  'SubmitHealthReport',
+  HealthReportCommandTargetSchema,
+  SubmitHealthReportRequestSchema.omit({ commandId: true, expectedRevision: true }),
+).meta({ id: 'SubmitHealthReportCommand', 'x-data-classification': 'C3' });
+
+export const DecideHealthCaseSharingCommandSchema = commandEnvelope(
+  'DecideHealthCaseSharing',
+  HealthCaseSharingCommandTargetSchema,
+  HealthCaseSharingDecisionRequestSchema.omit({ commandId: true, expectedRevision: true }),
+).meta({ id: 'DecideHealthCaseSharingCommand', 'x-data-classification': 'C3' });
+
 export const CommandEnvelopeSchema = z
   .discriminatedUnion('operation', [
     SelectRoleContextCommandSchema,
@@ -178,6 +218,10 @@ export const CommandEnvelopeSchema = z
     UpdateFarmerPreferencesCommandSchema,
     ChangeDeviceModeCommandSchema,
     RespondToAdvisoryCommandSchema,
+    SaveHealthReportDraftCommandSchema,
+    AttachHealthMediaCommandSchema,
+    SubmitHealthReportCommandSchema,
+    DecideHealthCaseSharingCommandSchema,
   ])
   .meta({ id: 'CommandEnvelope', 'x-data-classification': 'C2' });
 
@@ -201,6 +245,8 @@ export const CommandResultSchema = z
           'farmerPreferences',
           'deviceMode',
           'advisory',
+          'healthReport',
+          'healthCaseSharing',
         ]),
         id: UuidSchema,
         revision: RevisionSchema,

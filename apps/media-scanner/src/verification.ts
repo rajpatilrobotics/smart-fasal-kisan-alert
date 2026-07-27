@@ -167,6 +167,16 @@ export interface VerifiedMediaResult {
   replayed: boolean;
 }
 
+export type CropHealthImageQualityBand = 'USABLE' | 'LIMITED' | 'UNUSABLE';
+
+export interface CropHealthImageQualityAssessment {
+  qualityBand: CropHealthImageQualityBand;
+  validatorVersion: string;
+  limitations: readonly string[];
+  width?: number;
+  height?: number;
+}
+
 export interface RejectedMediaResult {
   outcome: 'REJECTED';
   state: 'REJECTED';
@@ -254,6 +264,41 @@ export function evaluateScannerReadiness(
         missing,
         retryable: true,
       };
+}
+
+export function assessCropHealthImageQuality(
+  media: Pick<VerifiedMediaResult, 'height' | 'verifiedMimeType' | 'width'>,
+): CropHealthImageQualityAssessment {
+  if (!media.verifiedMimeType.startsWith('image/')) {
+    return {
+      qualityBand: 'UNUSABLE',
+      validatorVersion: MEDIA_SCANNER_VERSION,
+      limitations: ['Crop Health triage requires a verified image.'],
+    };
+  }
+  const width = media.width;
+  const height = media.height;
+  if (width === undefined || height === undefined) {
+    return {
+      qualityBand: 'LIMITED',
+      validatorVersion: MEDIA_SCANNER_VERSION,
+      limitations: ['Image dimensions were not available after decoding.'],
+    };
+  }
+  const limitations: string[] = [];
+  const shortestSide = Math.min(width, height);
+  const longestSide = Math.max(width, height);
+  const aspectRatio = longestSide / shortestSide;
+  if (shortestSide < 480) limitations.push('Image is small; capture a closer, clearer view.');
+  if (width * height < 250_000) limitations.push('Image has limited detail for visual triage.');
+  if (aspectRatio > 4) limitations.push('Image shape is extreme; include more plant context.');
+  return {
+    qualityBand: limitations.length === 0 ? 'USABLE' : 'LIMITED',
+    validatorVersion: MEDIA_SCANNER_VERSION,
+    limitations,
+    width,
+    height,
+  };
 }
 
 export class MediaVerificationEngine {

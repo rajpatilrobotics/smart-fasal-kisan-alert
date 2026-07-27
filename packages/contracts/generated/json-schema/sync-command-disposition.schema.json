@@ -198,7 +198,10 @@
             "NO_SAFE_RECOMMENDATION",
             "ADVISORY_EXPIRED",
             "ADVISORY_DEDUPLICATED",
-            "ALERT_DELIVERY_DISABLED"
+            "ALERT_DELIVERY_DISABLED",
+            "HEALTH_MEDIA_UNUSABLE",
+            "HEALTH_MODEL_UNAVAILABLE",
+            "CASE_SHARING_REQUIRED"
           ],
           "type": "string"
         },
@@ -312,7 +315,10 @@
             "NO_SAFE_RECOMMENDATION",
             "ADVISORY_EXPIRED",
             "ADVISORY_DEDUPLICATED",
-            "ALERT_DELIVERY_DISABLED"
+            "ALERT_DELIVERY_DISABLED",
+            "HEALTH_MEDIA_UNUSABLE",
+            "HEALTH_MODEL_UNAVAILABLE",
+            "CASE_SHARING_REQUIRED"
           ],
           "type": "string"
         },

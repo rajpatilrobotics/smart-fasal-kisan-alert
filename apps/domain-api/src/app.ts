@@ -14,9 +14,17 @@ import {
   CreateMediaUploadIntentResponseSchema,
   FinalizeMediaUploadIntentRequestSchema,
   FarmerBootstrapResponseSchema,
+  FarmerCaseListResponseSchema,
+  FarmerCaseResponseSchema,
   FarmerTodayResponseSchema,
   FarmSetupSchema,
+  AttachHealthMediaRequestSchema,
+  HealthCaseSharingDecisionRequestSchema,
+  HealthCaseSharingDecisionResponseSchema,
   HealthPayloadSchema,
+  HealthReportDraftRequestSchema,
+  HealthReportListResponseSchema,
+  HealthReportResponseSchema,
   IssueAccessGrantCommandSchema,
   MediaAssetStatusResponseSchema,
   MediaOperationAcceptedResponseSchema,
@@ -54,6 +62,7 @@ import {
   SyncStreamOpenRequestSchema,
   SyncStreamOpenResponseSchema,
   SoilRecordResponseSchema,
+  SubmitHealthReportRequestSchema,
   UuidSchema,
   UpdateFarmerPreferencesCommandSchema,
 } from '@smart-fasal/contracts/schemas';
@@ -246,6 +255,18 @@ function readBoundedPageLimit(query: Readonly<Record<string, unknown>>): string 
     queryProblem('limit');
   }
   return value;
+}
+
+function stripActionSuffix(value: string, suffix: string): string {
+  return value.endsWith(suffix) ? value.slice(0, -suffix.length) : value;
+}
+
+function readActionPathParam(
+  params: Readonly<Record<string, string>>,
+  field: string,
+  suffix: string,
+): string {
+  return stripActionSuffix(params[field] ?? params[`${field}${suffix}`] ?? '', suffix);
 }
 
 function assertProtectedMediaContentType(contentType: string): void {
@@ -1096,6 +1117,146 @@ export function buildDomainApi(options: DomainApiOptions): FastifyInstance {
       });
     },
   );
+
+  app.get<{ Params: { plotId: string } }>('/v1/farmer/plots/:plotId/health', async (request) => {
+    const route = identityRoute('listFarmerHealthReports', {
+      surface: 'farmer',
+      capability: 'farmer.health.read',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    const plotId = parseContract(UuidSchema, request.params.plotId);
+    return execute('listFarmerHealthReports', boundary, HealthReportListResponseSchema, {
+      params: { plotId },
+    });
+  });
+
+  app.post<{ Params: { plotId: string } }>(
+    '/v1/farmer/plots/:plotId/health-reports',
+    async (request) => {
+      const route = farmerCommandRoute('saveFarmerHealthReportDraft', 'farmer.health.write');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(HealthReportDraftRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const plotId = parseContract(UuidSchema, request.params.plotId);
+      return execute('saveFarmerHealthReportDraft', boundary, HealthReportResponseSchema, {
+        body,
+        params: { plotId },
+      });
+    },
+  );
+
+  app.post<{ Params: { reportId: string } }>(
+    '/v1/farmer/health-reports/:reportId/media',
+    async (request) => {
+      const route = farmerCommandRoute('attachFarmerHealthMedia', 'farmer.health.write');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(AttachHealthMediaRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const reportId = parseContract(UuidSchema, request.params.reportId);
+      return execute('attachFarmerHealthMedia', boundary, HealthReportResponseSchema, {
+        body,
+        params: { reportId },
+      });
+    },
+  );
+
+  app.post<{ Params: { reportId: string } }>(
+    '/v1/farmer/health-reports/:reportId:submit',
+    async (request) => {
+      const route = farmerCommandRoute('submitFarmerHealthReport', 'farmer.health.submit');
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(SubmitHealthReportRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const reportId = parseContract(
+        UuidSchema,
+        readActionPathParam(request.params, 'reportId', ':submit'),
+      );
+      return execute('submitFarmerHealthReport', boundary, HealthReportResponseSchema, {
+        body,
+        params: { reportId },
+      });
+    },
+  );
+
+  app.get<{ Params: { reportId: string } }>(
+    '/v1/farmer/health-reports/:reportId',
+    async (request) => {
+      const route = identityRoute('getFarmerHealthReport', {
+        surface: 'farmer',
+        capability: 'farmer.health.read',
+        purpose: 'farmer.self_service',
+      });
+      const boundary = await verifyBoundary(request, route);
+      const reportId = parseContract(UuidSchema, request.params.reportId);
+      return execute('getFarmerHealthReport', boundary, HealthReportResponseSchema, {
+        params: { reportId },
+      });
+    },
+  );
+
+  app.post<{ Params: { reportId: string } }>(
+    '/v1/farmer/health-reports/:reportId/case-sharing-decisions',
+    async (request) => {
+      const route = farmerCommandRoute(
+        'decideFarmerHealthCaseSharing',
+        'farmer.health.share_case',
+      );
+      const boundary = await verifyBoundary(request, route);
+      const body = parseContract(HealthCaseSharingDecisionRequestSchema, request.body);
+      if (
+        body.commandId !== boundary.idempotencyKey ||
+        body.expectedRevision !== boundary.expectedRevision
+      ) {
+        throw expectedRevisionMismatchProblem();
+      }
+      const reportId = parseContract(UuidSchema, request.params.reportId);
+      return execute(
+        'decideFarmerHealthCaseSharing',
+        boundary,
+        HealthCaseSharingDecisionResponseSchema,
+        { body, params: { reportId } },
+      );
+    },
+  );
+
+  app.get('/v1/farmer/cases', async (request) => {
+    const route = identityRoute('listFarmerCases', {
+      surface: 'farmer',
+      capability: 'farmer.case.read',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    return execute('listFarmerCases', boundary, FarmerCaseListResponseSchema);
+  });
+
+  app.get<{ Params: { caseId: string } }>('/v1/farmer/cases/:caseId', async (request) => {
+    const route = identityRoute('getFarmerCase', {
+      surface: 'farmer',
+      capability: 'farmer.case.read',
+      purpose: 'farmer.self_service',
+    });
+    const boundary = await verifyBoundary(request, route);
+    const caseId = parseContract(UuidSchema, request.params.caseId);
+    return execute('getFarmerCase', boundary, FarmerCaseResponseSchema, {
+      params: { caseId },
+    });
+  });
 
   app.get<{ Params: { plotId: string } }>(
     '/v1/farmer/plots/:plotId/recommendation-readiness',

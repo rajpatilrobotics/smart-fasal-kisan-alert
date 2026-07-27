@@ -245,7 +245,118 @@ export const MilestoneThreeEventSchema = z
   .union([MilestoneTwoEventSchema, FarmerSetupLifecycleEventSchema])
   .meta({ id: 'MilestoneThreeEvent', 'x-data-classification': 'C3' });
 
+export const HealthReportLifecyclePayloadSchema = z
+  .object({
+    reportId: UuidSchema,
+    plotId: UuidSchema,
+    state: z.enum(['DRAFT', 'SUBMITTED', 'TRIAGE_PENDING', 'TRIAGED', 'MODEL_UNAVAILABLE']),
+    revision: z.int().nonnegative(),
+    mediaCount: z.int().min(0).max(6).optional(),
+    qualityBand: z.enum(['USABLE', 'LIMITED', 'UNUSABLE']).optional(),
+  })
+  .strict();
+
+export const HealthMediaLifecyclePayloadSchema = z
+  .object({
+    reportId: UuidSchema,
+    assetId: UuidSchema,
+    attachmentId: UuidSchema.optional(),
+    qualityBand: z.enum(['USABLE', 'LIMITED', 'UNUSABLE']).optional(),
+    requiredView: z.string().min(1).max(80).optional(),
+  })
+  .strict();
+
+export const TriageLifecyclePayloadSchema = z
+  .object({
+    triageId: UuidSchema,
+    reportId: UuidSchema,
+    caseId: UuidSchema.optional(),
+    state: z.enum(['SUPPORTED', 'UNSUPPORTED', 'UNCLEAR']),
+    severity: z.enum(['LOW', 'MODERATE', 'HIGH', 'CRITICAL']),
+    confidence: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+    mandatoryEscalation: z.boolean(),
+    dataMode: DataModeSchema,
+    modelProvider: z.enum(['NONE', 'VERTEX_GEMINI', 'FIXTURE']),
+  })
+  .strict();
+
+export const CaseLifecyclePayloadSchema = z
+  .object({
+    caseId: UuidSchema,
+    reportId: UuidSchema,
+    evidencePackId: UuidSchema.optional(),
+    status: z.enum([
+      'PENDING_EXPERT',
+      'ASSIGNED',
+      'AWAITING_FARMER',
+      'REPLIED',
+      'FOLLOW_UP_DUE',
+      'RESOLVED',
+      'CLOSED',
+      'REOPENED',
+    ]),
+    severity: z.enum(['LOW', 'MODERATE', 'HIGH', 'CRITICAL']),
+    consentAccessVersion: z.int().positive(),
+  })
+  .strict();
+
+export const RskWorkLifecyclePayloadSchema = z
+  .object({
+    workItemId: UuidSchema,
+    caseId: UuidSchema,
+    purpose: z.literal('case.expert_support'),
+    status: z.literal('PENDING_EXPERT'),
+    consentAccessVersion: z.int().positive(),
+  })
+  .strict();
+
+export const HealthReportLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.enum(['health_report.saved', 'health_report.synced', 'health_report.triage_ready']),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: HealthReportLifecyclePayloadSchema,
+}).strict();
+
+export const HealthMediaLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.enum(['health_media.queued', 'health_media.attached']),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: HealthMediaLifecyclePayloadSchema,
+}).strict();
+
+export const TriageLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.enum([
+    'triage.completed',
+    'triage.escalated',
+    'triage.escalation_sharing_declined',
+  ]),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: TriageLifecyclePayloadSchema,
+}).strict();
+
+export const CaseLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.literal('case.created'),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: CaseLifecyclePayloadSchema,
+}).strict();
+
+export const RskWorkLifecycleEventSchema = EventEnvelopeBaseSchema.extend({
+  eventName: z.literal('rsk.work_created'),
+  payloadClassification: z.enum(['C2', 'C3']),
+  payload: RskWorkLifecyclePayloadSchema,
+}).strict();
+
+export const MilestoneSevenEventSchema = z
+  .union([
+    MilestoneThreeEventSchema,
+    HealthReportLifecycleEventSchema,
+    HealthMediaLifecycleEventSchema,
+    TriageLifecycleEventSchema,
+    CaseLifecycleEventSchema,
+    RskWorkLifecycleEventSchema,
+  ])
+  .meta({ id: 'MilestoneSevenEvent', 'x-data-classification': 'C3' });
+
 export type EventEnvelope = z.infer<typeof EventEnvelopeSchema>;
 export type MilestoneOneEvent = z.infer<typeof MilestoneOneEventSchema>;
 export type MilestoneTwoEvent = z.infer<typeof MilestoneTwoEventSchema>;
 export type MilestoneThreeEvent = z.infer<typeof MilestoneThreeEventSchema>;
+export type MilestoneSevenEvent = z.infer<typeof MilestoneSevenEventSchema>;

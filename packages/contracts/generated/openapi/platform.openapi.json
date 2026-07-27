@@ -559,6 +559,181 @@
         "type": "object",
         "x-data-classification": "C3"
       },
+      "AttachHealthMediaCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "AttachHealthMedia",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "assetId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "requiredView": {
+                "enum": [
+                  "WHOLE_PLANT",
+                  "AFFECTED_LEAF_TOP",
+                  "AFFECTED_LEAF_UNDERSIDE",
+                  "STEM_OR_BASE",
+                  "FIELD_CONTEXT",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "assetId",
+              "requiredView",
+              "consentAccessVersion",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthReport",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "AttachHealthMediaRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "clientRecordedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "consentAccessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requiredView": {
+            "enum": [
+              "WHOLE_PLANT",
+              "AFFECTED_LEAF_TOP",
+              "AFFECTED_LEAF_UNDERSIDE",
+              "STEM_OR_BASE",
+              "FIELD_CONTEXT",
+              "OTHER"
+            ],
+            "type": "string"
+          },
+          "timezone": {
+            "const": "Asia/Kolkata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "expectedRevision",
+          "assetId",
+          "requiredView",
+          "consentAccessVersion",
+          "clientRecordedAt",
+          "timezone"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "AttachOfflineAudioRequest": {
         "additionalProperties": false,
         "properties": {
@@ -709,11 +884,16 @@
                 "farmer.calendar.read",
                 "farmer.today.read",
                 "farmer.advisory.read",
-                "farmer.advisory.respond"
+                "farmer.advisory.respond",
+                "farmer.health.read",
+                "farmer.health.write",
+                "farmer.health.submit",
+                "farmer.health.share_case",
+                "farmer.case.read"
               ],
               "type": "string"
             },
-            "maxItems": 60,
+            "maxItems": 65,
             "type": "array"
           },
           "capabilitySetVersion": {
@@ -943,6 +1123,18 @@
           },
           {
             "$ref": "#/components/schemas/RespondToAdvisoryCommand"
+          },
+          {
+            "$ref": "#/components/schemas/SaveHealthReportDraftCommand"
+          },
+          {
+            "$ref": "#/components/schemas/AttachHealthMediaCommand"
+          },
+          {
+            "$ref": "#/components/schemas/SubmitHealthReportCommand"
+          },
+          {
+            "$ref": "#/components/schemas/DecideHealthCaseSharingCommand"
           }
         ],
         "x-data-classification": "C2"
@@ -972,6 +1164,18 @@
           },
           {
             "$ref": "#/components/schemas/RespondToAdvisoryCommand"
+          },
+          {
+            "$ref": "#/components/schemas/SaveHealthReportDraftCommand"
+          },
+          {
+            "$ref": "#/components/schemas/AttachHealthMediaCommand"
+          },
+          {
+            "$ref": "#/components/schemas/SubmitHealthReportCommand"
+          },
+          {
+            "$ref": "#/components/schemas/DecideHealthCaseSharingCommand"
           }
         ],
         "x-data-classification": "C2"
@@ -1025,7 +1229,9 @@
                   "farmerSetup",
                   "farmerPreferences",
                   "deviceMode",
-                  "advisory"
+                  "advisory",
+                  "healthReport",
+                  "healthCaseSharing"
                 ],
                 "type": "string"
               }
@@ -1848,6 +2054,121 @@
           "cropName",
           "seasonLabel",
           "year"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "DecideHealthCaseSharingCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "DecideHealthCaseSharing",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "decision": {
+                "enum": [
+                  "ALLOW",
+                  "DENY"
+                ],
+                "type": "string"
+              },
+              "policyVersionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "decision",
+              "policyVersionId",
+              "consentAccessVersion",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthCaseSharing",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
         ],
         "type": "object",
         "x-data-classification": "C3"
@@ -3211,7 +3532,12 @@
                 "farmer.calendar.read",
                 "farmer.today.read",
                 "farmer.advisory.read",
-                "farmer.advisory.respond"
+                "farmer.advisory.respond",
+                "farmer.health.read",
+                "farmer.health.write",
+                "farmer.health.submit",
+                "farmer.health.share_case",
+                "farmer.case.read"
               ],
               "type": "string"
             },
@@ -3272,6 +3598,249 @@
           "farmContextState",
           "deviceMode",
           "setup"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "FarmerCaseListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/FarmerCaseSummary"
+            },
+            "maxItems": 50,
+            "type": "array"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "generatedAt",
+          "cases"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "FarmerCaseResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "caseId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "evidencePackExpiresAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "pendingExpert": {
+            "type": "boolean"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "report": {
+            "$ref": "#/components/schemas/HealthReportResponse"
+          },
+          "reportId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "LOW",
+              "MODERATE",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING_EXPERT",
+              "ASSIGNED",
+              "AWAITING_FARMER",
+              "REPLIED",
+              "FOLLOW_UP_DUE",
+              "RESOLVED",
+              "CLOSED",
+              "REOPENED"
+            ],
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                  "type": "string"
+                },
+                "label": {
+                  "maxLength": 180,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "state": {
+                  "enum": [
+                    "PENDING_EXPERT",
+                    "ASSIGNED",
+                    "AWAITING_FARMER",
+                    "REPLIED",
+                    "FOLLOW_UP_DUE",
+                    "RESOLVED",
+                    "CLOSED",
+                    "REOPENED"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "at",
+                "state",
+                "label"
+              ],
+              "type": "object"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "caseId",
+          "reportId",
+          "plotId",
+          "status",
+          "severity",
+          "createdAt",
+          "updatedAt",
+          "dataMode",
+          "title",
+          "pendingExpert",
+          "accessVersion",
+          "evidencePackExpiresAt",
+          "report",
+          "timeline"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "FarmerCaseSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "caseId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "pendingExpert": {
+            "type": "boolean"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "reportId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "LOW",
+              "MODERATE",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING_EXPERT",
+              "ASSIGNED",
+              "AWAITING_FARMER",
+              "REPLIED",
+              "FOLLOW_UP_DUE",
+              "RESOLVED",
+              "CLOSED",
+              "REOPENED"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "caseId",
+          "reportId",
+          "plotId",
+          "status",
+          "severity",
+          "createdAt",
+          "updatedAt",
+          "dataMode",
+          "title",
+          "pendingExpert"
         ],
         "type": "object",
         "x-data-classification": "C3"
@@ -3638,6 +4207,314 @@
         "type": "object",
         "x-data-classification": "C3"
       },
+      "HealthAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "mr",
+              "hi",
+              "en"
+            ],
+            "type": "string"
+          },
+          "questionKey": {
+            "enum": [
+              "crop",
+              "cropStage",
+              "affectedPart",
+              "symptomStarted",
+              "spread",
+              "areaAffected",
+              "recentWeather",
+              "recentInput",
+              "farmerConcern"
+            ],
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "VOICE_DRAFT",
+              "TYPED",
+              "GUIDED_CHOICE",
+              "SYSTEM_CONTEXT"
+            ],
+            "type": "string"
+          },
+          "unknown": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "questionKey",
+          "unknown",
+          "language",
+          "source"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthCaseSharingDecisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "clientRecordedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "consentAccessVersion": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "decision": {
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ],
+            "type": "string"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policyVersionId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "timezone": {
+            "const": "Asia/Kolkata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "expectedRevision",
+          "decision",
+          "policyVersionId",
+          "consentAccessVersion",
+          "clientRecordedAt",
+          "timezone"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthCaseSharingDecisionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "caseId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "caseStatus": {
+            "enum": [
+              "PENDING_EXPERT",
+              "ASSIGNED",
+              "AWAITING_FARMER",
+              "REPLIED",
+              "FOLLOW_UP_DUE",
+              "RESOLVED",
+              "CLOSED",
+              "REOPENED"
+            ],
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "ACCEPTED",
+              "ALREADY_ACCEPTED"
+            ],
+            "type": "string"
+          },
+          "evidencePackId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "reportId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "serverReceivedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "sharingDecision": {
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ],
+            "type": "string"
+          },
+          "workItemId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "disposition",
+          "reportId",
+          "sharingDecision",
+          "serverReceivedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthEvidenceQuality": {
+        "additionalProperties": false,
+        "properties": {
+          "limitations": {
+            "items": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "limitedPhotoCount": {
+            "maximum": 6,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missingRequiredContext": {
+            "items": {
+              "enum": [
+                "crop",
+                "cropStage",
+                "affectedPart",
+                "symptomStarted",
+                "spread",
+                "areaAffected",
+                "recentWeather",
+                "recentInput",
+                "farmerConcern"
+              ],
+              "type": "string"
+            },
+            "maxItems": 9,
+            "type": "array"
+          },
+          "qualityBand": {
+            "enum": [
+              "USABLE",
+              "LIMITED",
+              "UNUSABLE"
+            ],
+            "type": "string"
+          },
+          "unusablePhotoCount": {
+            "maximum": 6,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "usablePhotoCount": {
+            "maximum": 6,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "validatorVersion": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "qualityBand",
+          "usablePhotoCount",
+          "limitedPhotoCount",
+          "unusablePhotoCount",
+          "missingRequiredContext",
+          "limitations",
+          "validatorVersion"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthMediaRef": {
+        "additionalProperties": false,
+        "properties": {
+          "assetId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "attachmentId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "height": {
+            "exclusiveMinimum": 0,
+            "maximum": 16384,
+            "type": "integer"
+          },
+          "limitation": {
+            "maxLength": 220,
+            "minLength": 1,
+            "type": "string"
+          },
+          "qualityBand": {
+            "enum": [
+              "USABLE",
+              "LIMITED",
+              "UNUSABLE"
+            ],
+            "type": "string"
+          },
+          "requiredView": {
+            "enum": [
+              "WHOLE_PLANT",
+              "AFFECTED_LEAF_TOP",
+              "AFFECTED_LEAF_UNDERSIDE",
+              "STEM_OR_BASE",
+              "FIELD_CONTEXT",
+              "OTHER"
+            ],
+            "type": "string"
+          },
+          "scannerVersion": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "width": {
+            "exclusiveMinimum": 0,
+            "maximum": 16384,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assetId",
+          "requiredView",
+          "qualityBand"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "HealthPayload": {
         "additionalProperties": false,
         "properties": {
@@ -3666,6 +4543,528 @@
         ],
         "type": "object",
         "x-data-classification": "C0"
+      },
+      "HealthReportDraftRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/HealthAnswer"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "clientRecordedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "cropName": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "language": {
+            "enum": [
+              "mr",
+              "hi",
+              "en"
+            ],
+            "type": "string"
+          },
+          "reportId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "schemaVersion": {
+            "const": "health-report-draft-v1",
+            "type": "string"
+          },
+          "symptomSummary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "type": "string"
+          },
+          "timezone": {
+            "const": "Asia/Kolkata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "expectedRevision",
+          "schemaVersion",
+          "cropName",
+          "language",
+          "symptomSummary",
+          "answers",
+          "clientRecordedAt",
+          "timezone"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthReportListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/HealthReportResponse"
+            },
+            "maxItems": 50,
+            "type": "array"
+          }
+        },
+        "required": [
+          "plotId",
+          "generatedAt",
+          "reports"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthReportResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "answers": {
+            "items": {
+              "$ref": "#/components/schemas/HealthAnswer"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "caseId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "cropName": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "etagRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "farmId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "mr",
+              "hi",
+              "en"
+            ],
+            "type": "string"
+          },
+          "media": {
+            "items": {
+              "$ref": "#/components/schemas/HealthMediaRef"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "plotId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/HealthEvidenceQuality"
+          },
+          "reportChecksum": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "reportId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "resultVersion": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sharingDecision": {
+            "enum": [
+              "NOT_REQUESTED",
+              "PENDING",
+              "ALLOW",
+              "DENY"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "TRIAGE_PENDING",
+              "TRIAGED",
+              "MODEL_UNAVAILABLE"
+            ],
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "symptomSummary": {
+            "maxLength": 800,
+            "minLength": 1,
+            "type": "string"
+          },
+          "triage": {
+            "$ref": "#/components/schemas/HealthTriageResult"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reportId",
+          "plotId",
+          "state",
+          "cropName",
+          "language",
+          "symptomSummary",
+          "answers",
+          "media",
+          "sharingDecision",
+          "dataMode",
+          "resultVersion",
+          "etagRevision",
+          "reportChecksum",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthTriageCategory": {
+        "additionalProperties": false,
+        "properties": {
+          "categoryKey": {
+            "enum": [
+              "RICE_LEAF_SPOT_POSSIBLE",
+              "RICE_BLAST_POSSIBLE",
+              "NUTRIENT_STRESS_POSSIBLE",
+              "WATER_STRESS_POSSIBLE",
+              "PEST_DAMAGE_POSSIBLE",
+              "UNKNOWN_STRESS",
+              "UNSUPPORTED_CROP_OR_PART"
+            ],
+            "type": "string"
+          },
+          "confidence": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "evidenceRefs": {
+            "items": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 4,
+            "type": "array"
+          }
+        },
+        "required": [
+          "categoryKey",
+          "label",
+          "confidence",
+          "evidenceRefs",
+          "limitations"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthTriageResult": {
+        "additionalProperties": false,
+        "properties": {
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/HealthTriageCategory"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "confidence": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "dataMode": {
+            "enum": [
+              "LIVE",
+              "RECORDED",
+              "SIMULATED"
+            ],
+            "type": "string"
+          },
+          "evidenceQuality": {
+            "$ref": "#/components/schemas/HealthEvidenceQuality"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "mandatoryEscalation": {
+            "type": "boolean"
+          },
+          "modelName": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "modelProvider": {
+            "enum": [
+              "NONE",
+              "VERTEX_GEMINI",
+              "FIXTURE"
+            ],
+            "type": "string"
+          },
+          "modelVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "policyVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reportId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "safeNextStep": {
+            "maxLength": 260,
+            "minLength": 1,
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "LOW",
+              "MODERATE",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "type": "string"
+          },
+          "spread": {
+            "enum": [
+              "NOT_SPREADING",
+              "SPREADING",
+              "FAST_SPREADING",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "SUPPORTED",
+              "UNSUPPORTED",
+              "UNCLEAR"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 360,
+            "minLength": 1,
+            "type": "string"
+          },
+          "triageId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "unavailableReason": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "triageId",
+          "reportId",
+          "state",
+          "severity",
+          "confidence",
+          "spread",
+          "mandatoryEscalation",
+          "summary",
+          "safeNextStep",
+          "categories",
+          "evidenceQuality",
+          "modelProvider",
+          "modelName",
+          "modelVersion",
+          "policyVersion",
+          "dataMode",
+          "generatedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "HealthVisionExtraction": {
+        "additionalProperties": false,
+        "properties": {
+          "evidenceRefs": {
+            "items": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 12,
+            "type": "array"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 220,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "modelName": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "modelVersion": {
+            "maxLength": 120,
+            "minLength": 1,
+            "type": "string"
+          },
+          "observedParts": {
+            "items": {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 6,
+            "type": "array"
+          },
+          "observedSymptoms": {
+            "items": {
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "possibleCategories": {
+            "items": {
+              "$ref": "#/components/schemas/HealthTriageCategory"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "schemaVersion": {
+            "const": "health-vision-extraction-v1",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "SUPPORTED",
+              "UNSUPPORTED",
+              "UNCLEAR"
+            ],
+            "type": "string"
+          },
+          "visualQualityBand": {
+            "enum": [
+              "USABLE",
+              "LIMITED",
+              "UNUSABLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "modelName",
+          "modelVersion",
+          "state",
+          "visualQualityBand",
+          "observedParts",
+          "observedSymptoms",
+          "possibleCategories",
+          "limitations",
+          "evidenceRefs"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
       },
       "IssueAccessGrantCommand": {
         "additionalProperties": false,
@@ -4692,6 +6091,1334 @@
           }
         ],
         "x-data-classification": "C2"
+      },
+      "MilestoneSevenEvent": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/MilestoneThreeEvent"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "enum": [
+                  "health_report.saved",
+                  "health_report.synced",
+                  "health_report.triage_ready"
+                ],
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "mediaCount": {
+                    "maximum": 6,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "plotId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "qualityBand": {
+                    "enum": [
+                      "USABLE",
+                      "LIMITED",
+                      "UNUSABLE"
+                    ],
+                    "type": "string"
+                  },
+                  "reportId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "revision": {
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "state": {
+                    "enum": [
+                      "DRAFT",
+                      "SUBMITTED",
+                      "TRIAGE_PENDING",
+                      "TRIAGED",
+                      "MODEL_UNAVAILABLE"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reportId",
+                  "plotId",
+                  "state",
+                  "revision"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "enum": [
+                  "C2",
+                  "C3"
+                ],
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_REPORTED",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "enum": [
+                  "health_media.queued",
+                  "health_media.attached"
+                ],
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "assetId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "attachmentId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "qualityBand": {
+                    "enum": [
+                      "USABLE",
+                      "LIMITED",
+                      "UNUSABLE"
+                    ],
+                    "type": "string"
+                  },
+                  "reportId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "requiredView": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reportId",
+                  "assetId"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "enum": [
+                  "C2",
+                  "C3"
+                ],
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_REPORTED",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "enum": [
+                  "triage.completed",
+                  "triage.escalated",
+                  "triage.escalation_sharing_declined"
+                ],
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "caseId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "confidence": {
+                    "enum": [
+                      "LOW",
+                      "MEDIUM",
+                      "HIGH"
+                    ],
+                    "type": "string"
+                  },
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "mandatoryEscalation": {
+                    "type": "boolean"
+                  },
+                  "modelProvider": {
+                    "enum": [
+                      "NONE",
+                      "VERTEX_GEMINI",
+                      "FIXTURE"
+                    ],
+                    "type": "string"
+                  },
+                  "reportId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "severity": {
+                    "enum": [
+                      "LOW",
+                      "MODERATE",
+                      "HIGH",
+                      "CRITICAL"
+                    ],
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "SUPPORTED",
+                      "UNSUPPORTED",
+                      "UNCLEAR"
+                    ],
+                    "type": "string"
+                  },
+                  "triageId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "triageId",
+                  "reportId",
+                  "state",
+                  "severity",
+                  "confidence",
+                  "mandatoryEscalation",
+                  "dataMode",
+                  "modelProvider"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "enum": [
+                  "C2",
+                  "C3"
+                ],
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_REPORTED",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "const": "case.created",
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "caseId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "consentAccessVersion": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "evidencePackId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "reportId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "severity": {
+                    "enum": [
+                      "LOW",
+                      "MODERATE",
+                      "HIGH",
+                      "CRITICAL"
+                    ],
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "PENDING_EXPERT",
+                      "ASSIGNED",
+                      "AWAITING_FARMER",
+                      "REPLIED",
+                      "FOLLOW_UP_DUE",
+                      "RESOLVED",
+                      "CLOSED",
+                      "REOPENED"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "caseId",
+                  "reportId",
+                  "status",
+                  "severity",
+                  "consentAccessVersion"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "enum": [
+                  "C2",
+                  "C3"
+                ],
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_REPORTED",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "actorRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "actorType": {
+                "enum": [
+                  "FARMER",
+                  "RSK_STAFF",
+                  "MP_STAFF",
+                  "SYSTEM",
+                  "DEVICE",
+                  "PROVIDER"
+                ],
+                "type": "string"
+              },
+              "aggregateId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "aggregateRevision": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "aggregateType": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "causationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "committedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "correlationId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "dataMode": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "deviceRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "eventId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+                "type": "string"
+              },
+              "eventName": {
+                "const": "rsk.work_created",
+                "type": "string"
+              },
+              "eventOrdinal": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "eventVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "jurisdictionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "modeDerivationVersion": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "occurredAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "payload": {
+                "additionalProperties": false,
+                "properties": {
+                  "caseId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "consentAccessVersion": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
+                  "purpose": {
+                    "const": "case.expert_support",
+                    "type": "string"
+                  },
+                  "status": {
+                    "const": "PENDING_EXPERT",
+                    "type": "string"
+                  },
+                  "workItemId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workItemId",
+                  "caseId",
+                  "purpose",
+                  "status",
+                  "consentAccessVersion"
+                ],
+                "type": "object"
+              },
+              "payloadChecksum": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "payloadClassification": {
+                "enum": [
+                  "C2",
+                  "C3"
+                ],
+                "type": "string"
+              },
+              "payloadSchemaVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "producerBuild": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "producerService": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "provenanceTypes": {
+                "items": {
+                  "enum": [
+                    "SENSOR",
+                    "FARMER_REPORTED",
+                    "FARMER_MANUAL",
+                    "RSK_MANUAL",
+                    "LABORATORY",
+                    "SOIL_HEALTH_CARD",
+                    "WEATHER",
+                    "SATELLITE",
+                    "PUBLIC_MARKET",
+                    "DERIVED"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 9,
+                "minItems": 1,
+                "type": "array"
+              },
+              "purposeCode": {
+                "enum": [
+                  "farmer.self_service",
+                  "case.expert_support",
+                  "field.visit",
+                  "sensor.maintenance",
+                  "assisted.service",
+                  "alert.delivery",
+                  "market.support",
+                  "data.rights"
+                ],
+                "type": "string"
+              },
+              "retentionClass": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "roleContextRef": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "serverReceivedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "traceId": {
+                "pattern": "^[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "eventId",
+              "eventName",
+              "eventVersion",
+              "aggregateType",
+              "aggregateId",
+              "aggregateRevision",
+              "eventOrdinal",
+              "occurredAt",
+              "serverReceivedAt",
+              "committedAt",
+              "actorType",
+              "dataMode",
+              "provenanceTypes",
+              "modeDerivationVersion",
+              "correlationId",
+              "producerService",
+              "producerBuild",
+              "payloadClassification",
+              "retentionClass",
+              "payloadSchemaVersion",
+              "payload",
+              "payloadChecksum"
+            ],
+            "type": "object"
+          }
+        ],
+        "x-data-classification": "C3"
       },
       "MilestoneThreeEvent": {
         "anyOf": [
@@ -6119,7 +8846,10 @@
               "NO_SAFE_RECOMMENDATION",
               "ADVISORY_EXPIRED",
               "ADVISORY_DEDUPLICATED",
-              "ALERT_DELIVERY_DISABLED"
+              "ALERT_DELIVERY_DISABLED",
+              "HEALTH_MEDIA_UNUSABLE",
+              "HEALTH_MODEL_UNAVAILABLE",
+              "CASE_SHARING_REQUIRED"
             ],
             "type": "string"
           },
@@ -7569,7 +10299,12 @@
                 "farmer.calendar.read",
                 "farmer.today.read",
                 "farmer.advisory.read",
-                "farmer.advisory.respond"
+                "farmer.advisory.respond",
+                "farmer.health.read",
+                "farmer.health.write",
+                "farmer.health.submit",
+                "farmer.health.share_case",
+                "farmer.case.read"
               ],
               "type": "string"
             },
@@ -7804,6 +10539,140 @@
         },
         "required": [
           "draft"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "SaveHealthReportDraftCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "SaveHealthReportDraft",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "answers": {
+                "items": {
+                  "$ref": "#/components/schemas/HealthAnswer"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "cropName": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "language": {
+                "enum": [
+                  "mr",
+                  "hi",
+                  "en"
+                ],
+                "type": "string"
+              },
+              "reportId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "schemaVersion": {
+                "const": "health-report-draft-v1",
+                "type": "string"
+              },
+              "symptomSummary": {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "cropName",
+              "language",
+              "symptomSummary",
+              "answers",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthReport",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
         ],
         "type": "object",
         "x-data-classification": "C3"
@@ -8367,6 +11236,272 @@
           "evidenceIds",
           "revision",
           "serverReceivedAt"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "SubmitHealthReportCommand": {
+        "additionalProperties": false,
+        "properties": {
+          "clientContext": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "dataModeClaim": {
+                "enum": [
+                  "LIVE",
+                  "RECORDED",
+                  "SIMULATED"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientRecordedAt",
+              "timezone",
+              "dataModeClaim"
+            ],
+            "type": "object"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation": {
+            "const": "SubmitHealthReport",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "clientSubmittedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientSubmittedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthReport",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandSchemaVersion",
+          "operation",
+          "target",
+          "expectedRevision",
+          "payload",
+          "clientContext"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "SubmitHealthReportRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "clientSubmittedAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "timezone": {
+            "const": "Asia/Kolkata",
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "expectedRevision",
+          "clientSubmittedAt",
+          "timezone"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
+      "SyncAttachHealthMediaCommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "causalCommandIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "clientEventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "localSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "operation": {
+            "const": "AttachHealthMedia",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "assetId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "requiredView": {
+                "enum": [
+                  "WHOLE_PLANT",
+                  "AFFECTED_LEAF_TOP",
+                  "AFFECTED_LEAF_UNDERSIDE",
+                  "STEM_OR_BASE",
+                  "FIELD_CONTEXT",
+                  "OTHER"
+                ],
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "assetId",
+              "requiredView",
+              "consentAccessVersion",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "requestHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthReport",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "clientEventIds",
+          "commandSchemaVersion",
+          "expectedRevision",
+          "occurredAt",
+          "timezone",
+          "localSequence",
+          "causalCommandIds",
+          "requestHash",
+          "operation",
+          "target",
+          "payload"
         ],
         "type": "object",
         "x-data-classification": "C3"
@@ -8987,7 +12122,10 @@
                   "NO_SAFE_RECOMMENDATION",
                   "ADVISORY_EXPIRED",
                   "ADVISORY_DEDUPLICATED",
-                  "ALERT_DELIVERY_DISABLED"
+                  "ALERT_DELIVERY_DISABLED",
+                  "HEALTH_MEDIA_UNUSABLE",
+                  "HEALTH_MODEL_UNAVAILABLE",
+                  "CASE_SHARING_REQUIRED"
                 ],
                 "type": "string"
               },
@@ -9101,7 +12239,10 @@
                   "NO_SAFE_RECOMMENDATION",
                   "ADVISORY_EXPIRED",
                   "ADVISORY_DEDUPLICATED",
-                  "ALERT_DELIVERY_DISABLED"
+                  "ALERT_DELIVERY_DISABLED",
+                  "HEALTH_MEDIA_UNUSABLE",
+                  "HEALTH_MODEL_UNAVAILABLE",
+                  "CASE_SHARING_REQUIRED"
                 ],
                 "type": "string"
               },
@@ -9155,6 +12296,18 @@
           },
           {
             "$ref": "#/components/schemas/SyncRespondToAdvisoryCommandEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/SyncSaveHealthReportDraftCommandEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/SyncAttachHealthMediaCommandEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/SyncSubmitHealthReportCommandEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/SyncDecideHealthCaseSharingCommandEnvelope"
           }
         ],
         "x-data-classification": "C3"
@@ -9805,6 +12958,141 @@
         "type": "object",
         "x-data-classification": "C2"
       },
+      "SyncDecideHealthCaseSharingCommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "causalCommandIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "clientEventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "localSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "operation": {
+            "const": "DecideHealthCaseSharing",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "consentAccessVersion": {
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991,
+                "type": "integer"
+              },
+              "decision": {
+                "enum": [
+                  "ALLOW",
+                  "DENY"
+                ],
+                "type": "string"
+              },
+              "policyVersionId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "decision",
+              "policyVersionId",
+              "consentAccessVersion",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "requestHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthCaseSharing",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "clientEventIds",
+          "commandSchemaVersion",
+          "expectedRevision",
+          "occurredAt",
+          "timezone",
+          "localSequence",
+          "causalCommandIds",
+          "requestHash",
+          "operation",
+          "target",
+          "payload"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "SyncFeedEvent": {
         "additionalProperties": false,
         "properties": {
@@ -9847,7 +13135,7 @@
             "type": "string"
           },
           "integrationEvent": {
-            "$ref": "#/components/schemas/MilestoneTwoEvent"
+            "$ref": "#/components/schemas/MilestoneSevenEvent"
           },
           "projectionDeltas": {
             "items": {
@@ -10270,6 +13558,160 @@
         "type": "object",
         "x-data-classification": "C3"
       },
+      "SyncSaveHealthReportDraftCommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "causalCommandIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "clientEventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "localSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "operation": {
+            "const": "SaveHealthReportDraft",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "answers": {
+                "items": {
+                  "$ref": "#/components/schemas/HealthAnswer"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              "clientRecordedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "cropName": {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              "language": {
+                "enum": [
+                  "mr",
+                  "hi",
+                  "en"
+                ],
+                "type": "string"
+              },
+              "reportId": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "schemaVersion": {
+                "const": "health-report-draft-v1",
+                "type": "string"
+              },
+              "symptomSummary": {
+                "maxLength": 800,
+                "minLength": 1,
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "cropName",
+              "language",
+              "symptomSummary",
+              "answers",
+              "clientRecordedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "requestHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthReport",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "clientEventIds",
+          "commandSchemaVersion",
+          "expectedRevision",
+          "occurredAt",
+          "timezone",
+          "localSequence",
+          "causalCommandIds",
+          "requestHash",
+          "operation",
+          "target",
+          "payload"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
+      },
       "SyncStreamOpenRequest": {
         "additionalProperties": false,
         "properties": {
@@ -10552,6 +13994,121 @@
         ],
         "type": "object",
         "x-data-classification": "C2"
+      },
+      "SyncSubmitHealthReportCommandEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "causalCommandIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "clientEventIds": {
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array"
+          },
+          "commandId": {
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+            "type": "string"
+          },
+          "commandSchemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "expectedRevision": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "localSequence": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "type": "string"
+          },
+          "operation": {
+            "const": "SubmitHealthReport",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": false,
+            "properties": {
+              "clientSubmittedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata",
+                "type": "string"
+              }
+            },
+            "required": [
+              "clientSubmittedAt",
+              "timezone"
+            ],
+            "type": "object"
+          },
+          "requestHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "healthReport",
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "type": "object"
+          },
+          "timezone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "commandId",
+          "clientEventIds",
+          "commandSchemaVersion",
+          "expectedRevision",
+          "occurredAt",
+          "timezone",
+          "localSequence",
+          "causalCommandIds",
+          "requestHash",
+          "operation",
+          "target",
+          "payload"
+        ],
+        "type": "object",
+        "x-data-classification": "C3"
       },
       "SyncUpdateFarmerPreferencesCommandEnvelope": {
         "additionalProperties": false,
@@ -11230,6 +14787,116 @@
                   "openDetailsRoute",
                   "dataMode",
                   "sourceGeneratedAt"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "openDetailsRoute": {
+                    "maxLength": 240,
+                    "minLength": 1,
+                    "pattern": "^\\/",
+                    "type": "string"
+                  },
+                  "reportId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "const": "HEALTH_REPORT_READ",
+                    "type": "string"
+                  },
+                  "sourceGeneratedAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "maxLength": 600,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "triageState": {
+                    "enum": [
+                      "SUPPORTED",
+                      "UNSUPPORTED",
+                      "UNCLEAR",
+                      "PENDING"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultType",
+                  "reportId",
+                  "summary",
+                  "openDetailsRoute",
+                  "dataMode",
+                  "sourceGeneratedAt",
+                  "triageState"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "caseId": {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "caseStatus": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "dataMode": {
+                    "enum": [
+                      "LIVE",
+                      "RECORDED",
+                      "SIMULATED"
+                    ],
+                    "type": "string"
+                  },
+                  "openDetailsRoute": {
+                    "maxLength": 240,
+                    "minLength": 1,
+                    "pattern": "^\\/",
+                    "type": "string"
+                  },
+                  "resultType": {
+                    "const": "CASE_READ",
+                    "type": "string"
+                  },
+                  "sourceGeneratedAt": {
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                    "type": "string"
+                  },
+                  "summary": {
+                    "maxLength": 600,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultType",
+                  "caseId",
+                  "summary",
+                  "openDetailsRoute",
+                  "dataMode",
+                  "sourceGeneratedAt",
+                  "caseStatus"
                 ],
                 "type": "object"
               }
@@ -13335,6 +17002,258 @@
         ]
       }
     },
+    "/v1/farmer/cases": {
+      "get": {
+        "operationId": "listFarmerCases",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerCaseListResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.case.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/cases/{caseId}": {
+      "get": {
+        "operationId": "getFarmerCase",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "caseId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerCaseResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "CONSENT_OR_ACCESS_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.case.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "CONSENT_OR_ACCESS_VERSION_CHANGED"
+        ]
+      }
+    },
     "/v1/farmer/consent-decisions": {
       "post": {
         "operationId": "recordConsentDecision",
@@ -14528,6 +18447,695 @@
         ]
       }
     },
+    "/v1/farmer/health-reports/{reportId}": {
+      "get": {
+        "operationId": "getFarmerHealthReport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "reportId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthReportResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.health.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/health-reports/{reportId}:submit": {
+      "post": {
+        "operationId": "submitFarmerHealthReport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          },
+          {
+            "in": "path",
+            "name": "reportId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitHealthReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthReportResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "EXPECTED_REVISION_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "HEALTH_MEDIA_UNUSABLE"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE",
+              "HEALTH_MODEL_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "health-report",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.health.submit",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "EXPECTED_REVISION_MISMATCH",
+          "HEALTH_MEDIA_UNUSABLE",
+          "HEALTH_MODEL_UNAVAILABLE",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/farmer/health-reports/{reportId}/case-sharing-decisions": {
+      "post": {
+        "operationId": "decideFarmerHealthCaseSharing",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          },
+          {
+            "in": "path",
+            "name": "reportId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealthCaseSharingDecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCaseSharingDecisionResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "EXPECTED_REVISION_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "CASE_SHARING_REQUIRED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "case-sharing",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.health.share_case",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "EXPECTED_REVISION_MISMATCH",
+          "CASE_SHARING_REQUIRED",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
+    "/v1/farmer/health-reports/{reportId}/media": {
+      "post": {
+        "operationId": "attachFarmerHealthMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          },
+          {
+            "in": "path",
+            "name": "reportId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachHealthMediaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthReportResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "EXPECTED_REVISION_MISMATCH",
+              "MEDIA_NOT_VERIFIED",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "422": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "HEALTH_MEDIA_UNUSABLE"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "health-media",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.health.write",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "EXPECTED_REVISION_MISMATCH",
+          "MEDIA_NOT_VERIFIED",
+          "HEALTH_MEDIA_UNUSABLE",
+          "IDEMPOTENCY_KEY_REUSED"
+        ]
+      }
+    },
     "/v1/farmer/my-farm": {
       "get": {
         "operationId": "getMyFarm",
@@ -15273,6 +19881,307 @@
           "GPS_PERMISSION_DENIED",
           "IDEMPOTENCY_KEY_REUSED",
           "EXPECTED_REVISION_MISMATCH"
+        ]
+      }
+    },
+    "/v1/farmer/plots/{plotId}/health": {
+      "get": {
+        "operationId": "listFarmerHealthReports",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "in": "path",
+            "name": "plotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthReportListResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "none",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.health.read",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED"
+        ]
+      }
+    },
+    "/v1/farmer/plots/{plotId}/health-reports": {
+      "post": {
+        "operationId": "saveFarmerHealthReportDraft",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/installationId"
+          },
+          {
+            "$ref": "#/components/parameters/clientBuild"
+          },
+          {
+            "$ref": "#/components/parameters/schemaVersion"
+          },
+          {
+            "$ref": "#/components/parameters/commandId"
+          },
+          {
+            "$ref": "#/components/parameters/roleContextId"
+          },
+          {
+            "$ref": "#/components/parameters/expectedRevision"
+          },
+          {
+            "in": "path",
+            "name": "plotId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealthReportDraftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthReportResponse"
+                }
+              }
+            },
+            "description": "Successful response"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Request header, path or body failed schema or value validation",
+            "x-smart-fasal-error-family": "REQUEST_VALIDATION",
+            "x-smart-fasal-validation-sources": [
+              "body",
+              "path",
+              "headers"
+            ]
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHENTICATION_REQUIRED"
+            ]
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_DENIED"
+            ]
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Command revision, idempotency hash or authorization-version conflict",
+            "x-smart-fasal-error-family": "COMMAND_CONFLICT",
+            "x-smart-fasal-problem-codes": [
+              "AUTHORIZATION_VERSION_CHANGED",
+              "EXPECTED_REVISION_MISMATCH",
+              "IDEMPOTENCY_KEY_REUSED"
+            ]
+          },
+          "428": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "A required command precondition is missing",
+            "x-smart-fasal-error-family": "PRECONDITION_REQUIRED",
+            "x-smart-fasal-required-headers": [
+              "Idempotency-Key",
+              "If-Match"
+            ]
+          },
+          "503": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            },
+            "description": "Typed request failure",
+            "x-smart-fasal-problem-codes": [
+              "DEPENDENCY_UNAVAILABLE"
+            ]
+          }
+        },
+        "security": [
+          {
+            "appCheck": [],
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "farmer"
+        ],
+        "x-data-classification": "C3",
+        "x-retention-class": "health-report",
+        "x-smart-fasal-authorization": {
+          "authentication": "farmer",
+          "capability": "farmer.health.write",
+          "denyByDefault": true,
+          "purpose": "farmer.self_service"
+        },
+        "x-smart-fasal-command": {
+          "expectedRevision": true,
+          "idempotency": true
+        },
+        "x-smart-fasal-problem-codes": [
+          "AUTHENTICATION_REQUIRED",
+          "AUTHORIZATION_DENIED",
+          "DEPENDENCY_UNAVAILABLE",
+          "AUTHORIZATION_VERSION_CHANGED",
+          "EXPECTED_REVISION_MISMATCH",
+          "IDEMPOTENCY_KEY_REUSED"
         ]
       }
     },
@@ -21253,7 +26162,12 @@
     "farmer.calendar.read",
     "farmer.today.read",
     "farmer.advisory.read",
-    "farmer.advisory.respond"
+    "farmer.advisory.respond",
+    "farmer.health.read",
+    "farmer.health.write",
+    "farmer.health.submit",
+    "farmer.health.share_case",
+    "farmer.case.read"
   ],
   "x-smart-fasal-consent-scope-registry": [
     "location.processing",

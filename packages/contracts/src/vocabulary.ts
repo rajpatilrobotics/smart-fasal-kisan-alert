@@ -114,6 +114,11 @@ export const CAPABILITY_KEYS = [
   'farmer.today.read',
   'farmer.advisory.read',
   'farmer.advisory.respond',
+  'farmer.health.read',
+  'farmer.health.write',
+  'farmer.health.submit',
+  'farmer.health.share_case',
+  'farmer.case.read',
 ] as const;
 
 export const PROBLEM_CODES = [
@@ -163,6 +168,9 @@ export const PROBLEM_CODES = [
   'ADVISORY_EXPIRED',
   'ADVISORY_DEDUPLICATED',
   'ALERT_DELIVERY_DISABLED',
+  'HEALTH_MEDIA_UNUSABLE',
+  'HEALTH_MODEL_UNAVAILABLE',
+  'CASE_SHARING_REQUIRED',
 ] as const;
 
 export const CONSENT_STATES = ['MISSING', 'ALLOWED', 'DENIED', 'EXPIRED', 'WITHDRAWN'] as const;
